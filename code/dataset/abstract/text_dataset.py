@@ -1,5 +1,6 @@
 
-from typing import List, Mapping, Iterator
+from typing import List, Tuple, Mapping, Iterator
+import abc
 
 import numpy as np
 
@@ -14,15 +15,12 @@ class TextDataset(Dataset):
     encode: Mapping[str, int]
     encode_dtype: np.unsignedinteger
 
-    def __init__(self,
-                 sources: List[str], targets: List[str],
-                 **kwargs) -> None:
-
-        # Ensure equal number of observations in sources and targets
-        assert len(sources) == len(targets)
-
+    def __init__(self, **kwargs) -> None:
         # create encoding schema
-        self._setup_encoding(sources, targets)
+        self._setup_encoding()
+
+        # extract sources and targets
+        sources, targets = zip(*self)
 
         # encode source and targets
         sources = self.encode_as_batch(sources)
@@ -31,12 +29,16 @@ class TextDataset(Dataset):
         # setup tensorflow pipeline
         super().__init__(sources, targets, **kwargs)
 
-    def _setup_encoding(self, sources, targets) -> None:
+    @abc.abstractmethod
+    def __iter__(self) -> Iterator[Tuple[str, str]]:
+        pass
+
+    def _setup_encoding(self) -> None:
 
         # find all unique chars and effective max length
         max_length = 0
         unique_chars = set()
-        for source, target in zip(sources, targets):
+        for source, target in self:
             # add source and target to the char set
             unique_chars |= set(source)
             unique_chars |= set(target)
@@ -62,7 +64,7 @@ class TextDataset(Dataset):
         # auto detect appropiate encoding type
         self.encode_dtype = size_to_signed_type(len(self.decode))
 
-    def encode_as_batch(self, corpus) -> np.ndarray:
+    def encode_as_batch(self, corpus: List[str]) -> np.ndarray:
         batch = np.empty(
             (len(corpus), self.effective_max_length),
             self.encode_dtype

@@ -21,6 +21,7 @@ text_map = np.asarray([
 
 
 class SyntheticDigits(TextDataset):
+    _examples: int
     _digits: int
     _min_length: int
     _max_length: int
@@ -32,24 +33,18 @@ class SyntheticDigits(TextDataset):
                  seed: int=None,
                  **kwargs) -> None:
 
+        self._examples = examples
         self._digits = digits
         self._min_length = min_length
         self._max_length = max_length
         self._random = np.random.RandomState(seed)
 
-        targets = []
-        sources = []
-
-        for (source, target), _ in zip(self, range(0, examples)):
-            sources.append(source)
-            targets.append(target)
-
-        super().__init__(sources, targets, **kwargs)
+        super().__init__(**kwargs)
 
     def __iter__(self) -> Iterator[Tuple[str, str]]:
         length_type = size_to_unsigned_type(self._max_length)
 
-        while True:
+        while range(self._examples):
             length = self._random.randint(
                 self._min_length, self._max_length + 1,
                 dtype=length_type

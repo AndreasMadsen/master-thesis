@@ -76,14 +76,7 @@ class WMTBilingualNews(TextDataset):
         self._min_length = min_length
         self._max_length = max_length
 
-        targets = []
-        sources = []
-
-        for source, target in self:
-            sources.append(source)
-            targets.append(target)
-
-        super().__init__(sources, targets, **kwargs)
+        super().__init__(**kwargs)
 
     def __iter__(self) -> Iterator[Tuple[str, str]]:
         with WMTEnv() as wmt_env:
