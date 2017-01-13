@@ -44,7 +44,7 @@ class SyntheticDigits(TextDataset):
     def __iter__(self) -> Iterator[Tuple[str, str]]:
         length_type = size_to_unsigned_type(self._max_length)
 
-        while range(self._examples):
+        for _ in range(self._examples):
             length = self._random.randint(
                 self._min_length, self._max_length + 1,
                 dtype=length_type
