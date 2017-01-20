@@ -6,39 +6,8 @@ import numpy as np
 
 from model.abstract.model import Model
 from dataset.abstract.text_dataset import TextDataset
-
-
-# residual block
-@stf.sg_sugar_func
-def sg_res_block(tensor, opt):
-    # default rate
-    opt += stf.sg_opt(size=3, rate=1, causal=False)
-    default_name = f"lyr-res-block-{opt.size}-{opt.rate}-{opt.causal}"
-
-    with stf.variable_scope(opt.name, default_name, [tensor]):
-        # input dimension
-        in_dim = tensor.get_shape().as_list()[-1]
-
-        # reduce dimension
-        input_ = (tensor
-                  .sg_bypass(act='relu', bn=(not opt.causal), ln=opt.causal)
-                  .sg_conv1d(size=1, dim=in_dim // 2,
-                             act='relu', bn=(not opt.causal), ln=opt.causal))
-
-        # 1xk conv dilated
-        out = input_.sg_aconv1d(size=opt.size, rate=opt.rate,
-                                causal=opt.causal,
-                                act='relu', bn=(not opt.causal), ln=opt.causal)
-
-        # dimension recover and residual connection
-        out = out.sg_conv1d(size=1, dim=in_dim) + tensor
-
-        return out
-
-
-# TODO: kill this
-# inject residual multiplicative block
-stf.sg_inject_func(sg_res_block)
+from tf_operator \
+    import parallel_decoder_residual_block, parallel_encoder_residual_block
 
 
 class ByteNet(Model):
@@ -76,12 +45,11 @@ class ByteNet(Model):
             # loop dilated conv block
             for i in range(self.num_blocks):
                 with stf.name_scope(None, "lyr-encoder", values=[enc]):
-                    enc = (enc
-                           .sg_res_block(size=5, rate=1)
-                           .sg_res_block(size=5, rate=2)
-                           .sg_res_block(size=5, rate=4)
-                           .sg_res_block(size=5, rate=8)
-                           .sg_res_block(size=5, rate=16))
+                    enc = parallel_encoder_residual_block(enc, size=5, rate=1)
+                    enc = parallel_encoder_residual_block(enc, size=5, rate=2)
+                    enc = parallel_encoder_residual_block(enc, size=5, rate=4)
+                    enc = parallel_encoder_residual_block(enc, size=5, rate=8)
+                    enc = parallel_encoder_residual_block(enc, size=5, rate=16)
 
         #
         # decode graph ( causal convolution )
@@ -92,12 +60,11 @@ class ByteNet(Model):
             # loop dilated causal conv block
             for i in range(self.num_blocks):
                 with stf.name_scope(None, "lyr-decoder", values=[dec]):
-                    dec = (dec
-                           .sg_res_block(size=3, rate=1, causal=True)
-                           .sg_res_block(size=3, rate=2, causal=True)
-                           .sg_res_block(size=3, rate=4, causal=True)
-                           .sg_res_block(size=3, rate=8, causal=True)
-                           .sg_res_block(size=3, rate=16, causal=True))
+                    dec = parallel_decoder_residual_block(dec, size=3, rate=1)
+                    dec = parallel_decoder_residual_block(dec, size=3, rate=2)
+                    dec = parallel_decoder_residual_block(dec, size=3, rate=4)
+                    dec = parallel_decoder_residual_block(dec, size=3, rate=8)
+                    dec = parallel_decoder_residual_block(dec, size=3, rate=16)
 
             # final fully convolution layer for softmax
             return dec.sg_conv1d(size=1, dim=self.dataset.vocabulary_size)
