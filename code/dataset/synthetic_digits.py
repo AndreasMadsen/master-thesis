@@ -29,7 +29,7 @@ class SyntheticDigits(TextDataset):
 
     def __init__(self, examples: int=100,
                  digits: int=10,
-                 min_length: int=2, max_length: int=10,
+                 min_length: int=2, max_length: int=3,
                  seed: int=None,
                  **kwargs) -> None:
 
