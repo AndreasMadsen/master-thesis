@@ -74,7 +74,7 @@ def test_equal_output():
             name=weight_scope, reuse=True
         )
 
-        # apply seq_causal_residual_block to all time steps
+        # apply seq_decoder_residual_block to all time steps
         def scan_op(acc, xt):
             (previous, _) = acc
             previous, out = seq_decoder_residual_block(

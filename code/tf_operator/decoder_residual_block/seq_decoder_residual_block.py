@@ -2,20 +2,21 @@
 import tensorflow as tf
 import sugartensor as stf
 
-from tf_operator.decoder_residual_block.seq_dense \
-    import seq_dense
+from tf_operator.seq_dense import seq_dense
 from tf_operator.decoder_residual_block.seq_causal_aconv1d \
     import seq_causal_aconv1d
 
 
 def seq_decoder_residual_block_init(tensor,
+                                    in_dim=None,
                                     size=3, rate=1):
     default_name = f"lyr-seq-decoder-res-block-{size}-{rate}-init"
 
     with tf.name_scope(None, default_name, [tensor]):
         # input dimension
-        in_dim = tensor.get_shape().as_list()[-1]
         batches = tf.shape(tensor)[0]
+        if in_dim is None:
+            in_dim = tensor.get_shape().as_list()[-1]
 
         # create zero array
         previous_size = (size - 1) * rate
