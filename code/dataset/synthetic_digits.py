@@ -1,5 +1,5 @@
 
-from typing import Iterator, Tuple
+from typing import Iterator, Tuple, FrozenSet
 
 import numpy as np
 
@@ -26,6 +26,7 @@ class SyntheticDigits(TextDataset):
     _min_length: int
     _max_length: int
     _random: np.random.RandomState
+    _dataset: Tuple[Tuple[str, str]]
 
     def __init__(self, examples: int=100,
                  digits: int=10,
@@ -39,9 +40,17 @@ class SyntheticDigits(TextDataset):
         self._max_length = max_length
         self._random = np.random.RandomState(seed)
 
-        super().__init__(**kwargs)
+        self._dataset = tuple(self._build_dataset())
 
-    def __iter__(self) -> Iterator[Tuple[str, str]]:
+        super().__init__(vocabulary=self._build_vocabulary(), **kwargs)
+
+    def _build_vocabulary(self) -> FrozenSet[str]:
+        source = ''.join(text_map)
+        source_special = ' '
+        target = ''.join(np.arange(0, self._digits).astype(np.str))
+        return frozenset(source + source_special + target)
+
+    def _build_dataset(self) -> Iterator[Tuple[str, str]]:
         length_type = size_to_unsigned_type(self._max_length)
 
         for _ in range(self._examples):
@@ -60,3 +69,6 @@ class SyntheticDigits(TextDataset):
             source_str = ' '.join(source)
 
             yield (source_str, target_str)
+
+    def __iter__(self) -> Iterator[Tuple[str, str]]:
+        return iter(self._dataset)
