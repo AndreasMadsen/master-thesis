@@ -8,7 +8,7 @@ from model import ByteNet
 # set log level to debug
 stf.sg_verbosity(10)
 
-dataset = SyntheticDigits(batch_size=16, examples=10, seed=99)
+dataset = SyntheticDigits(examples=10, consistent=True, seed=99)
 model = ByteNet(dataset, num_blocks=3, latent_dim=20)
 
 export = ExportDataset(dataset)

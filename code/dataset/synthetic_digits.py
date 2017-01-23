@@ -42,7 +42,10 @@ class SyntheticDigits(TextDataset):
 
         self._dataset = tuple(self._build_dataset())
 
-        super().__init__(vocabulary=self._build_vocabulary(), **kwargs)
+        super().__init__(
+            vocabulary=self._build_vocabulary(),
+            seed=seed, **kwargs
+        )
 
     def _build_vocabulary(self) -> FrozenSet[str]:
         source = ''.join(text_map)
