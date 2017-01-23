@@ -16,13 +16,16 @@ from tf_operator import \
 class ByteNet(Model):
     latent_dim: int
     num_blocks: int
+    _save_dir: str
 
     def __init__(self, dataset: TextDataset,
-                 latent_dim: int=400, num_blocks: int=3) -> None:
+                 latent_dim: int=400, num_blocks: int=3,
+                 save_dir='asset/bytenet') -> None:
         super().__init__(dataset)
 
         self.latent_dim = latent_dim
         self.num_blocks = num_blocks
+        self._save_dir = save_dir
 
     def _build_train_model(self,
                            x: tf.Tensor, y: tf.Tensor,
@@ -270,16 +273,17 @@ class ByteNet(Model):
                      loss=loss,
                      ep_size=self.dataset.num_batch,
                      max_ep=max_ep,
-                     early_stop=False)
+                     early_stop=False,
+                     save_dir=self._save_dir)
 
-    def predict(self, sources) -> List[str]:
+    def predict(self, sources, reuse=False) -> List[str]:
         sources = self.dataset.encode_as_batch(sources)
         predict_shape = (sources.shape[0], self.dataset.effective_max_length)
 
         # get source and target tensors
         x = stf.placeholder(dtype=stf.int32, shape=sources.shape)
 
-        label = self._build_test_model(x)
+        label = self._build_test_model(x, reuse=reuse)
 
         # run graph for translating
         with tf.Session() as sess:
@@ -290,7 +294,7 @@ class ByteNet(Model):
             saver = tf.train.Saver()
             saver.restore(
                 sess,
-                tf.train.latest_checkpoint('asset/train/ckpt')
+                tf.train.latest_checkpoint(self._save_dir + '/ckpt')
             )
 
             pred = sess.run(label, {x: sources})

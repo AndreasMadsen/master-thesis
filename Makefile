@@ -6,4 +6,5 @@ test:
 		code/tf_operator/decoder_residual_block/test/*.py \
 		code/tf_operator/encoder_residual_block/test/*.py \
 		code/tf_operator/seq_dense/test/*.py \
+		code/model/test/*.py
 		code/dataset/test/*.py
