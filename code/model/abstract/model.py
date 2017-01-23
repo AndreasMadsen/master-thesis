@@ -13,3 +13,7 @@ class Model:
     @abc.abstractmethod
     def train(self) -> None:
         pass
+
+    @abc.abstractmethod
+    def predict(self) -> None:
+        pass
