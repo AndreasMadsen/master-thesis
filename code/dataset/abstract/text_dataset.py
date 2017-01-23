@@ -92,14 +92,15 @@ class TextDataset(Dataset):
             count=self.effective_max_length
         )
 
-    def decode_as_str(self, encoded: np.ndarray) -> str:
+    def decode_as_str(self, encoded: np.ndarray, show_eos: bool=True) -> str:
         decoded = ''
         for code in encoded:
-            decoded += self.decode[code]
+            if code != 1 or show_eos:
+                decoded += self.decode[code]
             if code == 1:
                 break
 
         return decoded
 
-    def decode_as_batch(self, encoded: np.ndarray) -> List[str]:
-        return [self.decode_as_str(row) for row in encoded]
+    def decode_as_batch(self, encoded: np.ndarray, **kwargs) -> List[str]:
+        return [self.decode_as_str(row, **kwargs) for row in encoded]
