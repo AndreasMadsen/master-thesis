@@ -1,0 +1,28 @@
+%!TEX root = ../Thesis.tex 
+\thispagestyle{empty}             % No page numbers
+\calccentering{\unitlength}
+\begin{adjustwidth*}{\unitlength}{-\unitlength}
+    \begin{adjustwidth}{-0.5cm}{-0.5cm}
+        \sffamily
+        \begin{flushright}
+            \thesistypeabbr{} Thesis\\*[0cm]
+            \thesistype{}\\
+        \end{flushright}
+        \vspace*{\fill}
+        \noindent
+        \includegraphics[width=0.75\textwidth]{DTU-Compute-B-UK}\\*[0.5cm]
+        \resizebox{1.08\textwidth}{!}{%
+          \Huge \thesistitle{}
+        }\\*[0.2cm]
+        \LARGE \thesissubtitle{}\\*[1.2cm]
+        \parbox[b]{0.5\linewidth}{%
+            \large 
+            \thesisauthor{}\\*[1.2cm]
+            \normalsize
+            \thesislocation{} \the\year
+        }
+        \hfill\includegraphics[scale=0.7]{DTU-logo-CMYK}
+    \end{adjustwidth}
+\end{adjustwidth*}
+\normalfont
+\normalsize

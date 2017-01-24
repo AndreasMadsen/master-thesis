@@ -1,0 +1,172 @@
+%!TEX root = ../Thesis.tex
+\newcommand{\papersizeswitch}[3]{\ifnum\strcmp{\papersize}{#1}=0#2\else#3\fi}
+\papersizeswitch{b5paper}{\def\classfontsize{10pt}}{\def\classfontsize{12pt}}
+
+\documentclass[\classfontsize,\papersize,twoside,showtrims,openany]{memoir}
+\RequireXeTeX
+% DOCUMENTATION: https://tug.org/pracjourn/2008-2/madsen/madsen.pdf
+
+\showtrimsoff
+\papersizeswitch{b5paper}{
+    % Stock and paper layout
+    \pagebv
+    \setlrmarginsandblock{26mm}{20mm}{*}
+    \setulmarginsandblock{35mm}{30mm}{*}
+    \setheadfoot{8mm}{10mm}
+    \setlength{\headsep}{7mm}
+    \setlength{\marginparwidth}{18mm}
+    \setlength{\marginparsep}{2mm}
+}{
+    \papersizeswitch{a4paper}{
+        \pageaiv
+        \setlength{\trimtop}{0pt}
+        \setlength{\trimedge}{\stockwidth}
+        \addtolength{\trimedge}{-\paperwidth}
+        \settypeblocksize{634pt}{448.13pt}{*}
+        \setulmargins{4cm}{*}{*}
+        \setlrmargins{*}{*}{0.66}
+        \setmarginnotes{17pt}{51pt}{\onelineskip}
+        \setheadfoot{\onelineskip}{2\onelineskip}
+        \setheaderspaces{*}{2\onelineskip}{*}
+    }{
+    }
+}
+\ifnum\strcmp{\showtrims}{true}=0
+    % For printing B5 on A4 with trimmarks
+    \showtrimson
+    \papersizeswitch{b5paper}{\stockaiv}{\stockaiii}
+    \setlength{\trimtop}{\stockheight}
+    \addtolength{\trimtop}{-\paperheight}
+    \setlength{\trimtop}{0.5\trimtop}
+    \setlength{\trimedge}{\stockwidth}
+    \addtolength{\trimedge}{-\paperwidth}
+    \setlength{\trimedge}{0.5\trimedge}
+    \trimLmarks
+\fi
+
+\checkandfixthelayout                 % Check if errors in paper format!
+\sideparmargin{outer}                 % Put sidemargins in outer position
+\reversemarginpar			        % Put marginpar in outer position
+
+% Links
+\usepackage[hyphens]{url}             % Allow hyphens in URL's
+\usepackage[psdextra]{hyperref}       % References package
+
+% Graphics and colors
+\usepackage{graphicx}                 % Including graphics and using colours
+\usepackage[svgnames]{xcolor}         % Defined more color names
+\usepackage{eso-pic}                  % Watermark and other bag
+\usepackage{preamble/dtucolors}
+\graphicspath{{graphics/}}
+
+% Table of contents (TOC)
+\setcounter{tocdepth}{1}              % Depth of table of content
+\setcounter{secnumdepth}{2}           % Depth of section numbering
+
+% Paragraph style (no indent and space between pragraphs)
+\setlength{\parindent}{0pt}
+\setlength{\marginparwidth}{50pt} 
+\nonzeroparskip
+
+\newcommand{\marginnote}[1]{\marginpar{\footnotesize{#1}}}
+
+% Definea hrule there doesn't depend on the chars, used in the mychaperstyle  
+\newcommand{\HRule}[1][\medskipamount]{\par
+  \vspace*{\dimexpr-\parskip-\baselineskip+#1}
+  \noindent\rule{\linewidth}{0.2mm}\par
+  \vspace*{\dimexpr-\parskip-.5\baselineskip+#1}}
+
+% Chapterstyle
+\makeatletter
+\makechapterstyle{mychapterstyle}{
+    \chapterstyle{default}
+    \def\format{\normalfont\sffamily}
+
+    \setlength\beforechapskip{0mm}
+
+    \renewcommand*{\chapnamefont}{\format\LARGE}
+    \renewcommand*{\chapnumfont}{\format\fontsize{40}{40}\selectfont}
+    \renewcommand*{\chaptitlefont}{\format\fontsize{32}{32}\selectfont}
+
+    \renewcommand*{\printchaptername}{\chapnamefont\MakeUppercase{\@chapapp}}
+    \patchcommand{\printchaptername}{\begingroup\color{dtugray}}{\endgroup}
+    \renewcommand*{\chapternamenum}{\space\space}
+    \patchcommand{\printchapternum}{\begingroup\color{dtured}}{\endgroup}
+    \renewcommand*{\printchapternonum}{%
+        \vphantom{\printchaptername\chapternamenum\chapnumfont 1}
+        \afterchapternum
+    }
+
+    \setlength\midchapskip{1ex}
+
+    \renewcommand*{\printchaptertitle}[1]{\raggedleft \chaptitlefont ##1}
+    \renewcommand*{\afterchaptertitle}{\vskip0.5\onelineskip \HRule[5pt] \vskip1.3\onelineskip}
+}
+\makeatother
+\chapterstyle{mychapterstyle}
+
+% Section style
+\usepackage{titlesec}
+\maxsecnumdepth{subsection} % numbering on subsection
+\maxtocdepth{subsection}
+\titleformat*{\section}{\LARGE\bfseries}
+\titleformat*{\subsection}{\Large\bfseries}
+\titleformat*{\subsubsection}{\large\bfseries}
+\titleformat*{\paragraph}{\large\bfseries}
+\titleformat*{\subparagraph}{\large\bfseries}
+
+% header and footer
+\setlength{\headwidth}{\textwidth}
+\pagestyle{companion}
+\aliaspagestyle{chapter}{plain}
+
+% Chapter changes
+\newcommand*\cleartoleftpage{%
+  \clearpage
+  \ifodd\value{page}\hbox{}\newpage\fi
+}
+
+% Create a caption box for equations
+% http://tex.stackexchange.com/questions/97029/referencing-equation-counter-value-in-custom-float-caption
+\usepackage{aliascnt}
+\usepackage{float}
+\newaliascnt{equationbox}{equation}
+\newfloat{equationbox}{h}{Equation}
+\floatname{equationbox}{Equation}
+
+% Bold caption labels
+\usepackage[labelfont=bf]{caption}
+\makeatletter
+\renewcommand\@memmain@floats{%
+  \counterwithin{equation}{section}
+  \counterwithin{equationbox}{section}
+  \counterwithin{figure}{section}
+  \counterwithin{table}{section}}
+\makeatother
+
+% Hypersetup
+\hypersetup{
+    pdfauthor={\thesisauthor{}},
+    pdftitle={\thesistitle{}},
+    pdfsubject={\thesissubtitle{}},
+    pdfdisplaydoctitle,
+    linktoc=all,
+    plainpages=false,
+    unicode=true,
+    bookmarks,
+    bookmarksnumbered,
+    bookmarksdepth=2,
+    hidelinks,
+}
+
+% DTU frieze
+\newcommand{\frieze}{%
+    \AddToShipoutPicture*{
+        \put(0,0){
+            \parbox[b][\paperheight]{\paperwidth}{%
+                \includegraphics[trim=130mm 0 0 0,width=0.9\textwidth]{DTU-frise-SH-15}
+                \vspace*{2.5cm}
+            }
+        }
+    }
+}

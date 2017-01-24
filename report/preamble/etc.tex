@@ -1,0 +1,25 @@
+%!TEX root = ../Thesis.tex
+
+\usepackage{mathtools}    % Det meste matematik (indeholder ams­math og rettelser)
+\usepackage{amssymb}
+\usepackage{xfrac}        % Flere fracs (\sfrac{}{})
+\usepackage{listings}     % Indsæt code
+\usepackage{todonotes}    % Cool to-do notes, [disable] skjuler to-dos
+\usepackage[backend=biber,bibstyle=ieee,citestyle=numeric-comp]{biblatex} % Benyt BibLaTeX til formatering
+\usepackage{subcaption}   % Tillader subfigure, subtable samt \captions
+
+%listing settings, æøå support, font config, line number, left lines
+\lstset{
+    breakatwhitespace=false, breaklines=true,
+    inputencoding=utf8, extendedchars=true,
+    literate={å}{{\aa}}1 {æ}{{\ae}}1 {ø}{{\o}}1 {Å}{{\AA}}1 {Æ}{{\AE}}1 {Ø}{{\O}}1,
+    keepspaces=true, showstringspaces=false, basicstyle=\small\ttfamily,
+    frame=L, numbers=left, numberstyle=\scriptsize\color{gray},
+    keywordstyle=\color{SteelBlue}\ttfamily,
+    stringstyle=\color{IndianRed}\ttfamily,
+    commentstyle=\color{Teal}\ttfamily,
+} 
+
+\DeclareGraphicsExtensions{.pdf,.eps,.png,.jpg,.gif}	% ændre til .png, .jpg for hurtig visning
+
+\newcommand\defeq{\mathrel{\overset{\makebox[0pt]{\mbox{\tiny def}}}{=}}}
