@@ -1,0 +1,73 @@
+\chapter{Backward Pass}
+
+\section{Batch Normalization}
+\label{appendix:backward-pass:batch-norm}
+
+To derive the backward pass for batch normalization it helps to setup equations for $\mathbb{E}[z_{h_\ell}]$ and $\textsc{Var}[z_{h_\ell}]$. To do this we need to reintroduce the observation index this time it will be denoted with the superscript $(i)$. Similarly the minibatch will be denoted with $\mathcal{B}$. With these chanhes the the full forward pass can be writen as:
+\begin{equationbox}[H]
+Activation:
+\begin{equation*}
+\begin{aligned}
+z_{h_\ell}^{(i)} &= \sum_{h_{\ell-1}}^{H_{\ell-1}} w_{h_{\ell-1},h_\ell} a_{h_\ell-1}^{(i)} \\
+\hat{z}_{h_\ell}^{(i)} &= \gamma_{h_\ell} \frac{z_{h_\ell}^{(i)} - \mu_{h_\ell}^{\mathcal{B}}}{\sqrt{\sigma_{h_\ell}^{2,\mathcal{B}} + \epsilon}} + \beta_{h_\ell} \\
+a_{h_\ell}^{(i)} &= \theta\left(z_{h_\ell}^{(i)}\right)
+\end{aligned}
+\end{equation*}
+Statistics:
+\begin{equation*}
+\begin{aligned}
+\mu_{h_\ell}^{\mathcal{B}} &= \frac{1}{n} \sum_{i=1}^n z_{h_\ell}^{(i)} \\
+\sigma_{h_\ell}^{2, \mathcal{B}} &= \frac{1}{n} \sum_{i=1}^n (z_{h_\ell}^{(i)} - \mu_{h_\ell}^{\mathcal{B}})^2
+\end{aligned}
+\end{equation*}
+\caption{Forward equations for Batch Normalization.}
+\end{equationbox}
+
+Now that the forward pass is stated explicitly, the backward pass can be derived. For the backward pass we which to derive:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}},\quad \frac{\partial \mathcal{L}}{\partial \gamma_{h_\ell}},\quad \frac{\partial \mathcal{L}}{\partial \beta_{h_\ell}}
+\end{equation}
+
+The gradient with respect to the weight $w_{h_{\ell-1},h_\ell}$ hasn't changed:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial w_{h_{\ell-1},h_\ell}} = \delta_{h_\ell} a_{h_{\ell-1}}
+\end{equation}
+
+The $\delta_{h_\ell}$ however has changed quite significantly:
+\begin{equation}
+\begin{aligned}
+\delta_{h_\ell}^{(i)} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}^{(i)}} &= \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \frac{\partial \hat{z}_{h_\ell}^{(i)}}{\partial z_{h_\ell}^{(i)}} + \frac{\partial \mathcal{L}}{\partial \sigma_{h_\ell}^{2,\mathcal{B}}} \frac{\partial \sigma_{h_\ell}^{2,\mathcal{B}}}{\partial z_{h_\ell}^{(i)}} + \frac{\partial \mathcal{L}}{\partial \mu_{h_\ell}^{\mathcal{B}}} \frac{\partial \mu_{h_\ell}^{\mathcal{B}}}{\partial z_{h_\ell}^{(i)}} \\
+&= \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \frac{\gamma_{h_\ell}}{\sqrt{\sigma_{h_\ell}^{2, \mathcal{B}} + \epsilon}} + \frac{\partial \mathcal{L}}{\partial \sigma_{h_\ell}^{2,\mathcal{B}}} \frac{2}{n}\left(z_{h_\ell}^{(i)} - \mu_{h_\ell}^{\mathcal{B}}\right) + \frac{\partial \mathcal{L}}{\partial \mu_{h_\ell}^{\mathcal{B}}} \frac{1}{n}
+\end{aligned}
+\label{eq:appendix:batch-norm:delta}
+\end{equation}
+
+From \eqref{eq:appendix:batch-norm:delta} the following derivatives also needs to be derived:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}}, \quad \frac{\partial \mathcal{L}}{\partial \sigma_{h_\ell}^{2,\mathcal{B}}}, \quad \frac{\partial \mathcal{L}}{\partial \mu_{h_\ell}^{\mathcal{B}}}
+\end{equation}
+
+As with everything else this is done by using the chain rule:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} = \frac{\partial \mathcal{L}}{\partial a_{h_\ell}^{(i)}} \frac{\partial a_{h_\ell}^{(i)}}{\partial \hat{z}_{h_\ell}^{(i)}} = \theta'(\hat{z}_{h_\ell}^{(i)}) \frac{\partial\mathcal{L}}{\partial a_{h_\ell}^{(i)}} = \theta'(\hat{z}_{h_\ell}^{(i)}) \sum_{h_{\ell+1}}^{H_{\ell+1}} \delta_{h_{\ell+1}} w_{h_\ell, h_{\ell+1}}
+\end{equation}
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \sigma_{h_\ell}^{2,\mathcal{B}}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \frac{\partial \hat{z}_{h\ell}^{(i)}}{\partial \sigma_{h_\ell}^{2, \mathcal{B}}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \gamma_{h_\ell} \left(z_{h_\ell}^{(i)} - \mu_{h_\ell}^{\mathcal{B}}\right) \left(-\frac{1}{2}\right) \left(\sigma_{h_\ell}^{\mathcal{B}} + \epsilon\right)^{-\frac{2}{3}}
+\end{equation}
+\begin{equation}
+\begin{aligned}
+\frac{\partial \mathcal{L}}{\partial \mu_{h_\ell}^{\mathcal{B}}} &= \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \frac{\partial \hat{z}_{h_\ell}^{(i)}}{\mu_{h_\ell}^{\mathcal{B}}} + \frac{\partial \mathcal{L}}{\partial \sigma_{h_\ell}^{2, \mathcal{B}}} \frac{\partial \sigma_{h_\ell}^{2, \mathcal{B}}}{\mu_{h_\ell}^{\mathcal{B}}} \\
+&= \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \left(- \frac{1}{\sqrt{\sigma_{h_\ell}^{(i)}}}\right) + \frac{\partial \mathcal{L}}{\partial \sigma_{h_\ell}^{2, \mathcal{B}}} \frac{1}{n} \sum_{i=1}^n -2 \left(z_{h_\ell}^{(i)} - \mu_{h_\ell}^{\mathcal{B}}\right)
+\end{aligned}
+\end{equation}
+
+Finally the gradient with respect to $\gamma_{h_\ell}$ and $\beta_{h_\ell}$ can be derived:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \gamma_{h_\ell}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \frac{\partial \hat{z}_{h_\ell}^{(i)}}{\partial \gamma_{h_\ell}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \left(\frac{z_{h_\ell}^{(i)} - \mu_{h_\ell}^{\mathcal{B}}}{\sqrt{\sigma_{h_\ell}^{2, \mathcal{B}} + \epsilon}} \right)
+\end{equation}
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \beta_{h_\ell}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \frac{\partial \hat{z}_{h_\ell}^{(i)}}{\partial \beta_{h_\ell}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}}
+\end{equation}
+
+These only depend on $\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}}$ which has already been derived.
+
