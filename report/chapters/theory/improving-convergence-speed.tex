@@ -12,9 +12,9 @@ This standaridization places the input to the sigmoid activation function in its
 
 Consider a neural network with just one hidden layers:
 \begin{equation}
-\mathcal{L}(\mathbf{t}, \mathbf{W}_2 \sigma(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2)
+\mathcal{L}(\mathbf{t}, \mathbf{W}_2 \theta(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2)
 \end{equation}
-where $\sigma$ is the activation function. When optimizing the loss function, the parameters $\mathbf{W}_1, \mathbf{W}_2, \mathbf{b}_1$ and $\mathbf{b}_2$ are all optimized simultaneously. Futhermore the optimization of $\mathbf{W}_2, \mathbf{b}_2$ does directly depend on $\sigma(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1)$ though the error term. This becomes and issue when the distribution of $\sigma(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1)$ changes, because the updated $\mathbf{W}_2$ and $\mathbf{b}_2$ assumes the original distribution. This change of the distribution of the internal activations is called an \textit{internal covariate shift}. \cite{batch-normalization}.
+When optimizing the loss function, the parameters $\mathbf{W}_1, \mathbf{W}_2, \mathbf{b}_1$ and $\mathbf{b}_2$ are all optimized simultaneously. Futhermore the optimization of $\mathbf{W}_2, \mathbf{b}_2$ does directly depend on $\theta(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1)$ though the error term. This becomes and issue when the distribution of $\theta(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1)$ changes, because the updated $\mathbf{W}_2$ and $\mathbf{b}_2$ assumes the original distribution. This change of the distribution of the internal activations is called an \textit{internal covariate shift}. \cite{batch-normalization}.
 
 The \textit{internal covariate shift} issue can be ilustrated by considering a scalar $a = w x + b \sim \mathcal{N}(b, w)$, as it would appear in a very simple neural network, the sigmoid activation function is the applied on $\mathcal{N}(b, w)$ by using the \textit{change of variable theorem}. Using this one can change $w$ and $b$ and observe how the sigmoid activation distribution changes (Figure \ref{fig:batch-norm-activation-distribution}).
 
@@ -28,7 +28,7 @@ The \textit{internal covariate shift} issue can be ilustrated by considering a s
 \subsubsection{A solution}
 The \textit{internal covariate shift} issue can in practis be solved by using a small learning rate, however this is not an optimal solution as it prolongs the optimization. Batch Normalization is an alternative solution, that solves the issue by standardizing the input to the activation function. To truly standardize this input the convariance matrix, as well as its inverse square root should be calculated, this is very expensive thus Batch Normalization makes a pratical compromise by only standardizing using the variance.
 \begin{equation}
-\hat{z}_{h_\ell} = \frac{z_{h_\ell} - \mathbb{E}[z_{h_\ell}]}{\sqrt{\textsc{Var}[z_{h_\ell}]}}, a_{h_\ell} = \sigma(\hat{z}_{h_\ell})
+\hat{z}_{h_\ell} = \frac{z_{h_\ell} - \mathbb{E}[z_{h_\ell}]}{\sqrt{\textsc{Var}[z_{h_\ell}]}}, a_{h_\ell} = \theta(\hat{z}_{h_\ell})
 \end{equation}
 
 The expectation ($\mathbb{E}[z_{h_\ell}]$) and variance ($\textsc{Var}[z_{h_\ell}]$) themself are expensive to estimate over the entire dataset, thus it's only done over each mini-batch. This also makes it much more feasable to integrate the standardization into the backward pass. Note also that because the expectation is substracted, the bias $b_{h_\ell}$ in $z_{h_\ell}$ has no effect and should thus be obmitted:
@@ -60,7 +60,7 @@ The inference should be determinstic once training is done, thus the ideal solut
 At inference $\hat{z}_{h_\ell}$ are then calculated using $\sigma^2_{\mathcal{B}_i}$ and $\mu_{\mathcal{B}_i}$.
 
 \begin{equation}
-\hat{z}_{h_\ell} = \gamma_{h_\ell} \frac{z_{h_\ell} - \mu_{\mathcal{B}_i}}{\sqrt{\sigma^2_{\mathcal{B}_i}}} + \beta_{h_\ell}, a_{h_\ell} = \sigma(\hat{z}_{h_\ell})
+\hat{z}_{h_\ell} = \gamma_{h_\ell} \frac{z_{h_\ell} - \mu_{\mathcal{B}_i}}{\sqrt{\sigma^2_{\mathcal{B}_i}}} + \beta_{h_\ell}, a_{h_\ell} = \theta(\hat{z}_{h_\ell})
 \end{equation}
 
 \subsubsection{Weight sharing network}
