@@ -33,7 +33,7 @@ def test_bytenet_on_digits():
     stf.set_random_seed(99)
     model = ByteNet(dataset, num_blocks=1, latent_dim=20,
                     save_dir='asset/bytenet-local-quick-test')
-    model.train(max_ep=150, lr=0.1, tqdm=False)
+    model.train(max_ep=200, lr=0.1, tqdm=False)
     test_predict = model.predict(test_source, reuse=True)
 
     assert_equal(test_predict, test_expect)
