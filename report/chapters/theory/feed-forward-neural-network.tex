@@ -42,14 +42,14 @@ The \textit{forward pass} is simply calculated by applying the neuron function t
 \begin{equation}
 \begin{aligned}
 a_{h_\ell} &= \theta(z_{h_\ell}), && \forall h_{\ell} \in [1, H_{\ell}], \ell \in [1, L] \\
-z_{h_\ell} &= \sum_{h_{\ell-1} = 1}^{H_{\ell-1}} w_{h_{\ell-1}, h_{\ell}} z_{h_{\ell-1}} + b_{h_{\ell}}, && \forall \ell \in [1, L+1] \text{ where: } z_{h_0} = x_i, H_0 = I \\
+z_{h_\ell} &= \sum_{h_{\ell-1} = 1}^{H_{\ell-1}} w_{h_{\ell-1}, h_{\ell}} a_{h_{\ell-1}} + b_{h_{\ell}}, && \forall \ell \in [1, L+1] \text{ where: } a_{h_0} = x_i, H_0 = I \\
 \end{aligned}
 \end{equation}
 
 Note that the last layer $\ell = L + 1$ does not use the non-linear transformation function $\theta$, instead it uses the softmax function.
 \begin{equation}
 \begin{aligned}
-y_k = \frac{\exp(z_k)}{\sum_{k'=1}^K \exp(z_{k'})}, && \forall k \in [1, K] \text{ where: } a_k=a_{h_{L+1}}, K = H_{L + 1}
+y_k = \frac{\exp(z_k)}{\sum_{k'=1}^K \exp(z_{k'})}, && \forall k \in [1, K] \text{ where: } z_k=z_{h_{L+1}}, K = H_{L + 1}
 \end{aligned}
 \label{eq:theory:ffnn:y}
 \end{equation}
@@ -99,7 +99,7 @@ The main trick in \textit{error backpropagation} is to define the partial deriva
 Using this defintion the chain rule can be applied on \eqref{eq:theory:ffnn:bprop-problem}:
 \begin{equation}
 \begin{align}
-\frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1}, h_\ell}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial w_{h_{\ell-1}, h_\ell}} &&= \delta_{h_\ell} z_{h_{\ell-1}},&& \forall \ell \in [1, L+1],\quad z_{h_0} = x_i \\
+\frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1}, h_\ell}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial w_{h_{\ell-1}, h_\ell}} &&= \delta_{h_\ell} a_{h_{\ell-1}},&& \forall \ell \in [1, L+1],\quad a_{h_0} = x_i \\
 \frac{\partial \mathcal{L}}{\partial b_{h_\ell}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial b_{h_\ell}} &&= \delta_{h_\ell},&& \forall \ell \in [1, L+1]
 \end{align}
 \end{equation}
