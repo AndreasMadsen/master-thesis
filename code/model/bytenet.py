@@ -254,7 +254,7 @@ class ByteNet(Model):
 
                 return tf.transpose(labels, perm=[1, 0])
 
-    def train(self, max_ep=20):
+    def train(self, max_ep=20, lr=0.0001, **kwargs):
         with tf.name_scope(None, "preprocessing",
                            values=[self.dataset.source, self.dataset.target]):
             # get source and target tensors
@@ -268,13 +268,17 @@ class ByteNet(Model):
             loss = dec.sg_ce(target=y, mask=True)
 
         # train
-        stf.sg_train(log_interval=30,
-                     lr=0.0001,
-                     loss=loss,
-                     ep_size=self.dataset.num_batch,
-                     max_ep=max_ep,
-                     early_stop=False,
-                     save_dir=self._save_dir)
+        sess_config = tf.ConfigProto(allow_soft_placement=True)
+        with tf.Session(config=sess_config) as sess:
+            stf.sg_train(log_interval=30,
+                         lr=lr,
+                         loss=loss,
+                         ep_size=self.dataset.num_batch,
+                         max_ep=max_ep,
+                         early_stop=False,
+                         save_dir=self._save_dir,
+                         sess=sess,
+                         **kwargs)
 
     def predict(self, sources, reuse=False) -> List[str]:
         sources = self.dataset.encode_as_batch(sources)
@@ -291,11 +295,7 @@ class ByteNet(Model):
             stf.sg_init(sess)
 
             # restore parameters
-            saver = tf.train.Saver()
-            saver.restore(
-                sess,
-                tf.train.latest_checkpoint(self._save_dir + '/ckpt')
-            )
+            stf.sg_restore(sess, tf.train.latest_checkpoint(self._save_dir))
 
             pred = sess.run(label, {x: sources})
 

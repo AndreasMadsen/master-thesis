@@ -4,13 +4,14 @@
 export PYTHONPATH=./code
 XELATEX=xelatex -file-line-error -interaction=nonstopmode
 
+# --with-process-isolation is a plugin from "nosepipe"
 test:
-	nosetests --nologcapture -v -s \
-		code/tf_operator/decoder_residual_block/test/*.py \
-		code/tf_operator/encoder_residual_block/test/*.py \
-		code/tf_operator/seq_dense/test/*.py \
-		code/model/test/*.py
-		code/dataset/test/*.py
+	cd code && nosetests --nologcapture --with-process-isolation -v -s \
+		tf_operator/decoder_residual_block/test/*.py \
+		tf_operator/encoder_residual_block/test/*.py \
+		tf_operator/seq_dense/test/*.py \
+		model/test/*.py \
+		dataset/test/*.py
 
 report: report/thesis.tex
 	cd report && latexmk -pdf -pdflatex="$(XELATEX)" -use-make thesis.tex

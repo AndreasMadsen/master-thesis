@@ -25,7 +25,7 @@ def tensorflow_extract(dataset):
 def test_output_order():
     """ensure that Dataset order is consistent"""
     dataset = SyntheticDigits(
-        examples=10, seed=99, consistent=True
+        examples=10, seed=99, shuffle=False
     )
     actual = list(dataset)
 
@@ -46,7 +46,7 @@ def test_output_order():
 def test_all_examples_exposed():
     """ensure all examples are exposed"""
     dataset = SyntheticDigits(
-        examples=10, consistent=True, seed=99
+        examples=10, seed=99, shuffle=False
     )
     actual = tensorflow_extract(dataset)
     expected = list(map(lambda v: (f'{v[0]}#', f'{v[1]}#'), dataset))
@@ -55,5 +55,3 @@ def test_all_examples_exposed():
     expected = sorted(expected, key=lambda v: v[1])
 
     assert_equal(actual, expected)
-
-test_all_examples_exposed()

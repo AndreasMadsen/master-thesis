@@ -30,11 +30,10 @@ def test_bytenet_on_digits():
     if path.exists('asset/bytenet-local-quick-test'):
         shutil.rmtree('asset/bytenet-local-quick-test')
 
+    stf.set_random_seed(99)
     model = ByteNet(dataset, num_blocks=1, latent_dim=20,
                     save_dir='asset/bytenet-local-quick-test')
-    model.train(max_ep=1000)
+    model.train(max_ep=150, lr=0.1, tqdm=False)
     test_predict = model.predict(test_source, reuse=True)
 
     assert_equal(test_predict, test_expect)
-
-test_bytenet_on_digits()
