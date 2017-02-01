@@ -16,13 +16,13 @@ Consider a neural network with just one hidden layers:
 \end{equation}
 When optimizing the loss function, the parameters $\mathbf{W}_1, \mathbf{W}_2, \mathbf{b}_1$ and $\mathbf{b}_2$ are all optimized simultaneously. Futhermore the optimization of $\mathbf{W}_2, \mathbf{b}_2$ does directly depend on $\theta(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1)$ though the error term. This becomes and issue when the distribution of $\theta(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1)$ changes, because the updated $\mathbf{W}_2$ and $\mathbf{b}_2$ assumes the original distribution. This change of the distribution of the internal activations is called an \textit{internal covariate shift}. \cite{batch-normalization}.
 
-The \textit{internal covariate shift} issue can be ilustrated by considering a scalar $a = w x + b \sim \mathcal{N}(b, w)$, as it would appear in a very simple neural network, the sigmoid activation function is the applied on $\mathcal{N}(b, w)$ by using the \textit{change of variable theorem}. Using this one can change $w$ and $b$ and observe how the sigmoid activation distribution changes (Figure \ref{fig:batch-norm-activation-distribution}).
+The \textit{internal covariate shift} issue can be ilustrated by considering a scalar $a = w x + b \sim \mathcal{N}(b, w)$, as it would appear in a very simple neural network, the sigmoid activation function is the applied on $\mathcal{N}(b, w)$ by using the \textit{change of variable theorem}. Using this one can change $w$ and $b$ and observe how the sigmoid activation distribution changes (Figure \ref{fig:convergence:batch-norm:activation-distribution}).
 
 \begin{figure}[h]
 	\centering
 	\includegraphics[scale=1]{theory/batch-norm-activation-distribution}
 	\caption{Shows $X \sim \mathcal{N}(\mu, \sigma)$ and $\mathrm{sigmoid}(X)$ calculated using the \textit{change of variable theorem}.}
-	\label{fig:batch-norm-activation-distribution}
+	\label{fig:convergence:batch-norm:activation-distribution}
 \end{figure}
 
 \subsubsection{A solution}
@@ -65,10 +65,62 @@ At inference $\hat{z}_{h_\ell}$ are then calculated using $\sigma^2_{\mathcal{B}
 
 \subsubsection{Weight sharing network}
 
-Because it is the weight changes that causes an \textit{internal covariate shift}, the normalization should happen over all $z_{h_\ell}$ values that uses these weights. Thus in RNN the normalization should also be done over time, and in CNN the normalization should also happen over the ``image''. This works well for actual images, however in RNN and temporal CNN this breaks the causalily of the network, because the mean and variance at any time step (e.g. $t=0$) will contain information from all time steps.
+Because it is the weight changes that causes an \textit{internal covariate shift}, the normalization should happen over all $z_{h_\ell}$ values that uses these weights. Thus in RNN the normalization should also be done over time, and in CNN the normalization should also happen over the ``image''. This works well for actual images, however in RNN and CNN that describes a causal relation, the mean and variance at any time step (e.g. $t=0$) will contain information from all time steps, which breaks the causalily of the network. This issue can be practially solves by not normalizing over time, however if the sequences aren't all of the same length then the mean and variance estimation for the last time step will be extremely poor.
 
 \subsection{Layer Normalization}
-\cite{layer-normalization}
+
+Layer normalization attemps to solve the issues that exists when Batch Normalization is applied to causal weight shareing networks. It does this by not normalization over the batch, but normalizing over the $\{z_{h_\ell}\}_{h_\ell=1}^{H_\ell}$ vector. \cite{layer-normalization}
+
+\begin{displayquote}
+Notice that changes in the output of one layer will tend to cause highly correlated changes in the summed inputs to the next layer, especially with ReLU units whose outputs can change by a lot. This suggests the “covariate shift” problem can be reduced by fixing the mean and the variance of the summed inputs within each layer. \todo{understand this}
+\end{displayquote}
+
+Normalizing over the summed inputs $z_{h_\ell}$ results in the following forward pass:
+\begin{equationbox}[H]
+Activation:
+\begin{equation*}
+\begin{aligned}
+z_{h_\ell} &= \sum_{h_{\ell-1}}^{H_{\ell-1}} w_{h_{\ell-1},h_\ell} a_{h_\ell-1} \\
+\hat{z}_{h_\ell} &= \gamma_{h_\ell} \frac{z_{h_\ell} - \mu_{\ell}}{\sqrt{\sigma_{\ell}^2 + \epsilon}} + \beta_{h_\ell} \\
+a_{h_\ell} &= \theta\left(z_{h_\ell}\right)
+\end{aligned}
+\end{equation*}
+Statistics:
+\begin{equation*}
+\begin{aligned}
+\mu_{\ell} &= \frac{1}{H_\ell} \sum_{h_\ell}^{H_\ell} z_{h_\ell} \\
+\sigma_{\ell}^2 &= \frac{1}{H_\ell} \sum_{h_\ell}^{H_\ell} (z_{h_\ell} - \mu_{\ell})^2
+\end{aligned}
+\end{equation*}
+\caption{Forward equations for Layer Normalization.}
+\end{equationbox}
+
+Note that the bias $b_{h_\ell}$ is excluded here for a different reason than what was the case in Batch Normalization. In Batch Normalization $b_{h_\ell}$ was a constant, and is thus removed when the mean is substacted. In Layer Normalization the mean is over $h_\ell \in [1, H_\ell]$ and thus $b_{h_\ell}$ is no longer a constant. However the orignal reasoning for Layer Normalization ``output of one layer will tend to cause highly correlated changes in the summed inputs'', does not include $b_{h_\ell}$ in ``summed inputs'' and thus the normalization should only happen over $\sum_{h_{\ell-1}}^{H_{\ell-1}} w_{h_{\ell-1},h_\ell} a_{h_\ell-1}$. As such $\hat{z}_{h_\ell}$ actually becomes
+\begin{equation*}
+\hat{z}_{h_\ell} = \gamma_{h_\ell} \frac{z_{h_\ell} - \mu_{\ell}}{\sqrt{\sigma_{\ell}^2 + \epsilon}} + b_{h_\ell} + \beta_{h_\ell},
+\end{equation*}
+but $ b_{h_\ell}$ then becomes redudant because of $\beta_{h_\ell}$.
+
+\subsubsection{Properties}
+
+Batch Normalization and Layer Normalization have somewhat similar properties, as shown in Table \ref{table:convergence:layer-norm:properties}. \textit{Weight matrix re-centering invariance} is likely the most important property, as bad weight matrix initialization is often the cause of slow convergence. 
+
+\begin{table}[H]
+\centering
+\begin{tabular}{r|p{2cm} p{2cm} p{2cm} p{2cm}}
+	           & Weight matrix re-scaling & Weight matrix re-centering & Dataset re-scaling& Dataset re-centering \\ \hline
+	Batch norm & Invariant & No & Invariant & Invariant \\
+	Layer norm & Invariant & Invariant & Invariant & No \\
+\end{tabular}
+\caption{Invariance properties when using Batch or Layer Normalization. Also note that Batch Normalization is invariant to \textit{Weight vector re-scaling} and Layer Normalization is invariant to \textit{Single training case re-scaling} \cite{layer-normalization}.}
+\label{table:convergence:layer-norm:properties}
+\end{table}
+
+Another diffrence between Batch and Layer Normalization, is that in Layer Normalization it is not necessary to maintain a moving averge over $\mu$ and $\sigma^2$ for inference, as these are estimated per observation.
+
+\subsubsection{Experimental Results}
+
+In the orgianal paper \cite{layer-normalization} they showed that Layer Normalization outperforms Batch Normalization in RNNs. Batch Normalization is however the prefered choice in CNN, though Layer Normalization still performs better than the non-normalized baseline. It is theoreically unclear why Layer Normalization performs poorly on CNNs, but a possibol explanation is that there is an underlying assumtion that the hidden units $a_{h_\ell}$ makes similar contributions, in CNN the hidden units typically represents very diffrent things (e.g. ear, mouth, hair) thus some will be very inactive while others will be very active.
 
 \subsection{Residual Learning}
 \cite{residual-learning}

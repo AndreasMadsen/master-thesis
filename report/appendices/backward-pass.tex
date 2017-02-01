@@ -30,8 +30,9 @@ Now that the forward pass is stated explicitly, the backward pass can be derived
 
 The gradient with respect to the weight $w_{h_{\ell-1},h_\ell}$ hasn't changed:
 \begin{equation}
-\frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial w_{h_{\ell-1},h_\ell}} = \delta_{h_\ell} a_{h_{\ell-1}}
+\frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial z_{h_\ell}^{(i)}} \frac{\partial z_{h_\ell}^{(i)}}{\partial w_{h_{\ell-1},h_\ell}} =\sum_{i=1}^n \delta_{h_\ell}^{(i)} a_{h_{\ell-1}}^{(i)}
 \end{equation}
+Note that without batch normalization the sum over the observations does not directly appear in the gradients, but this is only because the observation index $i$ is obmitted. In reaility it sum the gradients for each observation in the mini-batch.
 
 The $\delta_{h_\ell}$ however has changed quite significantly:
 \begin{equation}
@@ -49,7 +50,7 @@ From \eqref{eq:appendix:batch-norm:delta} the following derivatives also needs t
 
 As with everything else this is done by using the chain rule:
 \begin{equation}
-\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} = \frac{\partial \mathcal{L}}{\partial a_{h_\ell}^{(i)}} \frac{\partial a_{h_\ell}^{(i)}}{\partial \hat{z}_{h_\ell}^{(i)}} = \theta'(\hat{z}_{h_\ell}^{(i)}) \frac{\partial\mathcal{L}}{\partial a_{h_\ell}^{(i)}} = \theta'(\hat{z}_{h_\ell}^{(i)}) \sum_{h_{\ell+1}}^{H_{\ell+1}} \delta_{h_{\ell+1}} w_{h_\ell, h_{\ell+1}}
+\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} = \frac{\partial \mathcal{L}}{\partial a_{h_\ell}^{(i)}} \frac{\partial a_{h_\ell}^{(i)}}{\partial \hat{z}_{h_\ell}^{(i)}} = \theta'(\hat{z}_{h_\ell}^{(i)}) \frac{\partial\mathcal{L}}{\partial a_{h_\ell}^{(i)}} = \theta'(\hat{z}_{h_\ell}^{(i)}) \sum_{h_{\ell+1}}^{H_{\ell+1}} \delta_{h_{\ell+1}}^{(i)} w_{h_\ell, h_{\ell+1}}
 \end{equation}
 \begin{equation}
 \frac{\partial \mathcal{L}}{\partial \sigma_{h_\ell}^{2,\mathcal{B}}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \frac{\partial \hat{z}_{h\ell}^{(i)}}{\partial \sigma_{h_\ell}^{2, \mathcal{B}}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \gamma_{h_\ell} \left(z_{h_\ell}^{(i)} - \mu_{h_\ell}^{\mathcal{B}}\right) \left(-\frac{1}{2}\right) \left(\sigma_{h_\ell}^{\mathcal{B}} + \epsilon\right)^{-\frac{2}{3}}
@@ -57,7 +58,7 @@ As with everything else this is done by using the chain rule:
 \begin{equation}
 \begin{aligned}
 \frac{\partial \mathcal{L}}{\partial \mu_{h_\ell}^{\mathcal{B}}} &= \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \frac{\partial \hat{z}_{h_\ell}^{(i)}}{\mu_{h_\ell}^{\mathcal{B}}} + \frac{\partial \mathcal{L}}{\partial \sigma_{h_\ell}^{2, \mathcal{B}}} \frac{\partial \sigma_{h_\ell}^{2, \mathcal{B}}}{\mu_{h_\ell}^{\mathcal{B}}} \\
-&= \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \left(- \frac{1}{\sqrt{\sigma_{h_\ell}^{(i)}}}\right) + \frac{\partial \mathcal{L}}{\partial \sigma_{h_\ell}^{2, \mathcal{B}}} \frac{1}{n} \sum_{i=1}^n -2 \left(z_{h_\ell}^{(i)} - \mu_{h_\ell}^{\mathcal{B}}\right)
+&= \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \left(- \frac{1}{\sqrt{\sigma_{h_\ell}^{2, \mathcal{B}} + \epsilon}}\right) + \frac{\partial \mathcal{L}}{\partial \sigma_{h_\ell}^{2, \mathcal{B}}} \frac{1}{n} \sum_{i=1}^n -2 \left(z_{h_\ell}^{(i)} - \mu_{h_\ell}^{\mathcal{B}}\right)
 \end{aligned}
 \end{equation}
 
@@ -71,3 +72,73 @@ Finally the gradient with respect to $\gamma_{h_\ell}$ and $\beta_{h_\ell}$ can 
 
 These only depend on $\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}}$ which has already been derived.
 
+\section{Layer Normalization}
+
+Lets repeat the forward pass:
+\begin{equationbox}
+\begin{equation*}
+\begin{aligned}
+z_{h_\ell} &= \sum_{h_{\ell-1}}^{H_{\ell-1}} w_{h_{\ell-1},h_\ell} a_{h_\ell-1} \\
+\hat{z}_{h_\ell} &= \gamma_{h_\ell} \frac{z_{h_\ell} - \mu_{\ell}}{\sqrt{\sigma_{\ell}^2 + \epsilon}} + \beta_{h_\ell} \\
+a_{h_\ell} &= \theta\left(z_{h_\ell}\right)
+\end{aligned}
+\end{equation*}
+Statistics:
+\begin{equation*}
+\begin{aligned}
+\mu_{\ell} &= \frac{1}{H_\ell} \sum_{h_\ell}^{H_\ell} z_{h_\ell} \\
+\sigma_{\ell}^2 &= \frac{1}{H_\ell} \sum_{h_\ell}^{H_\ell} (z_{h_\ell} - \mu_{\ell})^2
+\end{aligned}
+\end{equation*}
+\caption{Forward equations for Layer Normalization.}
+\end{equationbox}
+
+For the backward pass we which to derive:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}},\quad \frac{\partial \mathcal{L}}{\partial \gamma_{h_\ell}},\quad \frac{\partial \mathcal{L}}{\partial \beta_{h_\ell}}
+\end{equation}
+
+The gradient with respect to the weight $w_{h_{\ell-1},h_\ell}$ is the same:
+
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial w_{h_{\ell-1},h_\ell}} = \delta_{h_\ell} a_{h_{\ell-1}}
+\end{equation}
+
+Like in Batch Bormalization $\delta_{h_\ell}$ has changed quite significantly:
+
+\begin{equation}
+\begin{aligned}
+\delta_{h_\ell} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} &= \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \frac{\partial \hat{z}_{h_\ell}}{\partial z_{h_\ell}} + \frac{\partial \mathcal{L}}{\partial \sigma_{\ell}^2} \frac{\partial \sigma_{\ell}^2}{\partial z_{h_\ell}} + \frac{\partial \mathcal{L}}{\partial \mu_{\ell}} \frac{\partial \mu_{\ell}}{\partial z_{h_\ell}} \\
+&= \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \frac{\gamma_{h_\ell}}{\sqrt{\sigma_{\ell}^2 + \epsilon}} + \frac{\partial \mathcal{L}}{\partial \sigma_{\ell}^2} \frac{2}{H_\ell}\left(z_{h_\ell} - \mu_{\ell}\right) + \frac{\partial \mathcal{L}}{\partial \mu_{\ell}} \frac{1}{H_\ell}
+\end{aligned}
+\label{eq:appendix:layer-norm:delta}
+\end{equation}
+
+From \eqref{eq:appendix:layer-norm:delta} the following derivatives also needs to be derived:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}}, \quad \frac{\partial \mathcal{L}}{\partial \sigma_{\ell}^2}, \quad \frac{\partial \mathcal{L}}{\partial \mu_{\ell}}
+\end{equation}
+
+As with everything else this is done by using the chain rule:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \sigma^2_\ell} = \sum_{h_\ell}^{H_\ell} \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \frac{\partial \hat{z}_{h_\ell}}{\partial \sigma_\ell^2} = \sum_{h_\ell}^{H_\ell} \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \gamma_{h_\ell} (z_{h_\ell} - \mu_\ell) \left(- \frac{1}{2}\right) \left(\sigma_\ell^2 + \epsilon\right)^{-\frac{2}{3}}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}
+\frac{\partial \mathcal{L}}{\partial \mu_\ell} &= \sum_{h_\ell}^{H_\ell} \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \frac{\partial \hat{z}_{h_\ell}}{\partial \mu_\ell} + \frac{\partial \mathcal{L}}{\partial \sigma_{\ell}^2} \frac{\partial \sigma_\ell^2}{\partial \mu_\ell} \\
+&= \sum_{h_\ell}^{H_\ell} \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \left(- \frac{1}{\sqrt{\sigma_\ell^2 + \epsilon}}\right) + \frac{\partial \mathcal{L}}{\partial \sigma_{\ell}^2} \frac{1}{H_\ell} \sum_{h_\ell}^{H_\ell} -2 \left(z_{h_\ell} - \mu_\ell\right)
+\end{aligned}
+\end{equation}
+
+Finally the gradient with respect to $\gamma_{h_\ell}$ and $\beta_{h_\ell}$ can be derived:
+
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \gamma_{h_\ell}} = \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \frac{\partial \hat{z}_{h_\ell}}{\partial \gamma_{h_\ell}} = \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \left(\frac{z_{h_\ell} - \mu_\ell}{\sqrt{\sigma_\ell^2 + \epsilon}}\right)
+\end{equation}
+
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \beta_{h_\ell}} = \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \frac{\partial \hat{z}_{h_\ell}}{\partial \beta_{h_\ell}} = \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}}
+\end{equation}
+
+These only depend on $\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}}$ which has already been derived.
