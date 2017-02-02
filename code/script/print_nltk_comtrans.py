@@ -1,6 +1,6 @@
 
-from dataset import NLTKComtrans
-from model import PrintDataset
+from code.dataset import NLTKComtrans
+from code.model import PrintDataset
 
 dataset = NLTKComtrans()
 model = PrintDataset(dataset)

@@ -4,8 +4,8 @@ from typing import Optional
 
 import sugartensor as stf
 
-from model.abstract.model import Model
-from dataset.abstract.text_dataset import TextDataset
+from code.model.abstract.model import Model
+from code.dataset.abstract.text_dataset import TextDataset
 
 
 class ExportDataset(Model):

@@ -3,8 +3,8 @@ from typing import Iterator, Tuple, NamedTuple
 import xml.dom.minidom
 import tarfile
 
-from dataset.util.wmt_env import WMTEnv
-from dataset.abstract.text_dataset import TextDataset
+from code.dataset.util.wmt_env import WMTEnv
+from code.dataset.abstract.text_dataset import TextDataset
 
 BilingualPair = NamedTuple('BilingualPair', [
     ('tarball', str),

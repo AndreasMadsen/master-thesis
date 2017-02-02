@@ -4,8 +4,8 @@ import abc
 
 import numpy as np
 
-from dataset.abstract.dataset import Dataset
-from dataset.util.size_to_type import size_to_signed_type
+from code.dataset.abstract.dataset import Dataset
+from code.dataset.util.size_to_type import size_to_signed_type
 
 
 class TextDataset(Dataset):

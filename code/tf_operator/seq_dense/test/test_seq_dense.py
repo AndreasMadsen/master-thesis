@@ -5,7 +5,7 @@ import sugartensor as stf
 import tensorflow as tf
 import numpy as np
 
-from tf_operator.seq_dense.seq_dense import seq_dense
+from code.tf_operator.seq_dense.seq_dense import seq_dense
 
 
 def test_equal_output():

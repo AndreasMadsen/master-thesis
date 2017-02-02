@@ -4,7 +4,7 @@ import os.path as path
 
 import nltk
 
-from dataset.util.download_dir import download_dir
+from code.dataset.util.download_dir import download_dir
 
 
 class NLTKEnv:

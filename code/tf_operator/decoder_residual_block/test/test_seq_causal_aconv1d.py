@@ -5,7 +5,7 @@ import sugartensor as stf
 import tensorflow as tf
 import numpy as np
 
-from tf_operator.decoder_residual_block.seq_causal_aconv1d \
+from code.tf_operator.decoder_residual_block.seq_causal_aconv1d \
     import seq_causal_aconv1d
 
 

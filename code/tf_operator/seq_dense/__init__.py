@@ -1,3 +1,3 @@
 
-from tf_operator.seq_dense.seq_dense \
+from code.tf_operator.seq_dense.seq_dense \
     import seq_dense

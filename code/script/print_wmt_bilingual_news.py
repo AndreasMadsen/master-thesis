@@ -1,6 +1,6 @@
 
-from dataset import WMTBilingualNews
-from model import PrintDataset
+from code.dataset import WMTBilingualNews
+from code.model import PrintDataset
 
 dataset = WMTBilingualNews()
 model = PrintDataset(dataset)

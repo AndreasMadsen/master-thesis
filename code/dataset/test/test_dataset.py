@@ -5,7 +5,7 @@ import math
 
 import sugartensor as stf
 
-from dataset.synthetic_digits import SyntheticDigits
+from code.dataset.synthetic_digits import SyntheticDigits
 
 
 def tensorflow_extract(dataset):

@@ -1,8 +1,8 @@
 
 from nose.tools import *
 
-from dataset import SyntheticDigits
-from model.export_dataset import ExportDataset
+from code.dataset import SyntheticDigits
+from code.model.export_dataset import ExportDataset
 
 
 def test_export_dataset():

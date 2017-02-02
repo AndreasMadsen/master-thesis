@@ -6,9 +6,9 @@ import os.path as path
 
 import sugartensor as stf
 
-from dataset import SyntheticDigits
-from model.bytenet import ByteNet
-from model.export_dataset import ExportDataset
+from code.dataset import SyntheticDigits
+from code.model.bytenet import ByteNet
+from code.model.export_dataset import ExportDataset
 
 
 def test_bytenet_on_digits():

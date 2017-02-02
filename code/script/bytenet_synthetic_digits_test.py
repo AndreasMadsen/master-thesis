@@ -1,9 +1,9 @@
 
 import sugartensor as stf
 
-from dataset import SyntheticDigits
-from model import ExportDataset
-from model import ByteNet
+from code.dataset import SyntheticDigits
+from code.model import ExportDataset
+from code.model import ByteNet
 
 # set log level to debug
 stf.sg_verbosity(10)

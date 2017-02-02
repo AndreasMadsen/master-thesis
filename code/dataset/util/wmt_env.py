@@ -3,7 +3,7 @@ import os
 import os.path as path
 import urllib.request
 
-from dataset.util.download_dir import download_dir
+from code.dataset.util.download_dir import download_dir
 
 
 class WMTEnv:

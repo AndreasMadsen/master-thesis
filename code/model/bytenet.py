@@ -5,9 +5,9 @@ import tensorflow as tf
 import sugartensor as stf
 import numpy as np
 
-from model.abstract.model import Model
-from dataset.abstract.text_dataset import TextDataset
-from tf_operator import \
+from code.model.abstract.model import Model
+from code.dataset.abstract.text_dataset import TextDataset
+from code.tf_operator import \
     seq_dense, \
     parallel_encoder_residual_block, parallel_decoder_residual_block, \
     seq_decoder_residual_block, seq_decoder_residual_block_init

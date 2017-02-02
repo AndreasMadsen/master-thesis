@@ -1,7 +1,7 @@
 
 import abc
 
-from dataset.abstract.dataset import Dataset
+from code.dataset import Dataset
 
 
 class Model:

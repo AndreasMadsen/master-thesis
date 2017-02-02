@@ -3,8 +3,8 @@ from typing import Iterator, Tuple, FrozenSet
 
 import numpy as np
 
-from dataset.abstract.text_dataset import TextDataset
-from dataset.util.size_to_type import size_to_unsigned_type
+from code.dataset.abstract.text_dataset import TextDataset
+from code.dataset.util.size_to_type import size_to_unsigned_type
 
 text_map = np.asarray([
     'zero',
