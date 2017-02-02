@@ -6,7 +6,7 @@ import sugartensor as stf
 def parallel_decoder_residual_block(tensor,
                                     size=3, rate=1,
                                     name=None, reuse=False):
-    default_name = f"lyr-decoder-res-block-{size}-{rate}"
+    default_name = f"decoder-res-block-{size}-{rate}"
 
     with tf.variable_scope(name, default_name, [tensor], reuse=reuse):
         # input dimension

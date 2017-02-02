@@ -9,8 +9,8 @@ from code.model.abstract.model import Model
 from code.dataset.abstract.text_dataset import TextDataset
 from code.tf_operator import \
     seq_dense, \
-    parallel_encoder_residual_block, parallel_decoder_residual_block, \
-    seq_decoder_residual_block, seq_decoder_residual_block_init
+    parallel_bytenet_decoder, parallel_bytenet_encoder, \
+    seq_bytenet_decoder_init, seq_bytenet_decoder
 
 
 class ByteNet(Model):
@@ -52,73 +52,19 @@ class ByteNet(Model):
                     y[:, :-1]
                 ])
 
-            #
             # encode graph ( atrous convolution )
-            #
-            with tf.name_scope("encoder", values=[x, emb_x]):
+            enc = x.sg_lookup(emb=emb_x)
+            enc = parallel_bytenet_encoder(enc, name="encoder")
 
-                # embed table lookup
-                enc = x.sg_lookup(emb=emb_x)
-
-                # loop dilated conv block
-                for i in range(self.num_blocks):
-                    with tf.variable_scope(f'lyr-encoder-{i}', values=[enc]):
-                        enc = parallel_encoder_residual_block(
-                            enc, size=5, rate=1,
-                            name='encoder-res-block.5.1'
-                        )
-                        enc = parallel_encoder_residual_block(
-                            enc, size=5, rate=2,
-                            name='encoder-res-block.5.2'
-                        )
-                        enc = parallel_encoder_residual_block(
-                            enc, size=5, rate=4,
-                            name='encoder-res-block.5.4'
-                        )
-                        enc = parallel_encoder_residual_block(
-                            enc, size=5, rate=8,
-                            name='encoder-res-block.5.8'
-                        )
-                        enc = parallel_encoder_residual_block(
-                            enc, size=5, rate=16,
-                            name='encoder-res-block.5.16'
-                        )
-
-            #
             # decode graph ( causal convolution )
-            #
-            with tf.name_scope("decoder", values=[enc, y_src, emb_y]):
-                dec = enc.sg_concat(target=y_src.sg_lookup(emb=emb_y))
+            dec = enc.sg_concat(target=y_src.sg_lookup(emb=emb_y))
+            dec = parallel_bytenet_decoder(dec, name="decoder")
 
-                # loop dilated causal conv block
-                for i in range(self.num_blocks):
-                    with tf.variable_scope(f'lyr-decoder-{i}', values=[dec]):
-                        dec = parallel_decoder_residual_block(
-                            dec, size=3, rate=1,
-                            name='decoder-res-block.3.1'
-                        )
-                        dec = parallel_decoder_residual_block(
-                            dec, size=3, rate=2,
-                            name='decoder-res-block.3.2'
-                        )
-                        dec = parallel_decoder_residual_block(
-                            dec, size=3, rate=4,
-                            name='decoder-res-block.3.4'
-                        )
-                        dec = parallel_decoder_residual_block(
-                            dec, size=3, rate=8,
-                            name='decoder-res-block.3.8'
-                        )
-                        dec = parallel_decoder_residual_block(
-                            dec, size=3, rate=16,
-                            name='decoder-res-block.3.16'
-                        )
-
-                # final fully convolution layer for softmax
-                return dec.sg_conv1d(
-                    size=1, dim=self.dataset.vocabulary_size,
-                    name='logits-dense'
-                )
+            # final fully convolution layer for softmax
+            return dec.sg_conv1d(
+                size=1, dim=self.dataset.vocabulary_size,
+                name='logits-dense'
+            )
 
     def _build_test_model(self,
                           x: tf.Tensor,
@@ -136,123 +82,49 @@ class ByteNet(Model):
                 dim=self.latent_dim
             )
 
-            #
             # encode graph ( atrous convolution )
-            #
-            with tf.name_scope("encoder", values=[x, emb_x]):
-
-                # embed table lookup
-                enc = x.sg_lookup(emb=emb_x)
-
-                # loop dilated conv block
-                for i in range(self.num_blocks):
-                    with tf.variable_scope(f'lyr-encoder-{i}', values=[enc]):
-                        enc = parallel_encoder_residual_block(
-                            enc, size=5, rate=1,
-                            name='encoder-res-block.5.1'
-                        )
-                        enc = parallel_encoder_residual_block(
-                            enc, size=5, rate=2,
-                            name='encoder-res-block.5.2'
-                        )
-                        enc = parallel_encoder_residual_block(
-                            enc, size=5, rate=4,
-                            name='encoder-res-block.5.4'
-                        )
-                        enc = parallel_encoder_residual_block(
-                            enc, size=5, rate=8,
-                            name='encoder-res-block.5.8'
-                        )
-                        enc = parallel_encoder_residual_block(
-                            enc, size=5, rate=16,
-                            name='encoder-res-block.5.16'
-                        )
+            enc = x.sg_lookup(emb=emb_x)
+            enc = parallel_bytenet_encoder(enc, name="encoder")
 
             #
             # decode graph ( causal convolution )
             #
-            with tf.name_scope("decoder", values=[enc, emb_y]):
-                # initalize scan state
-                with tf.name_scope("decoder-scan-init", values=[enc]):
-                    init_state = [(
-                        seq_decoder_residual_block_init(
-                            enc, size=3, rate=1, in_dim=self.latent_dim * 2
-                        ),
-                        seq_decoder_residual_block_init(
-                            enc, size=3, rate=2, in_dim=self.latent_dim * 2
-                        ),
-                        seq_decoder_residual_block_init(
-                            enc, size=3, rate=4, in_dim=self.latent_dim * 2
-                        ),
-                        seq_decoder_residual_block_init(
-                            enc, size=3, rate=8, in_dim=self.latent_dim * 2
-                        ),
-                        seq_decoder_residual_block_init(
-                            enc, size=3, rate=16, in_dim=self.latent_dim * 2
-                        )
-                    ) for i in range(self.num_blocks)]
+            # initalize scan state
+            init_state = seq_bytenet_decoder_init(enc)
 
-                # apply seq_decoder_residual_block to all time steps
-                def scan_op(acc, enc_t):
-                    (state_tm1, y_tm1) = acc
-                    state_t = []
+            # apply seq_decoder_residual_block to all time steps
+            def scan_op(acc, enc_t):
+                (state_tm1, y_tm1) = acc
 
-                    # concat encoding at `t` and decoding at `t-1`
-                    dec = enc_t.sg_concat(target=y_tm1.sg_lookup(emb=emb_y))
-
-                    # loop dilated causal conv block
-                    for i, state_li_tm1 in enumerate(state_tm1):
-
-                        with tf.variable_scope(f'lyr-decoder-{i}', values=[dec]):
-                            state_li_t_d0, dec = seq_decoder_residual_block(
-                                dec, state_li_tm1[0], size=3, rate=1,
-                                name='decoder-res-block.3.1'
-                            )
-                            state_li_t_d1, dec = seq_decoder_residual_block(
-                                dec, state_li_tm1[1], size=3, rate=2,
-                                name='decoder-res-block.3.2'
-                            )
-                            state_li_t_d2, dec = seq_decoder_residual_block(
-                                dec, state_li_tm1[2], size=3, rate=4,
-                                name='decoder-res-block.3.4'
-                            )
-                            state_li_t_d3, dec = seq_decoder_residual_block(
-                                dec, state_li_tm1[3], size=3, rate=8,
-                                name='decoder-res-block.3.8'
-                            )
-                            state_li_t_d4, dec = seq_decoder_residual_block(
-                                dec, state_li_tm1[4], size=3, rate=16,
-                                name='decoder-res-block.3.16'
-                            )
-
-                            # save state for next iteration
-                            state_t.append((
-                                state_li_t_d0, state_li_t_d1, state_li_t_d2,
-                                state_li_t_d3, state_li_t_d4
-                            ))
-
-                    # final fully convolution layer for softmax
-                    logits_t = seq_dense(
-                        dec, dim=self.dataset.vocabulary_size,
-                        name='logits-dense'
-                    )
-                    # get the most likely label
-                    label_t = tf.cast(tf.argmax(logits_t, axis=1), tf.int32)
-
-                    return (state_t, label_t)
-
-                (_, labels) = tf.scan(
-                    scan_op,
-                    elems=tf.transpose(enc, perm=[1, 0, 2]),
-                    initializer=(
-                        init_state,
-                        tf.zeros(
-                            (tf.shape(enc)[0], ), dtype=tf.int32
-                        )  # labels
-                    )
+                # concat encoding at `t` and decoding at `t-1`
+                dec = enc_t.sg_concat(target=y_tm1.sg_lookup(emb=emb_y))
+                # decode graph ( causal convolution )
+                state_t, dec = seq_bytenet_decoder(
+                    state_tm1, dec, name="decoder"
                 )
 
-                return tf.transpose(labels, perm=[1, 0])
+                # final fully convolution layer for softmax
+                logits_t = seq_dense(
+                    dec, dim=self.dataset.vocabulary_size,
+                    name='logits-dense'
+                )
+                # get the most likely label
+                label_t = tf.cast(tf.argmax(logits_t, axis=1), tf.int32)
+
+                return (state_t, label_t)
+
+            (_, labels) = tf.scan(
+                scan_op,
+                elems=tf.transpose(enc, perm=[1, 0, 2]),
+                initializer=(
+                    init_state,
+                    tf.zeros(
+                        (tf.shape(enc)[0], ), dtype=tf.int32
+                    )  # labels
+                )
+            )
+
+            return tf.transpose(labels, perm=[1, 0])
 
     def train(self, max_ep=20, lr=0.0001, **kwargs):
         with tf.name_scope(None, "preprocessing",

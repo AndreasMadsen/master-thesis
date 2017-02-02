@@ -10,7 +10,7 @@ from code.tf_operator.decoder_residual_block.seq_causal_aconv1d \
 def seq_decoder_residual_block_init(tensor,
                                     in_dim=None,
                                     size=3, rate=1):
-    default_name = f"lyr-seq-decoder-res-block-{size}-{rate}-init"
+    default_name = f"seq-decoder-res-block-{size}-{rate}-init"
 
     with tf.name_scope(None, default_name, [tensor]):
         # input dimension
@@ -33,7 +33,7 @@ def seq_decoder_residual_block_init(tensor,
 def seq_decoder_residual_block(tensor, previous,
                                size=3, rate=1,
                                name=None, reuse=False):
-    default_name = f"lyr-seq-decoder-res-block-{size}-{rate}"
+    default_name = f"seq-decoder-res-block-{size}-{rate}"
 
     scope_variables = [tensor] + list(previous)
     with tf.variable_scope(name, default_name, scope_variables, reuse=reuse):
