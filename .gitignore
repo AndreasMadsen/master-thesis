@@ -1,7 +1,9 @@
 
+#
+asset
+
 # code directory
 __pycache__
-code/asset
 code/download
 
 # LaTeX Directory
