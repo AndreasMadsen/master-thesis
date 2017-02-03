@@ -8,9 +8,8 @@ import numpy as np
 from code.model.abstract.model import Model
 from code.dataset.abstract.text_dataset import TextDataset
 from code.tf_operator import \
-    seq_dense, \
-    parallel_bytenet_decoder, parallel_bytenet_encoder, \
-    seq_bytenet_decoder_init, seq_bytenet_decoder
+    bytenet_supervised_translator, \
+    bytenet_unsupervised_translator
 
 
 class ByteNet(Model):
@@ -30,101 +29,26 @@ class ByteNet(Model):
     def _build_train_model(self,
                            x: tf.Tensor, y: tf.Tensor,
                            reuse=False) -> tf.Tensor:
-        with tf.variable_scope("bytenet-model", values=[x, y], reuse=reuse):
-            # make embedding matrix for source and target
-            emb_x = stf.sg_emb(
-                name='embedding-source',
-                voca_size=self.dataset.vocabulary_size,
-                dim=self.latent_dim
-            )
-            emb_y = stf.sg_emb(
-                name='embedding-target',
-                voca_size=self.dataset.vocabulary_size,
-                dim=self.latent_dim
-            )
-
-            # shift target for training source
-            with tf.name_scope("shift-target", values=[y]):
-                y_src = tf.concat(1, [
-                    # first value is zero
-                    tf.zeros((stf.shape(y)[0], 1), y.dtype),
-                    # skip last value
-                    y[:, :-1]
-                ])
-
-            # encode graph ( atrous convolution )
-            enc = x.sg_lookup(emb=emb_x)
-            enc = parallel_bytenet_encoder(enc, name="encoder")
-
-            # decode graph ( causal convolution )
-            dec = enc.sg_concat(target=y_src.sg_lookup(emb=emb_y))
-            dec = parallel_bytenet_decoder(dec, name="decoder")
-
-            # final fully convolution layer for softmax
-            return dec.sg_conv1d(
-                size=1, dim=self.dataset.vocabulary_size,
-                name='logits-dense'
-            )
+        logits, lables = bytenet_supervised_translator(
+            x, y,
+            voca_size=self.dataset.vocabulary_size,
+            latent_dim=self.latent_dim,
+            name="bytenet-model",
+            reuse=reuse
+        )
+        return logits
 
     def _build_test_model(self,
                           x: tf.Tensor,
                           reuse=False) -> tf.Tensor:
-        with tf.variable_scope("bytenet-model", values=[x], reuse=reuse):
-            # make embedding matrix for source and target
-            emb_x = stf.sg_emb(
-                name='embedding-source',
-                voca_size=self.dataset.vocabulary_size,
-                dim=self.latent_dim
-            )
-            emb_y = stf.sg_emb(
-                name='embedding-target',
-                voca_size=self.dataset.vocabulary_size,
-                dim=self.latent_dim
-            )
-
-            # encode graph ( atrous convolution )
-            enc = x.sg_lookup(emb=emb_x)
-            enc = parallel_bytenet_encoder(enc, name="encoder")
-
-            #
-            # decode graph ( causal convolution )
-            #
-            # initalize scan state
-            init_state = seq_bytenet_decoder_init(enc)
-
-            # apply seq_decoder_residual_block to all time steps
-            def scan_op(acc, enc_t):
-                (state_tm1, y_tm1) = acc
-
-                # concat encoding at `t` and decoding at `t-1`
-                dec = enc_t.sg_concat(target=y_tm1.sg_lookup(emb=emb_y))
-                # decode graph ( causal convolution )
-                state_t, dec = seq_bytenet_decoder(
-                    state_tm1, dec, name="decoder"
-                )
-
-                # final fully convolution layer for softmax
-                logits_t = seq_dense(
-                    dec, dim=self.dataset.vocabulary_size,
-                    name='logits-dense'
-                )
-                # get the most likely label
-                label_t = tf.cast(tf.argmax(logits_t, axis=1), tf.int32)
-
-                return (state_t, label_t)
-
-            (_, labels) = tf.scan(
-                scan_op,
-                elems=tf.transpose(enc, perm=[1, 0, 2]),
-                initializer=(
-                    init_state,
-                    tf.zeros(
-                        (tf.shape(enc)[0], ), dtype=tf.int32
-                    )  # labels
-                )
-            )
-
-            return tf.transpose(labels, perm=[1, 0])
+        logits, labels = bytenet_unsupervised_translator(
+            x,
+            voca_size=self.dataset.vocabulary_size,
+            latent_dim=self.latent_dim,
+            name="bytenet-model",
+            reuse=reuse
+        )
+        return labels
 
     def train(self, max_ep=20, lr=0.0001, **kwargs):
         with tf.name_scope(None, "preprocessing",

@@ -1,4 +1,5 @@
 
+from code.tf_operator.bytenet_translator import *
 from code.tf_operator.bytenet_decoder import *
 from code.tf_operator.bytenet_encoder import *
 from code.tf_operator.decoder_residual_block import *
