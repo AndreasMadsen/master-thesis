@@ -1,5 +1,5 @@
 
-#
+# temporary directories
 asset
 
 # code directory
@@ -20,5 +20,6 @@ report/thesis.blg
 report/thesis.bcf
 report/thesis.bbl
 
+# extra
 papers
 external
