@@ -9,4 +9,4 @@ stf.sg_verbosity(10)
 
 dataset = NLTKComtrans(batch_size=16)
 model = ByteNet(dataset, num_blocks=3, latent_dim=400)
-model.train()
+model.train(lr=0.0001)

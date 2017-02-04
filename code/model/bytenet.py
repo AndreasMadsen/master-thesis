@@ -15,20 +15,18 @@ from code.tf_operator import \
 class ByteNet(Model):
     latent_dim: int
     num_blocks: int
-    _save_dir: str
 
     def __init__(self, dataset: TextDataset,
                  latent_dim: int=400, num_blocks: int=3,
-                 save_dir='asset/bytenet') -> None:
-        super().__init__(dataset)
+                 **kwargs) -> None:
+        super().__init__(dataset, **kwargs)
 
         self.latent_dim = latent_dim
         self.num_blocks = num_blocks
-        self._save_dir = save_dir
 
     def _build_train_model(self,
                            x: tf.Tensor, y: tf.Tensor,
-                           reuse=False) -> tf.Tensor:
+                           reuse: bool=False) -> tf.Tensor:
         logits, lables = bytenet_supervised_translator(
             x, y,
             voca_size=self.dataset.vocabulary_size,
@@ -40,7 +38,7 @@ class ByteNet(Model):
 
     def _build_test_model(self,
                           x: tf.Tensor,
-                          reuse=False) -> tf.Tensor:
+                          reuse: bool=False) -> tf.Tensor:
         logits, labels = bytenet_unsupervised_translator(
             x,
             voca_size=self.dataset.vocabulary_size,
@@ -50,7 +48,7 @@ class ByteNet(Model):
         )
         return labels
 
-    def train(self, max_ep=20, lr=0.0001, **kwargs):
+    def _model_loss(self) -> tf.Tensor:
         with tf.name_scope(None, "preprocessing",
                            values=[self.dataset.source, self.dataset.target]):
             # get source and target tensors
@@ -63,20 +61,9 @@ class ByteNet(Model):
             # cross entropy loss with logit and mask
             loss = dec.sg_ce(target=y, mask=True)
 
-        # train
-        sess_config = tf.ConfigProto(allow_soft_placement=True)
-        with tf.Session(config=sess_config) as sess:
-            stf.sg_train(log_interval=30,
-                         lr=lr,
-                         loss=loss,
-                         ep_size=self.dataset.num_batch,
-                         max_ep=max_ep,
-                         early_stop=False,
-                         save_dir=self._save_dir,
-                         sess=sess,
-                         **kwargs)
+        return loss
 
-    def predict(self, sources, reuse=False) -> List[str]:
+    def predict(self, sources: List[str], reuse: bool=False) -> List[str]:
         sources = self.dataset.encode_as_batch(sources)
         predict_shape = (sources.shape[0], self.dataset.effective_max_length)
 
@@ -91,7 +78,7 @@ class ByteNet(Model):
             stf.sg_init(sess)
 
             # restore parameters
-            stf.sg_restore(sess, tf.train.latest_checkpoint(self._save_dir))
+            stf.sg_restore(sess, self._latest_checkpoint())
 
             pred = sess.run(label, {x: sources})
 
