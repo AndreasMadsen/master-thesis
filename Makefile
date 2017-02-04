@@ -9,6 +9,7 @@ test:
 	nosetests --nologcapture --with-process-isolation -v -s \
 		code/tf_operator/decoder_residual_block/test/*.py \
 		code/tf_operator/encoder_residual_block/test/*.py \
+		code/tf_operator/batch_repeat/test/*.py \
 		code/tf_operator/seq_dense/test/*.py \
 		code/tf_operator/bytenet_encoder/test/*.py \
 		code/tf_operator/bytenet_decoder/test/*.py \
