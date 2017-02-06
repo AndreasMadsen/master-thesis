@@ -2,7 +2,7 @@
 import tensorflow as tf
 
 
-def batch_repeat_pack(x, name=None, reuse=False):
+def batch_repeat_pack(x, name=None):
     with tf.name_scope(name, "batch-repeat-pack", values=[x]):
         # x.shape = (batches, repeats, ...)
 

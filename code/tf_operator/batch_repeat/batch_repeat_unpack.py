@@ -2,7 +2,7 @@
 import tensorflow as tf
 
 
-def batch_repeat_unpack(x, repeats=1, name=None, reuse=False):
+def batch_repeat_unpack(x, repeats=1, name=None):
     with tf.name_scope(name, "batch-repeat-unpack", values=[x]):
         # x.shape = (batches, repeats, ...)
 
