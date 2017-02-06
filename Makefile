@@ -7,12 +7,14 @@ XELATEX=xelatex -file-line-error -interaction=nonstopmode
 # --with-process-isolation is a plugin from "nosepipe"
 test:
 	nosetests --nologcapture --with-process-isolation -v -s \
-		code/tf_operator/decoder_residual_block/test/*.py \
-		code/tf_operator/encoder_residual_block/test/*.py \
 		code/tf_operator/batch_repeat/test/*.py \
-		code/tf_operator/seq_dense/test/*.py \
 		code/tf_operator/bytenet_encoder/test/*.py \
 		code/tf_operator/bytenet_decoder/test/*.py \
+		code/tf_operator/decoder_residual_block/test/*.py \
+		code/tf_operator/encoder_residual_block/test/*.py \
+		code/tf_operator/select_value/test/*.py \
+		code/tf_operator/seq_dense/test/*.py \
+		code/tf_operator/seq_prop/test/*.py \
 		code/dataset/test/*.py \
 		code/model/test/*.py
 
