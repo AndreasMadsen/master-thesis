@@ -3,7 +3,7 @@ import tensorflow as tf
 
 
 def select_dim_value(x, indices, name=None):
-    with tf.name_scope(name, "select-dim-value", values=[x]):
+    with tf.name_scope(name, "select-dim-value", values=[x, indices]):
         # x.shape = (rest..., dims)
         rest = tf.shape(x)[:-1]
         dims = tf.shape(x)[-1]
