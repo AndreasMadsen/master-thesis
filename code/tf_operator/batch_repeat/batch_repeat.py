@@ -3,7 +3,7 @@ import tensorflow as tf
 
 
 def batch_repeat(x, repeats=1, name=None, reuse=False):
-    with tf.name_scope(name, "bytenet-decoder", values=[x]):
+    with tf.name_scope(name, "batch-repeat", values=[x]):
         x_dims = len(x.get_shape())
 
         # repeat on the first dimention, (batches * repeats, ...)
