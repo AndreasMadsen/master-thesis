@@ -12,7 +12,7 @@ class Model:
     _save_dir: str
 
     def __init__(self, dataset: Dataset,
-                 save_dir: str='asset/bytenet') -> None:
+                 save_dir: str='asset/unnamed') -> None:
         self.dataset = dataset
         self._save_dir = save_dir
 

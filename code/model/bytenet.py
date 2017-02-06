@@ -18,8 +18,9 @@ class ByteNet(Model):
 
     def __init__(self, dataset: TextDataset,
                  latent_dim: int=400, num_blocks: int=3,
+                 save_dir: str='asset/bytenet',
                  **kwargs) -> None:
-        super().__init__(dataset, **kwargs)
+        super().__init__(dataset, save_dir=save_dir, **kwargs)
 
         self.latent_dim = latent_dim
         self.num_blocks = num_blocks
