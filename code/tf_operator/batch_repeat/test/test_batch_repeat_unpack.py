@@ -12,11 +12,13 @@ def test_output_scalar():
     "validate output of batch_repeat_unpack() from scalar values"
     with tf.Session() as sess:
         data = np.asarray([1, 1, 2, 2, 3, 3], dtype=np.float32)
-        tensor = tf.placeholder(shape=[None] * 1, name='x', dtype=tf.float32)
+        tensor = tf.placeholder(shape=[None], name='x', dtype=tf.float32)
+        unpacked = batch_repeat_unpack(tensor, repeats=2)
 
+        assert_equal(unpacked.get_shape().as_list(), [None, 2])
         np.testing.assert_almost_equal(
             sess.run(
-                batch_repeat_unpack(tensor, repeats=2),
+                unpacked,
                 feed_dict={tensor: data}
             ),
             np.asarray([
@@ -33,11 +35,13 @@ def test_output_vector():
             [4, 5, 6], [4, 5, 6],
             [7, 8, 9], [7, 8, 9]
         ], dtype=np.float32)
-        tensor = tf.placeholder(shape=[None] * 2, name='x', dtype=tf.float32)
+        tensor = tf.placeholder(shape=[None, 3], name='x', dtype=tf.float32)
+        unpacked = batch_repeat_unpack(tensor, repeats=2)
 
+        assert_equal(unpacked.get_shape().as_list(), [None, 2, 3])
         np.testing.assert_almost_equal(
             sess.run(
-                batch_repeat_unpack(tensor, repeats=2),
+                unpacked,
                 feed_dict={tensor: data}
             ),
             np.asarray([
