@@ -15,10 +15,12 @@ model = ByteNet(dataset, num_blocks=3, latent_dim=20,
 export = ExportDataset(dataset)
 export.train()
 
-test_predict = model.predict(export.sources)
+samples_predict = model.sample(export.sources, samples=5)
 
-for i, (source, target, predict) in \
-        enumerate(zip(export.sources, export.targets, test_predict)):
+for i, (source, target, predicts) in \
+        enumerate(zip(export.sources, export.targets, samples_predict)):
     print('  %d  source: %s' % (i, source))
     print('     target: %s' % (target, ))
-    print('    predict: %s' % (predict, ))
+    print('    predict:')
+    for predict_i, predict in enumerate(predicts):
+        print('        | %d: %s' % (predict_i, predict))
