@@ -20,5 +20,5 @@ def select_dim_value(x, indices, name=None):
 
         # reshape back to (rest...)
         t = tf.reshape(t, rest)
-
+        t.set_shape(x.get_shape()[:-1])
         return t

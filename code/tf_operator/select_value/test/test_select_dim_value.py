@@ -16,12 +16,14 @@ def test_output_matrix():
             [7, 8, 9]
         ], dtype=np.float32)
         indices = np.asarray([0, 1, 1])
-        d_tensor = tf.placeholder(shape=[None] * 2, name='x', dtype=tf.float32)
+        d_tensor = tf.placeholder(shape=[None, 3], name='x', dtype=tf.float32)
         i_tensor = tf.placeholder(shape=[None], name='i', dtype=tf.int64)
+        out = select_dim_value(d_tensor, i_tensor)
 
+        assert_equal(out.get_shape().as_list(), [None])
         np.testing.assert_almost_equal(
             sess.run(
-                select_dim_value(d_tensor, i_tensor),
+                out,
                 feed_dict={d_tensor: data, i_tensor: indices}
             ),
             np.asarray([
@@ -49,12 +51,15 @@ def test_output_tensor():
             [1, 2, 2],
             [1, 2, 2]
         ])
-        d_tensor = tf.placeholder(shape=[None] * 3, name='x', dtype=tf.float32)
-        i_tensor = tf.placeholder(shape=[None] * 2, name='i', dtype=tf.int64)
+        d_tensor = tf.placeholder(shape=[None, 3, 3], name='x',
+                                  dtype=tf.float32)
+        i_tensor = tf.placeholder(shape=[None, 3], name='i', dtype=tf.int64)
+        out = select_dim_value(d_tensor, i_tensor)
 
+        assert_equal(out.get_shape().as_list(), [None, 3])
         np.testing.assert_almost_equal(
             sess.run(
-                select_dim_value(d_tensor, i_tensor),
+                out,
                 feed_dict={d_tensor: data, i_tensor: indices}
             ),
             np.asarray([
