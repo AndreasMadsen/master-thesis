@@ -71,11 +71,12 @@ class ByteNet(Model):
             x = tf.cast(self.dataset.source, tf.int32)
             y = tf.cast(self.dataset.target, tf.int32)
 
-        dec = self._build_train_model(x, y)
+        logits = self._build_train_model(x, y)
 
         with tf.name_scope(None, "optimization", values=[dec, y]):
             # cross entropy loss with logit and mask
-            loss = dec.sg_ce(target=y, mask=True)
+            loss = logits.sg_ce(target=y, mask=True)
+            loss = tf.reduce_mean(tf.reduce_sum(loss, axis=1), axis=0)
 
         return loss
 
