@@ -9,7 +9,7 @@ from code.tf_operator.bytenet_decoder \
 
 
 def bytenet_unsupervised_translator(x,
-                                    latent_dim=20, voca_size=20,
+                                    latent_dim=20, voca_size=20, num_blocks=3,
                                     name=None, reuse=False):
     with tf.variable_scope(name, "bytenet-unsupervised-translator",
                            values=[x], reuse=reuse):
@@ -27,7 +27,8 @@ def bytenet_unsupervised_translator(x,
 
         # encode graph ( atrous convolution )
         enc = x.sg_lookup(emb=emb_x)
-        enc = parallel_bytenet_encoder(enc, name="encoder")
+        enc = parallel_bytenet_encoder(enc, num_blocks=num_blocks,
+                                       name="encoder")
 
         #
         # decode graph ( causal convolution )
@@ -43,7 +44,7 @@ def bytenet_unsupervised_translator(x,
             dec = enc_t.sg_concat(target=y_tm1.sg_lookup(emb=emb_y))
             # decode graph ( causal convolution )
             state_t, dec = seq_bytenet_decoder(
-                state_tm1, dec, name="decoder"
+                state_tm1, dec, num_blocks=num_blocks, name="decoder"
             )
 
             # final fully convolution layer for softmax

@@ -11,8 +11,9 @@ from code.tf_operator.batch_repeat \
 
 
 def bytenet_sampling_translator(x,
-                                latent_dim=20, voca_size=20, samples=1,
-                                seed=None, name=None, reuse=False):
+                                latent_dim=20, voca_size=20, num_blocks=3,
+                                samples=1, seed=None,
+                                name=None, reuse=False):
     with tf.variable_scope(name, "bytenet-sampling-translator",
                            values=[x], reuse=reuse):
         # make embedding matrix for source and target
@@ -29,7 +30,8 @@ def bytenet_sampling_translator(x,
 
         # encode graph ( atrous convolution )
         enc = x.sg_lookup(emb=emb_x)
-        enc = parallel_bytenet_encoder(enc, name="encoder")
+        enc = parallel_bytenet_encoder(enc, num_blocks=num_blocks,
+                                       name="encoder")
 
         # repeat encoding matrix for paralllel sampling
         # enc.shape = (batch * repeats, time, dims)
@@ -40,17 +42,17 @@ def bytenet_sampling_translator(x,
         # decode graph ( causal convolution )
         #
         # initalize scan state
-        init_state = seq_bytenet_decoder_init(enc)
+        init_state = seq_bytenet_decoder_init(enc, num_blocks=num_blocks)
 
         # apply seq_decoder_residual_block to all time steps
         def scan_op(acc, enc_t):
-            (state_tm1, prop_tm1, y_tm1) = acc
+            (state_tm1, label_tm1, y_tm1) = acc
 
             # concat encoding at `t` and decoding at `t-1`
             dec = enc_t.sg_concat(target=y_tm1.sg_lookup(emb=emb_y))
             # decode graph ( causal convolution )
             state_t, dec = seq_bytenet_decoder(
-                state_tm1, dec, name="decoder"
+                state_tm1, dec, num_blocks=num_blocks, name="decoder"
             )
 
             # final fully convolution layer for softmax

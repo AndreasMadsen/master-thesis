@@ -7,7 +7,7 @@ from code.tf_operator.bytenet_decoder import parallel_bytenet_decoder
 
 
 def bytenet_supervised_translator(x, y,
-                                  latent_dim=20, voca_size=20,
+                                  latent_dim=20, voca_size=20, num_blocks=3,
                                   name=None, reuse=False):
     with tf.variable_scope(name, "bytenet-supervised-translator",
                            values=[x, y], reuse=reuse):
@@ -34,11 +34,13 @@ def bytenet_supervised_translator(x, y,
 
         # encode graph ( atrous convolution )
         enc = x.sg_lookup(emb=emb_x)
-        enc = parallel_bytenet_encoder(enc, name="encoder")
+        enc = parallel_bytenet_encoder(enc, num_blocks=num_blocks,
+                                       name="encoder")
 
         # decode graph ( causal convolution )
         dec = enc.sg_concat(target=y_src.sg_lookup(emb=emb_y))
-        dec = parallel_bytenet_decoder(dec, name="decoder")
+        dec = parallel_bytenet_decoder(dec, num_blocks=num_blocks,
+                                       name="decoder")
 
         # final fully convolution layer for softmax
         logits = dec.sg_conv1d(
