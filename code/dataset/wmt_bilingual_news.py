@@ -33,12 +33,27 @@ _wmt_bilingual_news_filename = {
     (2013, 'fr', 'en'): BilingualPair(
         tarball='dev',
         source_filename='dev/newstest2013-ref.fr.sgm',
-        target_filename='dev/newstest2013-src.en.sgm'
+        target_filename='dev/newstest2013-ref.en.sgm'
+    ),
+    (2013, 'de', 'en'): BilingualPair(
+        tarball='dev',
+        source_filename='dev/newstest2013-ref.de.sgm',
+        target_filename='dev/newstest2013-ref.en.sgm'
     ),
     (2014, 'fr', 'en'): BilingualPair(
         tarball='dev',
         source_filename='dev/newstest2014-fren-ref.fr.sgm',
         target_filename='dev/newstest2014-fren-ref.en.sgm'
+    ),
+    (2014, 'de', 'en'): BilingualPair(
+        tarball='dev',
+        source_filename='dev/newstest2014-deen-ref.de.sgm',
+        target_filename='dev/newstest2014-deen-ref.en.sgm'
+    ),
+    (2015, 'de', 'en'): BilingualPair(
+        tarball='dev',
+        source_filename='dev/newstest2015-ende-ref.de.sgm',
+        target_filename='dev/newstest2015-deen-ref.en.sgm'
     )
 }
 
@@ -76,7 +91,10 @@ class WMTBilingualNews(TextDataset):
         self._min_length = min_length
         self._max_length = max_length
 
-        super().__init__(**kwargs)
+        super().__init__(
+            max_length=self._max_length,
+            **kwargs
+        )
 
     def __iter__(self) -> Iterator[Tuple[str, str]]:
         with WMTEnv() as wmt_env:

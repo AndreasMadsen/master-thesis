@@ -43,11 +43,16 @@ class SyntheticDigits(TextDataset):
         self._dataset = tuple(self._build_dataset())
 
         super().__init__(
-            vocabulary=self._build_vocabulary(),
+            vocabulary=self._get_vocabulary(),
+            max_length=self._get_max_length(),
             seed=seed, **kwargs
         )
 
-    def _build_vocabulary(self) -> FrozenSet[str]:
+    def _get_max_length(self) -> int:
+        longest_str = ' '.join(['eight'] * self._max_length)
+        return len(longest_str)
+
+    def _get_vocabulary(self) -> FrozenSet[str]:
         source = ''.join(text_map)
         source_special = ' '
         target = ''.join(np.arange(0, self._digits).astype(np.str))

@@ -39,3 +39,16 @@ def test_output_order():
         ('six seven one', '671'),
         ('four zero seven', '407')
     ])
+
+
+def test_corpus_properties():
+    """ensure that SyntheticDigits vocabilary and max_length is correct"""
+    dataset = SyntheticDigits(
+        examples=1, seed=99
+    )
+
+    assert_equal(
+        dataset.corpus_properties.vocabulary,
+        frozenset('zerontwhufivsxg0123456789 ')
+    )
+    assert_equal(dataset.corpus_properties.max_length, 17)
