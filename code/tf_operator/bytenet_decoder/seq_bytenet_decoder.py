@@ -28,7 +28,8 @@ def seq_bytenet_decoder(state_tm1, dec,
     assert len(state_tm1) == num_blocks
 
     # loop dilated causal conv block
-    with tf.variable_scope(name, "bytenet-decoder", values=[dec, state_tm1], reuse=reuse):
+    with tf.variable_scope(name, "bytenet-decoder", values=[dec, state_tm1],
+                           reuse=reuse):
         state_t = []
 
         for i, state_li_tm1 in zip(range(num_blocks), state_tm1):
