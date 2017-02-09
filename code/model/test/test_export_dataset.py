@@ -1,5 +1,5 @@
 
-from nose.tools import *
+from nose.tools import assert_equal
 
 from code.dataset import SyntheticDigits
 from code.model.export_dataset import ExportDataset

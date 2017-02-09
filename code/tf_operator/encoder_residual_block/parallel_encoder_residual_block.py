@@ -1,5 +1,5 @@
 
-import sugartensor as stf
+import sugartensor as stf  # noqa: F401
 import tensorflow as tf
 
 

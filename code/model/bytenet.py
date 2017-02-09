@@ -3,7 +3,6 @@ from typing import List
 
 import tensorflow as tf
 import sugartensor as stf
-import numpy as np
 
 from code.model.abstract.model import Model
 from code.dataset.abstract.text_dataset import TextDataset
@@ -73,7 +72,7 @@ class ByteNet(Model):
 
         logits = self._build_train_model(x, y)
 
-        with tf.name_scope(None, "optimization", values=[dec, y]):
+        with tf.name_scope(None, "optimization", values=[logits, y]):
             # cross entropy loss with logit and mask
             loss = logits.sg_ce(target=y, mask=True)
             loss = tf.reduce_mean(tf.reduce_sum(loss, axis=1), axis=0)

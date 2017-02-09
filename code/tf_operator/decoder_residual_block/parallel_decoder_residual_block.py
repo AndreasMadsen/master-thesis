@@ -1,6 +1,6 @@
 
 import tensorflow as tf
-import sugartensor as stf
+import sugartensor as stf  # noqa: F401
 
 
 def parallel_decoder_residual_block(tensor,

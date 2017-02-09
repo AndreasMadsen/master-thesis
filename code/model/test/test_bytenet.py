@@ -1,5 +1,5 @@
 
-from nose.tools import *
+from nose.tools import assert_equal
 
 import shutil
 import os.path as path
@@ -8,7 +8,6 @@ import sugartensor as stf
 
 from code.dataset import SyntheticDigits
 from code.model.bytenet import ByteNet
-from code.model.export_dataset import ExportDataset
 
 
 def test_bytenet_on_digits():

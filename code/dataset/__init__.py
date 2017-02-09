@@ -1,3 +1,4 @@
+# flake8: noqa
 
 from code.dataset.abstract import *
 from code.dataset.synthetic_digits import SyntheticDigits

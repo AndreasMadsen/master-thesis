@@ -1,3 +1,4 @@
+# flake8: noqa
 
 from code.tf_operator.decoder_residual_block.seq_decoder_residual_block \
     import seq_decoder_residual_block, seq_decoder_residual_block_init

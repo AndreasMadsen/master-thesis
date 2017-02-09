@@ -19,7 +19,7 @@ test:
 		code/model/test/*.py
 
 lint:
-	pycodestyle --show-source --show-pep8 code/
+	flake8 --show-source code/
 
 report: report/thesis.tex
 	cd report && latexmk -pdf -pdflatex="$(XELATEX)" -use-make thesis.tex

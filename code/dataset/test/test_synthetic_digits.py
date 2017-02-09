@@ -1,7 +1,5 @@
 
-from nose.tools import *
-
-import math
+from nose.tools import assert_equal
 
 import sugartensor as stf
 

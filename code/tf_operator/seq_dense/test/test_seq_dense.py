@@ -1,6 +1,4 @@
 
-from nose.tools import *
-
 import sugartensor as stf
 import tensorflow as tf
 import numpy as np

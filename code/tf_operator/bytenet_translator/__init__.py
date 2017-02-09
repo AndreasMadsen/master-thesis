@@ -1,3 +1,4 @@
+# flake8: noqa
 
 from code.tf_operator.bytenet_translator.bytenet_supervised_translator \
     import bytenet_supervised_translator

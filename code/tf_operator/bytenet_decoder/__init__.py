@@ -1,3 +1,4 @@
+# flake8: noqa
 
 from code.tf_operator.bytenet_decoder.seq_bytenet_decoder \
     import seq_bytenet_decoder_init, seq_bytenet_decoder

@@ -1,5 +1,5 @@
 
-from nose.tools import *
+from nose.tools import assert_equal
 
 import numpy as np
 import tensorflow as tf

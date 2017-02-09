@@ -1,5 +1,5 @@
 
-from nose.tools import *
+from nose.tools import assert_equal
 
 import tensorflow as tf
 import sugartensor as stf

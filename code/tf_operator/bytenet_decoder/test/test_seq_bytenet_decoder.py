@@ -1,6 +1,4 @@
 
-from nose.tools import *
-
 import numpy as np
 import tensorflow as tf
 import sugartensor as stf
@@ -15,8 +13,6 @@ def test_output_shape():
     """validate seq_bytenet_decoder() matches parallel_bytenet_decoder()"""
     batch_size = 16
     time_steps = 8
-    size = 3
-    rate = 2
     dims = 10
 
     data = np.random.uniform(-3, 3, size=(batch_size, time_steps, dims))

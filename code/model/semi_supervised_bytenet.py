@@ -3,7 +3,6 @@ from typing import List
 
 import tensorflow as tf
 import sugartensor as stf
-import numpy as np
 
 from code.model.abstract.model import Model
 from code.dataset.abstract.text_dataset import TextDataset
@@ -180,7 +179,6 @@ class SemiSupervisedByteNet(Model):
     def predict(self, sources: List[str], order='x2y',
                 reuse: bool=False) -> List[str]:
         sources = self.dataset.encode_as_batch(sources)
-        predict_shape = (sources.shape[0], self.dataset.effective_max_length)
 
         # get source and target tensors
         x = stf.placeholder(dtype=stf.int32, shape=sources.shape)
