@@ -123,20 +123,6 @@ class SemiSupervisedByteNet(Model):
             # cross entropy loss (scalar)
             return -tf.log(marginal_props + 1e-9)
 
-    def _build_test_model(self,
-                          x: tf.Tensor,
-                          order='x2y',
-                          reuse: bool=False) -> tf.Tensor:
-        logits, labels = bytenet_unsupervised_translator(
-            x,
-            voca_size=self.dataset.vocabulary_size,
-            latent_dim=self.latent_dim,
-            num_blocks=self.num_blocks,
-            name=f'bytenet-{order}',
-            reuse=reuse
-        )
-        return labels
-
     def _model_loss(self) -> tf.Tensor:
         loss = 0
 
@@ -179,23 +165,16 @@ class SemiSupervisedByteNet(Model):
         tf.summary.scalar('losses/total', loss)
         return loss
 
-    def predict(self, sources: List[str], order='x2y',
-                reuse: bool=False) -> List[str]:
-        sources = self.dataset.encode_as_batch(sources)
-
-        # get source and target tensors
-        x = stf.placeholder(dtype=stf.int32, shape=sources.shape)
-
-        label = self._build_test_model(x, order=order, reuse=reuse)
-
-        # run graph for translating
-        with tf.Session() as sess:
-            # init session vars
-            stf.sg_init(sess)
-
-            # restore parameters
-            stf.sg_restore(sess, self._latest_checkpoint())
-
-            pred = sess.run(label, {x: sources})
-
-        return self.dataset.decode_as_batch(pred)
+    def inference_model(self,
+                        x: tf.Tensor,
+                        order='x2y',
+                        reuse: bool=False) -> tf.Tensor:
+        logits, labels = bytenet_unsupervised_translator(
+            x,
+            voca_size=self.dataset.vocabulary_size,
+            latent_dim=self.latent_dim,
+            num_blocks=self.num_blocks,
+            name=f'bytenet-{order}',
+            reuse=reuse
+        )
+        return labels

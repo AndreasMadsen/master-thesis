@@ -38,18 +38,6 @@ class ByteNet(Model):
         )
         return logits
 
-    def _build_test_model(self,
-                          x: tf.Tensor,
-                          reuse: bool=False) -> tf.Tensor:
-        logits, labels = bytenet_unsupervised_translator(
-            x,
-            voca_size=self.dataset.vocabulary_size,
-            latent_dim=self.latent_dim,
-            name="bytenet-model",
-            reuse=reuse
-        )
-        return labels
-
     def _build_sample_model(self,
                             x: tf.Tensor,
                             samples=1,
@@ -76,24 +64,17 @@ class ByteNet(Model):
 
         return loss
 
-    def predict(self, sources: List[str], reuse: bool=False) -> List[str]:
-        sources = self.dataset.encode_as_batch(sources)
-
-        # build model
-        x = stf.placeholder(dtype=stf.int32, shape=sources.shape)
-        label = self._build_test_model(x, reuse=reuse)
-
-        # run graph for translating
-        with tf.Session() as sess:
-            # init session vars
-            stf.sg_init(sess)
-
-            # restore parameters
-            stf.sg_restore(sess, self._latest_checkpoint())
-
-            pred = sess.run(label, {x: sources})
-
-        return self.dataset.decode_as_batch(pred)
+    def inference_model(self,
+                        x: tf.Tensor,
+                        reuse: bool=False) -> tf.Tensor:
+        logits, labels = bytenet_unsupervised_translator(
+            x,
+            voca_size=self.dataset.vocabulary_size,
+            latent_dim=self.latent_dim,
+            name="bytenet-model",
+            reuse=reuse
+        )
+        return labels
 
     def sample(self, sources: List[str], samples=10,
                reuse: bool=False) -> List[str]:
