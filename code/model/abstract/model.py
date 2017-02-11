@@ -26,6 +26,11 @@ class Model:
     def train(self, max_ep: int=20, **kwargs) -> None:
         loss = self._model_loss()
 
+        # print tensorboard command
+        print(f'tensorboard info:')
+        print(f'  using: tensorboard --logdir={self._save_dir}')
+        print(f'     on: http://localhost:6006')
+
         # train
         sess_config = tf.ConfigProto(allow_soft_placement=True)
         with tf.Session(config=sess_config) as sess:

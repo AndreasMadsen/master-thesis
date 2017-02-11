@@ -7,6 +7,7 @@ import sugartensor as stf
 from code.model.abstract.model import Model
 from code.dataset.abstract.text_dataset import TextDataset
 from code.tf_operator import \
+    cross_entropy_direct, \
     bytenet_supervised_translator, \
     bytenet_unsupervised_translator, \
     bytenet_sampling_translator
@@ -71,11 +72,7 @@ class ByteNet(Model):
             y = tf.cast(self.dataset.target, tf.int32)
 
         logits = self._build_train_model(x, y)
-
-        with tf.name_scope(None, "optimization", values=[logits, y]):
-            # cross entropy loss with logit and mask
-            loss = logits.sg_ce(target=y, mask=True)
-            loss = tf.reduce_mean(tf.reduce_sum(loss, axis=1), axis=0)
+        loss = cross_entropy_direct(logits, y, "supervised-x2y")
 
         return loss
 

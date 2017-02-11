@@ -10,6 +10,7 @@ test:
 		code/tf_operator/batch_repeat/test/*.py \
 		code/tf_operator/bytenet_encoder/test/*.py \
 		code/tf_operator/bytenet_decoder/test/*.py \
+		code/tf_operator/cross_entropy/test/*.py \
 		code/tf_operator/decoder_residual_block/test/*.py \
 		code/tf_operator/encoder_residual_block/test/*.py \
 		code/tf_operator/select_value/test/*.py \

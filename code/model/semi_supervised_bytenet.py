@@ -9,6 +9,7 @@ from code.dataset.abstract.text_dataset import TextDataset
 from code.tf_operator import \
     batch_repeat, batch_repeat_pack, batch_repeat_unpack, \
     select_dim_value, seq_prop, \
+    cross_entropy_direct, cross_entropy_indirect, \
     bytenet_supervised_translator, \
     bytenet_unsupervised_translator, \
     bytenet_sampling_translator
@@ -28,7 +29,7 @@ class SemiSupervisedByteNet(Model):
                  latent_dim: int=400, num_blocks: int=3, samples: int=10,
                  save_dir: str='asset/semi-bytenet',
                  **kwargs) -> None:
-        super().__init__(dataset_x2y, **kwargs)
+        super().__init__(dataset_x2y, save_dir=save_dir, **kwargs)
 
         self.latent_dim = latent_dim
         self.num_blocks = num_blocks
@@ -58,11 +59,7 @@ class SemiSupervisedByteNet(Model):
                 reuse=reuse
             )
 
-            # cross entropy loss with logit and mask
-            loss = logits.sg_ce(target=y, mask=True)
-            loss = tf.reduce_mean(tf.reduce_sum(loss, axis=1), axis=0)
-
-            return tf.check_numerics(loss, f'loss-supervised-{order}')
+            return logits
 
     def _build_unsupervised_model(self,
                                   x: tf.Tensor,
@@ -124,9 +121,7 @@ class SemiSupervisedByteNet(Model):
                                            axis=1)
 
             # cross entropy loss (scalar)
-            loss = -tf.reduce_mean(tf.log(marginal_props + 1e-9), axis=0)
-
-            return tf.check_numerics(loss, f'loss-unsupervised-{order}')
+            return -tf.log(marginal_props + 1e-9)
 
     def _build_test_model(self,
                           x: tf.Tensor,
@@ -151,29 +146,37 @@ class SemiSupervisedByteNet(Model):
             x = tf.cast(self.dataset.source, tf.int32)
             y = tf.cast(self.dataset.target, tf.int32)
 
-            loss += self._build_supervised_model(x, y, order='x2y')
-            loss += self._build_supervised_model(y, x, order='y2x')
+            logits_x2y = self._build_supervised_model(x, y, order='x2y')
+            logits_y2x = self._build_supervised_model(y, x, order='y2x')
+
+        loss += cross_entropy_direct(logits_x2y, y, name='supervised-x2y')
+        loss += cross_entropy_direct(logits_y2x, x, name='supervised-y2x')
 
         if self.dataset_x is not None:
             with tf.name_scope(None, "unsupervised-x",
                                values=[self.dataset_x.source]):
                 x = tf.cast(self.dataset_x.source, tf.int32)
 
-                loss_x = self._build_unsupervised_model(
+                loss_x2x = self._build_unsupervised_model(
                     x, order='x2y', reuse=True
                 )
-                loss += self.dataset_x_loss_factor * loss_x
+
+            loss += self.dataset_x_loss_factor * \
+                cross_entropy_indirect(loss_x2x, name='unsupervised-x2x')
 
         if self.dataset_y is not None:
             with tf.name_scope(None, "unsupervised-y",
                                values=[self.dataset_y.source]):
                 y = tf.cast(self.dataset_y.source, tf.int32)
 
-                loss_y = self._build_unsupervised_model(
+                loss_y2y = self._build_unsupervised_model(
                     y, order='y2x', reuse=True
                 )
-                loss += self.dataset_y_loss_factor * loss_y
 
+            loss += self.dataset_y_loss_factor * \
+                cross_entropy_indirect(loss_y2y, name='unsupervised-y2y')
+
+        tf.summary.scalar('losses/total', loss)
         return loss
 
     def predict(self, sources: List[str], order='x2y',
