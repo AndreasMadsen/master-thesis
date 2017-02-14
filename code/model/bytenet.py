@@ -26,18 +26,6 @@ class ByteNet(Model):
         self.latent_dim = latent_dim
         self.num_blocks = num_blocks
 
-    def _build_train_model(self,
-                           x: tf.Tensor, y: tf.Tensor,
-                           reuse: bool=False) -> tf.Tensor:
-        logits, lables = bytenet_supervised_translator(
-            x, y,
-            voca_size=self.dataset.vocabulary_size,
-            latent_dim=self.latent_dim,
-            name="bytenet-model",
-            reuse=reuse
-        )
-        return logits
-
     def _build_sample_model(self,
                             x: tf.Tensor,
                             samples=1,
@@ -52,29 +40,40 @@ class ByteNet(Model):
         )
         return labels
 
-    def _model_loss(self) -> tf.Tensor:
-        with tf.name_scope(None, "preprocessing",
-                           values=[self.dataset.source, self.dataset.target]):
+    def loss_model(self,
+                   source: tf.Tensor, target: tf.Tensor,
+                   reuse: bool=False) -> tf.Tensor:
+        with tf.name_scope(None, "preprocessing", values=[source, target]):
             # get source and target tensors
-            x = tf.cast(self.dataset.source, tf.int32)
-            y = tf.cast(self.dataset.target, tf.int32)
+            x = tf.cast(source, tf.int32)
+            y = tf.cast(target, tf.int32)
 
-        logits = self._build_train_model(x, y)
-        loss = cross_entropy_direct(logits, y, "supervised-x2y")
+        logits, _ = bytenet_supervised_translator(
+            x, y,
+            voca_size=self.dataset.vocabulary_size,
+            latent_dim=self.latent_dim,
+            name="bytenet-model",
+            reuse=reuse
+        )
+
+        loss = cross_entropy_direct(logits, y, "supervised-x2y", reuse=reuse)
 
         return loss
 
     def inference_model(self,
-                        x: tf.Tensor,
+                        source: tf.Tensor,
                         reuse: bool=False) -> tf.Tensor:
-        logits, labels = bytenet_unsupervised_translator(
+        x = tf.cast(source, tf.int32)
+
+        _, labels = bytenet_unsupervised_translator(
             x,
             voca_size=self.dataset.vocabulary_size,
             latent_dim=self.latent_dim,
             name="bytenet-model",
             reuse=reuse
         )
-        return labels
+
+        return tf.cast(labels, source.dtype)
 
     def sample(self, sources: List[str], samples=10,
                reuse: bool=False) -> List[str]:

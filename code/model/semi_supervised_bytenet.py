@@ -123,20 +123,30 @@ class SemiSupervisedByteNet(Model):
             # cross entropy loss (scalar)
             return -tf.log(marginal_props + 1e-9)
 
-    def _model_loss(self) -> tf.Tensor:
+    def loss_model(self,
+                   source: tf.Tensor, target: tf.Tensor,
+                   reuse: bool=False) -> tf.Tensor:
         loss = 0
 
-        with tf.name_scope(None, "supervised",
-                           values=[self.dataset.source, self.dataset.target]):
+        with tf.name_scope(None, "supervised", values=[source, target]):
             # get source and target tensors
             x = tf.cast(self.dataset.source, tf.int32)
             y = tf.cast(self.dataset.target, tf.int32)
 
-            logits_x2y = self._build_supervised_model(x, y, order='x2y')
-            logits_y2x = self._build_supervised_model(y, x, order='y2x')
+            logits_x2y = self._build_supervised_model(x, y, order='x2y',
+                                                      reuse=reuse)
+            logits_y2x = self._build_supervised_model(y, x, order='y2x',
+                                                      reuse=reuse)
 
-        loss += cross_entropy_direct(logits_x2y, y, name='supervised-x2y')
-        loss += cross_entropy_direct(logits_y2x, x, name='supervised-y2x')
+        loss += cross_entropy_direct(logits_x2y, y,
+                                     name='supervised-x2y', reuse=reuse)
+        loss += cross_entropy_direct(logits_y2x, x,
+                                     name='supervised-y2x', reuse=reuse)
+
+        return loss
+
+    def train_model(self):
+        loss = self.loss_model(self.dataset.source, self.dataset.target)
 
         if self.dataset_x is not None:
             with tf.name_scope(None, "unsupervised-x",
@@ -166,9 +176,11 @@ class SemiSupervisedByteNet(Model):
         return loss
 
     def inference_model(self,
-                        x: tf.Tensor,
+                        source: tf.Tensor,
                         order='x2y',
                         reuse: bool=False) -> tf.Tensor:
+        x = tf.cast(source, tf.int32)
+
         logits, labels = bytenet_unsupervised_translator(
             x,
             voca_size=self.dataset.vocabulary_size,
@@ -177,4 +189,4 @@ class SemiSupervisedByteNet(Model):
             name=f'bytenet-{order}',
             reuse=reuse
         )
-        return labels
+        return tf.cast(labels, source.dtype)

@@ -18,19 +18,22 @@ class Model:
         self.dataset = dataset
         self._save_dir = save_dir
 
-    @abc.abstractmethod
-    def _model_loss(self) -> tf.Tensor:
-        pass
-
     def _latest_checkpoint(self) -> str:
         return tf.train.latest_checkpoint(self._save_dir)
 
     def add_metric(self, metric: 'code.metric.abstract.Metric') -> None:
         self._metrics.append(metric)
 
+    @abc.abstractmethod
+    def loss_model(self, x: tf.Tensor, y: tf.Tensor, **kwargs) -> tf.Tensor:
+        pass
+
+    def train_model(self) -> tf.Tensor:
+        return self.loss_model(self.dataset.source, self.dataset.target)
+
     def train(self, max_ep: int=20, **kwargs) -> None:
         # build training model
-        loss = self._model_loss()
+        loss = self.train_model()
 
         # build eval metrics
         eval_metric = [

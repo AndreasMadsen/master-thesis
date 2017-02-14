@@ -12,8 +12,8 @@ class MisclassificationRate(Metric):
     def _build_metric(self, model: 'code.model.abstract.Model') -> tf.Tensor:
         with tf.name_scope(None, self.metric_name,
                            values=[self.dataset.source, self.dataset.target]):
-            x = tf.cast(self.dataset.source, tf.int32)
-            y = tf.cast(self.dataset.target, tf.int32)
+            x = self.dataset.source
+            y = self.dataset.target
 
             # build mask
             mask = tf.cast(tf.not_equal(y, tf.zeros_like(y)), tf.float32)

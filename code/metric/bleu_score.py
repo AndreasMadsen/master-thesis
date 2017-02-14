@@ -40,13 +40,10 @@ class BleuScore(Metric):
 
         with tf.name_scope(None, self.metric_name,
                            values=[self.dataset.source, self.dataset.target]):
-            x = tf.cast(self.dataset.source, tf.int32)
-            y = tf.cast(self.dataset.target, tf.int32)
-            x = tf.Print(x, [x], 'x')
-            predicted = model.inference_model(x, reuse=True)
+            predicted = model.inference_model(self.dataset.source, reuse=True)
 
             bleu = tf.py_func(self._py_implementaton,
-                              [predicted, y],
+                              [predicted, self.dataset.target],
                               tf.float32,
                               stateful=False,
                               name='nltk-corpus-bleu')
