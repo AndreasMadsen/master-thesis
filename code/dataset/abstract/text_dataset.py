@@ -21,8 +21,11 @@ class TextDataset(Dataset):
     decode: Mapping[int, str]
     encode: Mapping[str, int]
     encode_dtype: np.unsignedinteger
+    source_lang: str
+    target_lang: str
 
     def __init__(self,
+                 source_lang, target_lang,
                  vocabulary: FrozenSet[str]=None,
                  max_length: int=None,
                  **kwargs) -> None:
@@ -37,15 +40,19 @@ class TextDataset(Dataset):
             self.max_length = self._compute_length()
 
         # validate properties
-        if '#' in vocabulary:
-            raise ValueError('a special char (#) was found in the vocabulary')
-        if '_' in vocabulary:
+        if '^' in self.vocabulary:
+            raise ValueError('a special char (^) was found in the vocabulary')
+        if '_' in self.vocabulary:
             raise ValueError('a special char (_) aws found in the vocabulary')
-        if max_length <= 0:
+        if self.max_length <= 0:
             raise ValueError('max_length must be positive')
 
         # create encoding schema
         self._setup_encoding()
+
+        # set language properties
+        self.source_lang = source_lang
+        self.target_lang = target_lang
 
         # extract sources and targets
         sources, targets = zip(*self)
@@ -91,7 +98,7 @@ class TextDataset(Dataset):
 
         # to ensure consistent encoding, sort the chars.
         # also add a null char for padding and and <EOS> char for EOS.
-        self.decode = ['_', '#'] + sorted(self.vocabulary)
+        self.decode = ['_', '^'] + sorted(self.vocabulary)
 
         # set vocabulary size
         self.vocabulary_size = len(self.decode)

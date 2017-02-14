@@ -47,7 +47,7 @@ def test_all_examples_exposed():
         examples=10, seed=99, shuffle=False
     )
     actual = tensorflow_extract(dataset)
-    expected = list(map(lambda v: (f'{v[0]}#', f'{v[1]}#'), dataset))
+    expected = list(map(lambda v: (f'{v[0]}^', f'{v[1]}^'), dataset))
 
     actual = sorted(actual, key=lambda v: v[1])
     expected = sorted(expected, key=lambda v: v[1])

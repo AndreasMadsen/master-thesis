@@ -32,28 +32,33 @@ _wmt_bilingual_news_tarball = {
 _wmt_bilingual_news_filename = {
     (2013, 'fr', 'en'): BilingualPair(
         tarball='dev',
-        source_filename='dev/newstest2013-ref.fr.sgm',
+        source_filename='dev/newstest2013-src.fr.sgm',
         target_filename='dev/newstest2013-ref.en.sgm'
     ),
     (2013, 'de', 'en'): BilingualPair(
         tarball='dev',
-        source_filename='dev/newstest2013-ref.de.sgm',
+        source_filename='dev/newstest2013-src.de.sgm',
         target_filename='dev/newstest2013-ref.en.sgm'
     ),
     (2014, 'fr', 'en'): BilingualPair(
         tarball='dev',
-        source_filename='dev/newstest2014-fren-ref.fr.sgm',
+        source_filename='dev/newstest2014-fren-src.fr.sgm',
         target_filename='dev/newstest2014-fren-ref.en.sgm'
     ),
     (2014, 'de', 'en'): BilingualPair(
         tarball='dev',
-        source_filename='dev/newstest2014-deen-ref.de.sgm',
+        source_filename='dev/newstest2014-deen-src.de.sgm',
         target_filename='dev/newstest2014-deen-ref.en.sgm'
     ),
     (2015, 'de', 'en'): BilingualPair(
         tarball='dev',
-        source_filename='dev/newstest2015-ende-ref.de.sgm',
+        source_filename='dev/newstest2015-deen-src.de.sgm',
         target_filename='dev/newstest2015-deen-ref.en.sgm'
+    ),
+    (2015, 'ru', 'en'): BilingualPair(
+        tarball='dev',
+        source_filename='dev/newstest2015-ruen-src.ru.sgm',
+        target_filename='dev/newstest2015-ruen-ref.en.sgm'
     )
 }
 
@@ -92,7 +97,9 @@ class WMTBilingualNews(TextDataset):
         self._max_length = max_length
 
         super().__init__(
+            source_lang, target_lang,
             max_length=self._max_length,
+            name='wmt-bilinual-news',
             **kwargs
         )
 
@@ -110,8 +117,12 @@ class WMTBilingualNews(TextDataset):
                 target_file = tar.extractfile(self._files.target_filename)
 
                 # & is perhaps valid in SGML but it is special in XML
-                source_text = source_file.read().replace(b'&', b'&amp;')
-                target_text = target_file.read().replace(b'&', b'&amp;')
+                source_text = source_file.read() \
+                                         .replace(b'&', b'&amp;') \
+                                         .replace(b'<...>', b'&lt;...&gt;')
+                target_text = target_file.read() \
+                                         .replace(b'&', b'&amp;') \
+                                         .replace(b'<...>', b'&lt;...&gt;')
 
                 # parse SGML files as XML
                 source_dom = xml.dom.minidom.parseString(source_text)

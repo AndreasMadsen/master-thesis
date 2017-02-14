@@ -43,8 +43,10 @@ class SyntheticDigits(TextDataset):
         self._dataset = tuple(self._build_dataset())
 
         super().__init__(
+            source_lang='text', target_lang='digits',
             vocabulary=self._get_vocabulary(),
             max_length=self._get_max_length(),
+            name='synthetic-digits',
             seed=seed, **kwargs
         )
 

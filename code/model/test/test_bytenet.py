@@ -22,8 +22,8 @@ def test_bytenet_on_digits():
         'five', 'six', 'seven', 'eight', 'nine'
     ]
     test_expect = [
-        '0#', '1#', '2#', '3#', '4#',
-        '5#', '6#', '7#', '8#', '9#'
+        '0^', '1^', '2^', '3^', '4^',
+        '5^', '6^', '7^', '8^', '9^'
     ]
 
     if path.exists('asset/bytenet-local-quick-test'):

@@ -13,8 +13,15 @@ class Dataset:
     num_batch: int
 
     def __init__(self, sources: np.ndarray, targets: np.ndarray,
-                 batch_size: int=32, shuffle=True,
-                 name: str='train', seed: int=None) -> None:
+                 batch_size: int=32,
+                 observations: int=None,
+                 name: str='unamed',
+                 shuffle=True, seed: int=None) -> None:
+
+        # take top `observations` from sources and targets
+        if observations is not None:
+            sources = sources[:observations]
+            targets = targets[:observations]
 
         # to constant tensor
         sources = tf.convert_to_tensor(sources)
@@ -32,7 +39,7 @@ class Dataset:
         if shuffle:
             batch_queue = tf.train.shuffle_batch(
                 [source, target], batch_size,
-                name=name,
+                name=f'dataset/{name}',
                 seed=seed,
                 num_threads=32,
                 capacity=batch_size * 64,
@@ -42,7 +49,7 @@ class Dataset:
         else:
             batch_queue = tf.train.batch(
                 [source, target], observations,
-                name=name,
+                name=f'dataset/{name}',
                 num_threads=1,
                 capacity=observations,
                 allow_smaller_final_batch=False

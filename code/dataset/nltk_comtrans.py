@@ -33,7 +33,9 @@ class NLTKComtrans(TextDataset):
         self._min_length = min_length
         self._max_length = max_length
 
-        super().__init__(**kwargs)
+        super().__init__(source_lang, target_lang,
+                         name='nltk-comtrans',
+                         **kwargs)
 
     def _comtrans_string(self) -> str:
         source_lang = self._source_lang
