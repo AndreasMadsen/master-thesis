@@ -6,6 +6,7 @@ import tensorflow as tf
 import sugartensor as stf
 
 from code.dataset.abstract import Dataset
+from code.tf_operator import EmbeddingContainer
 
 
 class Model:
@@ -17,6 +18,7 @@ class Model:
                  save_dir: str='asset/unnamed') -> None:
         self.dataset = dataset
         self._save_dir = save_dir
+        self.embeddings = EmbeddingContainer()
 
     def _latest_checkpoint(self) -> str:
         return tf.train.latest_checkpoint(self._save_dir)
@@ -40,6 +42,9 @@ class Model:
             metric.build(self) for metric in self._metrics
         ]
 
+        # save metadata files for embeddings
+        self.embeddings.save_metadata(self._save_dir)
+
         # print tensorboard command
         print(f'tensorboard info:')
         print(f'  using: tensorboard --logdir={self._save_dir}')
@@ -55,6 +60,7 @@ class Model:
                          early_stop=False,
                          save_dir=self._save_dir,
                          sess=sess,
+                         embeds=self.embeddings,
                          **kwargs)
 
     @abc.abstractmethod

@@ -10,7 +10,8 @@ from code.tf_operator import \
     cross_entropy_direct, \
     bytenet_supervised_translator, \
     bytenet_unsupervised_translator, \
-    bytenet_sampling_translator
+    bytenet_sampling_translator, \
+    EmbeddingContainer
 
 
 class ByteNet(Model):
@@ -52,6 +53,8 @@ class ByteNet(Model):
             x, y,
             voca_size=self.dataset.vocabulary_size,
             latent_dim=self.latent_dim,
+            container=self.embeddings,
+            labels=self.dataset.decode,
             name="bytenet-model",
             reuse=reuse
         )

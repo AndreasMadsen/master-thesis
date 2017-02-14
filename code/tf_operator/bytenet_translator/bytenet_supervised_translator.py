@@ -4,23 +4,27 @@ import sugartensor as stf
 
 from code.tf_operator.bytenet_encoder import parallel_bytenet_encoder
 from code.tf_operator.bytenet_decoder import parallel_bytenet_decoder
+from code.tf_operator.embedding import embedding_matrix
 
 
 def bytenet_supervised_translator(x, y,
                                   latent_dim=20, voca_size=20, num_blocks=3,
+                                  labels=None, container=None,
                                   name=None, reuse=False):
     with tf.variable_scope(name, "bytenet-supervised-translator",
                            values=[x, y], reuse=reuse):
         # make embedding matrix for source and target
-        emb_x = stf.sg_emb(
+        emb_x = embedding_matrix(
+            voca_size=voca_size,
+            dim=latent_dim,
             name='embedding-source',
-            voca_size=voca_size,
-            dim=latent_dim
+            labels=labels, container=container
         )
-        emb_y = stf.sg_emb(
-            name='embedding-target',
+        emb_y = embedding_matrix(
             voca_size=voca_size,
-            dim=latent_dim
+            dim=latent_dim,
+            name='embedding-target',
+            labels=labels, container=container
         )
 
         # shift target for training source

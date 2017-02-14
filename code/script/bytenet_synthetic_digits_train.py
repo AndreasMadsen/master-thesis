@@ -15,4 +15,4 @@ model = ByteNet(dataset, num_blocks=3, latent_dim=20,
                 save_dir='asset/bytenet_synthetic_digits')
 model.add_metric(MisclassificationRate(dataset_test))
 model.add_metric(ModelLoss(dataset_test))
-model.train(max_ep=2000, lr=0.01, log_interval=15)
+model.train(max_ep=2000, lr=0.01, log_interval=10, save_interval=30)

@@ -8,24 +8,28 @@ from code.tf_operator.bytenet_decoder \
     import seq_bytenet_decoder, seq_bytenet_decoder_init
 from code.tf_operator.batch_repeat \
     import batch_repeat, batch_repeat_pack, batch_repeat_unpack
+from code.tf_operator.embedding import embedding_matrix
 
 
 def bytenet_sampling_translator(x,
                                 latent_dim=20, voca_size=20, num_blocks=3,
+                                labels=None, container=None,
                                 samples=1, seed=None,
                                 name=None, reuse=False):
     with tf.variable_scope(name, "bytenet-sampling-translator",
                            values=[x], reuse=reuse):
         # make embedding matrix for source and target
-        emb_x = stf.sg_emb(
+        emb_x = embedding_matrix(
+            voca_size=voca_size,
+            dim=latent_dim,
             name='embedding-source',
-            voca_size=voca_size,
-            dim=latent_dim
+            labels=labels, container=container
         )
-        emb_y = stf.sg_emb(
-            name='embedding-target',
+        emb_y = embedding_matrix(
             voca_size=voca_size,
-            dim=latent_dim
+            dim=latent_dim,
+            name='embedding-target',
+            labels=labels, container=container
         )
 
         # encode graph ( atrous convolution )
