@@ -17,6 +17,7 @@ test:
 		code/tf_operator/seq_dense/test/*.py \
 		code/tf_operator/seq_prop/test/*.py \
 		code/dataset/test/*.py \
+		code/metric/test/*.py \
 		code/model/test/*.py
 
 lint:
