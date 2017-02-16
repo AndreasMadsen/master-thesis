@@ -1,4 +1,6 @@
 
+import sugartensor as stf
+
 from code.dataset import WMTBilingualNews
 from code.model import ByteNet
 from code.metric import BleuScore, ModelLoss
