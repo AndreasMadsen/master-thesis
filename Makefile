@@ -23,6 +23,9 @@ test:
 lint:
 	flake8 --show-source code/
 
+sync:
+	rsync -urltv --delete -e ssh ./ dtu:~/workspace/kandidat
+
 report: report/thesis.tex
 	cd report && latexmk -pdf -pdflatex="$(XELATEX)" -use-make thesis.tex
 
