@@ -62,10 +62,6 @@ Having this quadratic-like computational complexity $\mathcal{O}(|S||T|)$, means
 
 Before explaining the full ByteNet network, a central component of the ByteNet model called the \textit{ByteNet residual block} needs to be explained first. There are two variations of this an \textit{Encoder Residual Block}, and a \textit{Decoder Residual Block}. First the encoder version is explained and then some slight alterations of this will turn it into the decoder version. For a visual representation see Figure \ref{fig:bytenet:residual-block}.
 
-\subsubsection{Encoder Residual Block}
-
-\subsubsection{Decoder Residual Block}
-
 \begin{figure}[h]
     \centering
     \begin{subfigure}[b]{0.45\textwidth}
@@ -83,10 +79,26 @@ Before explaining the full ByteNet network, a central component of the ByteNet m
     \label{fig:bytenet:residual-block}
 \end{figure}
 
+\subsubsection{Encoder Residual Block}
 
-%* A simpler model, reducing computation and simplify implementation, there is also reason to belive that layer normalization will provide better results for the ByteNet model.
+The \textit{ByteNet residual block} is at its core a dialated convolution, but adds upon this many of the ideas presented in section \ref{sec:convergence}. The entire block is a \textit{residual layer}, meaing that that the input is added to the final output of the transformation function $\mathcal{F}$. The transformation can be logically grouped into a set of sub-blocks, a normalization block, a dimentional reduction block, a dialated convolution block, and finally a dimentional restoration block.
 
-\FloatBarrier
+The normalization block consists of Batch-Normalization and a ReLU activation. For this to make sense there must be some parameters before the activation such that the network can control the ReLU. This will either be an embedding lookup or another \textit{residual block}.
+
+The dimentional reduction block reduces the dimentionality of the dataset from $d$ dimentions to $\frac{1}{2}d$ dimentions. This is done though the usual Dense Layer, Batch-Normalization, and ReLU acktivation block sequence. Note that the input is a sequence of vectors, a vector for character, thus the dense matrix multiplication is performed on each vector in the sequence. This can also be descibed as a normal convolution with a kernel width of one.
+
+\afterpage{\clearpage}
+
+The dialated convolution block depends on two parameters (or 3 if dimention size $d$ is included), the kernel width $k$ and the dilation rate $r$. ByteNet specifies a specific structure for these parameters, but these choices only makes sense from the full network perspective, thus they will be discussed later. Besides being a dialated convolution the sub-block is quite normal, as it also performs a Batch-Normalization, and ReLU acktivation. The convolution also maintains the dimentionality, which at this point is $\frac{1}{2}d$.
+
+For the \textit{residual layer} to make sense, the output dimention must be equal to the input dimention, thus the final sub-block is just a dense layer that transforms from $\frac{1}{2}d$ dimentions to $d$ dimentions. This sub-block does not contain either a Batch-Normalization, or a ReLU activation. Though these are implicitly performed if another \textit{residual block} follows.
+
+\subsubsection{Decoder Residual Block}
+
+The decoder is very similar to the encoder, the differences exists such that the decoder can't look into the future of the target sequence. If the decoder was allowed to look into the future it would be impossible to perform inference, when the target sequence is unknown. To prevent future inspection two changes are made‚ the dialiated convolution is masked, and Batch-Normalization is replaced with Layer-Normalization.
+
+Masking the convolution means that only the part of the convolution kernel that looks at the past is preserved. This is equivalent to fixing the right side (the future side) of the preserved kernel to zero.
+
 \subsection{Encoder}
 \subsection{Decoder}
 \subsection{Forward Pass}
