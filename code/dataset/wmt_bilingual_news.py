@@ -109,8 +109,8 @@ class WMTBilingualNews(TextDataset):
             wmt_env.download(self._tarball.name, self._tarball.url)
 
             # peak in tarball
-            with tarfile.open(wmt_env.filepath(self._tarball.name), 'r:gz') \
-                    as tar:
+            filepath = wmt_env.filepath(self._tarball.name)
+            with tarfile.open(filepath, 'r:gz', encoding='utf-8') as tar:
                 # extract the SGML files from the tarball without unpacking
                 # everything
                 source_file = tar.extractfile(self._files.source_filename)

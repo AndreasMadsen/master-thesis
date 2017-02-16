@@ -38,7 +38,8 @@ class EmbeddingContainer:
         for embedding, labels in self._embedding_label_map.items():
             metadata = '\n'.join(labels)
             filename = self._filename(embedding)
-            with open(path.join(save_dir, filename), 'w') as fd:
+            filepath = path.join(save_dir, filename)
+            with open(filepath, 'w', encoding='utf-8') as fd:
                 print(metadata, file=fd)
 
     def __iter__(self) -> Iterator[Tuple[tf.Tensor, str]]:

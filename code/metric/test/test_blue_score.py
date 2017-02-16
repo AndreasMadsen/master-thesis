@@ -19,7 +19,8 @@ class DummyModel(Model):
 
         # read google translated lines
         this_dir = path.dirname(path.realpath(__file__))
-        with open(path.join(this_dir, 'fixtures/raw.google.ru.txt')) as file:
+        filepath = path.join(this_dir, 'fixtures/raw.google.ru.txt')
+        with open(filepath, encoding='utf-8') as file:
             translated_lines = [line.rstrip() for line in file]
 
         # encode translated text
