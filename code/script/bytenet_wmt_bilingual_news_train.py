@@ -3,6 +3,9 @@ from code.dataset import WMTBilingualNews
 from code.model import ByteNet
 from code.metric import BleuScore, ModelLoss
 
+# set log level to debug
+stf.sg_verbosity(10)
+
 dataset_train = WMTBilingualNews(batch_size=16,
                                  year=2014, source_lang='de', target_lang='en')
 dataset_test = WMTBilingualNews(batch_size=16,
