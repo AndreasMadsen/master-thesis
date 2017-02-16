@@ -4,9 +4,6 @@ from typing import List
 import numpy as np
 import tensorflow as tf
 
-from nltk.tokenize.moses import MosesTokenizer
-from nltk.translate.bleu_score import corpus_bleu
-
 from code.metric.abstract import Metric
 from code.dataset.abstract import Dataset
 from code.metric.util.nltk_env import NLTKEnv
@@ -54,6 +51,9 @@ class BleuScore(Metric):
         references = self.dataset.decode_as_batch(references, show_eos=False)
 
         with NLTKEnv() as nltk_env:
+            from nltk.tokenize.moses import MosesTokenizer
+            from nltk.translate.bleu_score import corpus_bleu
+
             tokenizer = MosesTokenizer(lang=self.dataset.target_lang)
 
             # tokenize hypothesis references, and wrap each reference in an
