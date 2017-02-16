@@ -116,21 +116,6 @@
          id="path4957" />
     </marker>
     <marker
-       inkscape:stockid="EmptyTriangleOutM"
-       orient="auto"
-       refY="0.0"
-       refX="0.0"
-       id="EmptyTriangleOutM"
-       style="overflow:visible"
-       inkscape:isstock="true"
-       inkscape:collect="always">
-      <path
-         id="path4638"
-         d="M 5.77,0.0 L -2.88,5.0 L -2.88,-5.0 L 5.77,0.0 z "
-         style="fill-rule:evenodd;fill:#ffffff;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
-         transform="scale(0.4) translate(-4.5,0)" />
-    </marker>
-    <marker
        style="overflow:visible"
        inkscape:stockid="InfiniteLineEnd"
        id="marker4885"
@@ -950,16 +935,16 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4142136"
-     inkscape:cx="220.24584"
-     inkscape:cy="100.65923"
+     inkscape:zoom="2"
+     inkscape:cx="214.90594"
+     inkscape:cy="61.886707"
      inkscape:document-units="px"
      inkscape:current-layer="g8520"
      showgrid="false"
      inkscape:window-width="1428"
      inkscape:window-height="797"
      inkscape:window-x="0"
-     inkscape:window-y="0"
+     inkscape:window-y="1"
      inkscape:window-maximized="0"
      units="cm"
      showguides="true"
@@ -997,90 +982,84 @@
     <g
        id="g8520"
        transform="translate(-11.9,0)">
+      <rect
+         style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect4339"
+         width="70.866142"
+         height="35.433071"
+         x="68.116539"
+         y="975.83752"
+         ry="0" />
+      <flowRoot
+         xml:space="preserve"
+         id="flowRoot4427"
+         style="font-style:normal;font-weight:normal;font-size:12.5px;line-height:215.00000954%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         transform="translate(-88.241898,921.71324)"><flowRegion
+           id="flowRegion4429"><rect
+             id="rect4431"
+             width="70.5"
+             height="35.5"
+             x="156.5"
+             y="54.665359"
+             style="font-size:12.5px;line-height:215.00000954%" /></flowRegion><flowPara
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:215.00000954%;font-family:'Latin Modern Roman';-inkscape-font-specification:'Latin Modern Roman, ';text-align:center;text-anchor:middle"
+           id="flowPara4433">Dense</flowPara><flowPara
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:215.00000954%;font-family:'Latin Modern Roman';-inkscape-font-specification:'Latin Modern Roman, ';text-align:center;text-anchor:middle"
+           id="flowPara4435" /></flowRoot>      <path
+         inkscape:connection-start="#rect4339"
+         inkscape:connection-end="#g4461"
+         inkscape:connector-curvature="0"
+         inkscape:connector-type="polyline"
+         id="path5935"
+         d="m 103.54961,975.83752 0,-10.50119"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <path
+         sodipodi:nodetypes="cc"
+         inkscape:connector-curvature="0"
+         id="path5943"
+         d="m 103.54961,1046.8546 0,-35.2132"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#marker4975)" />
       <g
-         transform="translate(280,-2)"
+         id="g4461"
          inkscape:connector-avoid="true"
-         id="g4903">
+         transform="translate(-0.18766403,-44.041631)">
         <rect
            style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-           id="rect4905"
+           id="rect4437"
            width="70.866142"
            height="35.433071"
            x="68.304199"
-           y="913.94489"
+           y="973.94489"
            ry="0" />
         <flowRoot
            xml:space="preserve"
-           id="flowRoot4907"
+           id="flowRoot4439"
            style="font-style:normal;font-weight:normal;font-size:12.5px;line-height:215.00000954%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-           transform="translate(-88.1,859.19674)"><flowRegion
-             id="flowRegion4909"><rect
-               id="rect4911"
+           transform="translate(-88.01898,919.75183)"><flowRegion
+             id="flowRegion4441"><rect
+               id="rect4443"
                width="70.5"
                height="35.5"
                x="156.5"
                y="54.665359"
                style="font-size:12.5px;line-height:215.00000954%" /></flowRegion><flowPara
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:215.00000954%;font-family:'Latin Modern Roman';-inkscape-font-specification:'Latin Modern Roman, ';text-align:center;text-anchor:middle"
-             id="flowPara4913">Dense</flowPara><flowPara
+             id="flowPara4445">ReLU</flowPara><flowPara
              style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:215.00000954%;font-family:'Latin Modern Roman';-inkscape-font-specification:'Latin Modern Roman, ';text-align:center;text-anchor:middle"
-             id="flowPara4915" /></flowRoot>      </g>
-      <g
-         transform="translate(280,-14)"
-         inkscape:connector-avoid="true"
-         id="g4917">
-        <rect
-           ry="0"
-           y="973.94489"
-           x="68.304199"
-           height="35.433071"
-           width="70.866142"
-           id="rect4919"
-           style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-        <flowRoot
-           transform="translate(-88.1,919.19674)"
-           style="font-style:normal;font-weight:normal;font-size:12.5px;line-height:215.00000954%;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-           id="flowRoot4921"
-           xml:space="preserve"><flowRegion
-             id="flowRegion4923"><rect
-               style="font-size:12.5px;line-height:215.00000954%"
-               y="54.665359"
-               x="156.5"
-               height="35.5"
-               width="70.5"
-               id="rect4925" /></flowRegion><flowPara
-             id="flowPara4927"
-             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:215.00000954%;font-family:'Latin Modern Roman';-inkscape-font-specification:'Latin Modern Roman, ';text-align:center;text-anchor:middle">ReLU</flowPara><flowPara
-             id="flowPara4929"
-             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:215.00000954%;font-family:'Latin Modern Roman';-inkscape-font-specification:'Latin Modern Roman, ';text-align:center;text-anchor:middle" /></flowRoot>      </g>
-      <path
-         inkscape:connector-curvature="0"
-         inkscape:connector-type="polyline"
-         id="path4931"
-         d="m 383.73727,947.37796 0,10.56693"
-         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker4967)"
-         sodipodi:nodetypes="cc" />
+             id="flowPara4447" /></flowRoot>      </g>
       <rect
-         y="890.36212"
-         x="330.39999"
-         height="148.81889"
+         style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect4786"
          width="106.29921"
-         id="rect4945"
-         style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+         height="148.81889"
+         x="50.400002"
+         y="890.36212" />
       <path
-         sodipodi:nodetypes="cc"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker4979)"
+         d="m 103.55921,929.36809 0,-47.97765"
+         id="path6064"
          inkscape:connector-curvature="0"
-         inkscape:connector-type="polyline"
-         id="path4951"
-         d="m 383.47365,995.3832 -0.20265,54.4789"
-         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#marker4963)" />
-      <path
-         sodipodi:nodetypes="cc"
-         inkscape:connector-curvature="0"
-         inkscape:connector-type="polyline"
-         id="path4953"
-         d="m 384.204,881.8621 0.17032,28.045"
-         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#EmptyTriangleOutM);marker-end:url(#marker4979)" />
+         sodipodi:nodetypes="cc" />
     </g>
     <text
        xml:space="preserve"
