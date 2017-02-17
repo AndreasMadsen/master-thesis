@@ -23,7 +23,7 @@ def tensorflow_extract(dataset):
 def test_output_order():
     """ensure that SyntheticDigits order is consistent"""
     dataset = SyntheticDigits(
-        examples=10, shuffle=False, seed=99
+        batch_size=10, examples=10, shuffle=False, seed=99, repeat=False
     )
     assert_equal(list(dataset), [
         ('three eight eight', '388'),

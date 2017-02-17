@@ -16,7 +16,8 @@ class Dataset:
                  batch_size: int=32,
                  observations: int=None,
                  name: str='unamed',
-                 shuffle=True, seed: int=None) -> None:
+                 shuffle=True, seed: int=None,
+                 repeat=True) -> None:
 
         # take top `observations` from sources and targets
         if observations is not None:
@@ -31,9 +32,11 @@ class Dataset:
         observations = int(sources.get_shape()[0])
 
         # create queue from constant tensor
-        source, target = tf.train.slice_input_producer([sources, targets],
-                                                       seed=seed,
-                                                       shuffle=shuffle)
+        source, target = tf.train.slice_input_producer(
+            [sources, targets],
+            shuffle=shuffle, seed=seed,
+            num_epochs=None if repeat else 1
+        )
 
         # create batch queue
         if shuffle:
@@ -44,15 +47,15 @@ class Dataset:
                 num_threads=32,
                 capacity=batch_size * 64,
                 min_after_dequeue=batch_size * 32,
-                allow_smaller_final_batch=False
+                allow_smaller_final_batch=not repeat
             )
         else:
             batch_queue = tf.train.batch(
-                [source, target], observations,
+                [source, target], batch_size,
                 name=f'dataset/{name}',
                 num_threads=1,
-                capacity=observations,
-                allow_smaller_final_batch=False
+                capacity=batch_size,
+                allow_smaller_final_batch=not repeat
             )
 
         # make data visible

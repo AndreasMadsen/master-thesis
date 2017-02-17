@@ -1,12 +1,13 @@
 
 from nose.tools import assert_equal
 
+import numpy as np
 import sugartensor as stf
 
 from code.dataset.synthetic_digits import SyntheticDigits
 
 
-def tensorflow_extract(dataset):
+def tensorflow_extract_one(dataset):
     with stf.Session() as sess:
         stf.sg_init(sess)
         with stf.sg_queue_context():
@@ -20,33 +21,48 @@ def tensorflow_extract(dataset):
     ))
 
 
-def test_output_order():
-    """ensure that Dataset order is consistent"""
+def tensorflow_extract_all(dataset):
+    all_sources = []
+    all_targets = []
+
+    with stf.Session() as sess:
+        stf.sg_init(sess)
+        with stf.sg_queue_context():
+
+            for i in range(dataset.num_batch):
+                sources, targets = sess.run([
+                    dataset.source, dataset.target
+                ])
+
+                all_sources.append(sources)
+                all_targets.append(targets)
+
+    return list(zip(
+        dataset.decode_as_batch(np.vstack(all_sources)),
+        dataset.decode_as_batch(np.vstack(all_targets))
+    ))
+
+
+def test_all_examples_exposed_one():
+    """ensure all examples are exposed when batch_size = observations"""
     dataset = SyntheticDigits(
-        examples=10, seed=99, shuffle=False
+        batch_size=11, examples=11, seed=99, shuffle=False, repeat=False
     )
-    actual = list(dataset)
+    actual = tensorflow_extract_one(dataset)
+    expected = list(map(lambda v: (f'{v[0]}^', f'{v[1]}^'), dataset))
 
-    assert_equal(actual, [
-        ('three eight eight', '388'),
-        ('eight four nine', '849'),
-        ('two eight', '28'),
-        ('five four', '54'),
-        ('seven three zero', '730'),
-        ('seven zero four', '704'),
-        ('one one nine', '119'),
-        ('four one', '41'),
-        ('six seven one', '671'),
-        ('four zero seven', '407')
-    ])
+    actual = sorted(actual, key=lambda v: v[1])
+    expected = sorted(expected, key=lambda v: v[1])
+
+    assert_equal(actual, expected)
 
 
-def test_all_examples_exposed():
-    """ensure all examples are exposed"""
+def test_all_examples_exposed_all():
+    """ensure all examples are exposed when batch_size < observations"""
     dataset = SyntheticDigits(
-        examples=10, seed=99, shuffle=False
+        batch_size=2, examples=11, seed=99, shuffle=False, repeat=False
     )
-    actual = tensorflow_extract(dataset)
+    actual = tensorflow_extract_all(dataset)
     expected = list(map(lambda v: (f'{v[0]}^', f'{v[1]}^'), dataset))
 
     actual = sorted(actual, key=lambda v: v[1])
