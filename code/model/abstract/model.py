@@ -67,7 +67,13 @@ class Model:
     def inference_model(self, x: tf.Tensor) -> tf.Tensor:
         pass
 
-    @abc.abstractmethod
+    def restore(self, session: tf.Session):
+        # init session vars
+        stf.sg_init(session)
+
+        # restore parameters
+        stf.sg_restore(session, self._latest_checkpoint())
+
     def predict(self, sources: List[str], **kwargs) -> List[str]:
         sources = self.dataset.encode_as_batch(sources)
 
@@ -77,12 +83,7 @@ class Model:
 
         # run graph for translating
         with tf.Session() as sess:
-            # init session vars
-            stf.sg_init(sess)
-
-            # restore parameters
-            stf.sg_restore(sess, self._latest_checkpoint())
-
+            self.restore(sess)
             pred = sess.run(label, {x: sources})
 
         return self.dataset.decode_as_batch(pred)
