@@ -23,6 +23,9 @@ test:
 lint:
 	flake8 --show-source code/
 
+fetch:
+	rsync -urltv --delete -e ssh dtu:~/workspace/kandidat/asset ./hpc-asset
+
 sync:
 	rsync -urltv --delete -e ssh ./ dtu:~/workspace/kandidat
 
