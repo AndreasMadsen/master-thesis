@@ -71,4 +71,4 @@ class BleuScore(Metric):
                 weights=self._weights
             )
 
-            return np.asarray(bleu, dtype=np.float32)
+            return np.asarray(bleu * 100, dtype=np.float32)

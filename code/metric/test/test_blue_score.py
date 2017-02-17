@@ -24,12 +24,12 @@ class DummyModel(Model):
             translated_lines = [line.rstrip() for line in file]
 
         # encode translated text
-        self._tranlated = self.dataset.encode_as_batch(translated_lines)
+        self._translated = self.dataset.encode_as_batch(translated_lines)
 
     def inference_model(self, x, reuse=False):
         observations = int(self.dataset.target.get_shape()[0])
 
-        translated = tf.convert_to_tensor(self._tranlated)
+        translated = tf.convert_to_tensor(self._translated)
         translated = tf.train.slice_input_producer(
             [translated], shuffle=False
         )[0]
@@ -48,7 +48,8 @@ def test_bleu_score():
     """test bleu score metric on google translated output"""
     dataset = WMTBilingualNews(
         year=2015, source_lang='en', target_lang='ru',
-        observations=100, min_length=0, max_length=1024,
+        batch_size=100, observations=100,
+        min_length=0, max_length=1024,
         shuffle=False
     )
 
@@ -65,5 +66,5 @@ def test_bleu_score():
             # TODO: these are not quite correct because of the tokenizer,
             # see https://github.com/nltk/nltk/issues/1330 for what the
             # actual values should be.
-            assert_almost_equals(score_2gram, 0.39987335)
-            assert_almost_equals(score_4gram, 0.23176613)
+            assert_almost_equals(score_2gram, 39.987335, places=6)
+            assert_almost_equals(score_4gram, 23.176613, places=6)
