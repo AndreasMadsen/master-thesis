@@ -126,7 +126,10 @@ class TextDataset(Dataset):
 
     def encode_as_iter(self, decoded: str) -> Iterator[int]:
         for char in decoded:
-            yield self.encode[char]
+            if char in self.encode:
+                yield self.encode[char]
+            else:
+                yield '~'
 
         yield 1  # <EOS>
 

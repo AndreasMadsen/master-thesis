@@ -10,6 +10,7 @@ stf.sg_verbosity(10)
 
 dataset_train = NLTKComtrans(batch_size=16)
 dataset_test = WMTBilingualNews(batch_size=16,
+                                vocabulary=dataset_train.vocabulary,
                                 year=2014, source_lang='fr', target_lang='en')
 model = ByteNet(dataset_train,
                 num_blocks=3, latent_dim=400,

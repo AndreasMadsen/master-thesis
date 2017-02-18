@@ -11,6 +11,7 @@ stf.sg_verbosity(10)
 dataset_train = WMTBilingualNews(batch_size=16,
                                  year=2014, source_lang='de', target_lang='en')
 dataset_test = WMTBilingualNews(batch_size=16,
+                                vocabulary=dataset_train.vocabulary,
                                 year=2015, source_lang='de', target_lang='en')
 
 model = ByteNet(dataset_train, save_dir='asset/bytenet_wmt_2014')
