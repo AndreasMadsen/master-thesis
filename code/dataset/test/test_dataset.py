@@ -72,7 +72,7 @@ def test_all_examples_exposed_all():
 
 
 def test_decode_encoding():
-    """ensure all examples are exposed when batch_size < observations"""
+    """test special chars in decoding algorithm"""
     dataset = SyntheticDigits(
         batch_size=2, examples=11, seed=99, shuffle=False, repeat=False
     )
