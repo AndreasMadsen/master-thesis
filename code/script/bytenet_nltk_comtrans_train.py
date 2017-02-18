@@ -9,9 +9,10 @@ from code.metric import BleuScore, ModelLoss, OutOfBound
 stf.sg_verbosity(10)
 
 dataset_train = NLTKComtrans(batch_size=16)
-dataset_test = WMTBilingualNews(batch_size=16,
+dataset_test = WMTBilingualNews(batch_size=128,
+                                year=2014, source_lang='fr', target_lang='en',
                                 vocabulary=dataset_train.vocabulary,
-                                year=2014, source_lang='fr', target_lang='en')
+                                validate=True)
 model = ByteNet(dataset_train,
                 num_blocks=3, latent_dim=400,
                 save_dir='asset/bytenet_nltk_comtrans')

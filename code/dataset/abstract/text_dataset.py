@@ -28,6 +28,8 @@ class TextDataset(Dataset):
                  source_lang, target_lang,
                  vocabulary: FrozenSet[str]=None,
                  max_length: int=None,
+                 validate: bool=False,
+                 name: str='unamed',
                  **kwargs) -> None:
 
         # get corpus properties
@@ -59,12 +61,24 @@ class TextDataset(Dataset):
         # extract sources and targets
         sources, targets = zip(*self)
 
+        # validate vocabulary
+        if validate:
+            missing_chars = self._detect_missing_chars(sources)
+            missing_chars |= self._detect_missing_chars(targets)
+            print(f'Dataset validation ({name}):')
+            if len(missing_chars):
+                print('  The following chars was not found in the vocabulary:')
+                print('  {' + ', '.join(sorted(missing_chars)) + '}')
+                print('  Missing characters will be ignored.')
+            else:
+                print('  The vocabulary was complete.')
+
         # encode source and targets
         sources = self.encode_as_batch(sources)
         targets = self.encode_as_batch(targets)
 
         # setup tensorflow pipeline
-        super().__init__(sources, targets, **kwargs)
+        super().__init__(sources, targets, name=name, **kwargs)
 
     @abc.abstractmethod
     def __iter__(self) -> Iterator[Tuple[str, str]]:
@@ -113,6 +127,16 @@ class TextDataset(Dataset):
         # auto detect appropiate encoding type
         self.encode_dtype = size_to_signed_type(len(self.decode))
 
+    def _detect_missing_chars(self, corpus: List[str]) -> FrozenSet[str]:
+        missing_chars = set()
+
+        for text in corpus:
+            for char in text:
+                if char not in self.encode:
+                    missing_chars.add(char)
+
+        return frozenset(missing_chars)
+
     def encode_as_batch(self, corpus: List[str]) -> np.ndarray:
         batch = np.empty(
             (len(corpus), self.effective_max_length),
@@ -125,15 +149,15 @@ class TextDataset(Dataset):
         return batch
 
     def encode_as_iter(self, decoded: str) -> Iterator[int]:
+        length = 0
         for char in decoded:
             if char in self.encode:
                 yield self.encode[char]
-            else:
-                yield '~'
+                length += 1
 
         yield 1  # <EOS>
 
-        for _ in range(0, self.effective_max_length - len(decoded) - 1):
+        for _ in range(0, self.effective_max_length - length - 1):
             yield 0  # NULL
 
     def encode_as_array(self, decoded: str) -> np.ndarray:
