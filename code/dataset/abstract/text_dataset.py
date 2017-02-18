@@ -43,7 +43,9 @@ class TextDataset(Dataset):
         if '^' in self.vocabulary:
             raise ValueError('a special char (^) was found in the vocabulary')
         if '_' in self.vocabulary:
-            raise ValueError('a special char (_) aws found in the vocabulary')
+            raise ValueError('a special char (_) was found in the vocabulary')
+        if '~' in self.vocabulary:
+            raise ValueError('a special char (~) was found in the vocabulary')
         if self.max_length <= 0:
             raise ValueError('max_length must be positive')
 
@@ -141,8 +143,11 @@ class TextDataset(Dataset):
     def decode_as_str(self, encoded: np.ndarray, show_eos: bool=True) -> str:
         decoded = ''
         for code in encoded:
-            if code != 1 or show_eos:
+            if code >= self.vocabulary_size:
+                decoded += '~'
+            elif code != 1 or show_eos:
                 decoded += self.decode[code]
+
             if code == 1:
                 break
 

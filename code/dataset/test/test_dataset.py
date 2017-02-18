@@ -69,3 +69,25 @@ def test_all_examples_exposed_all():
     expected = sorted(expected, key=lambda v: v[1])
 
     assert_equal(actual, expected)
+
+
+def test_decode_encoding():
+    """ensure all examples are exposed when batch_size < observations"""
+    dataset = SyntheticDigits(
+        batch_size=2, examples=11, seed=99, shuffle=False, repeat=False
+    )
+
+    assert_equal(
+        dataset.decode_as_str(
+            np.asarray([0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 28, 1, 2])
+        ),
+        '_0123456789~^'
+    )
+
+    assert_equal(
+        dataset.decode_as_str(
+            np.asarray([0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 28, 1, 2]),
+            show_eos=False
+        ),
+        '_0123456789~'
+    )
