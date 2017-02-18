@@ -34,6 +34,7 @@ class Dataset:
         # create queue from constant tensor
         source, target = tf.train.slice_input_producer(
             [sources, targets],
+            name=f'dataset/{name}',
             shuffle=shuffle, seed=seed,
             num_epochs=None if repeat else 1
         )
