@@ -4,60 +4,6 @@ The ByteNet model is an alternative approach to neural machine translation, it s
 
 Note that the model presented here is a simplified version of the original ByteNet model \cite{bytenet}. First, there are no bags of characters, only individual characters are used as the sentence representation. Secondly, the Sub-Batch normalization in the decoder is replaced by Layer Normalization, besides being a simpler solution than Sub-Batch Normalization this could also improve the model performance \cite{layer-normalization}.
 
-\subsection{Word-Based Neural Machine Translation Models}
-
-To understand the pros of ByteNet and how it differs from existing word-based model, a short introduction to two popular word based models, Sutskever 2014 \cite{sutskever-2014-nmt}, and Bahdanau 2015 \cite{bahdanau-2015-nmt}, is given. Later in the ByteNet chapter the corns will be discussed. 
-
-\subsubsection{Sutskever Model}
-
-\begin{equationbox}[H]
-\begin{equation*}
-\begin{aligned}
-\text{encoding:} & \\
-& \mathbf{h}_j = f(\mathbf{x}_j, \mathbf{h}_{j-1}) \quad \forall j \in [1, |S|] \\
-\text{decoder:} & \\
-&\mathbf{s}_i = \mathrm{g}(\mathbf{h}_{|S|}, \mathbf{s}_{i-1}) \\
-&\mathbf{y}_i = \mathrm{softmax}(\mathbf{s}_i) \quad \forall i \in [1, |T|] 
-\end{aligned}
-\end{equation*}
-\caption{The Sutskever 2014 model \cite{sutskever-2014-nmt}.}
-\end{equationbox}
-
-The Sutskever 2014 model \cite{sutskever-2014-nmt} was one of the first neural machine translation models to shows state-of-the-art performance on the WMT 2014 dataset.
-
-The general idea is to encode a sequences of words using a recurrent neural network, the last encoder state is then used to initialize the decoder. The decoder iterates using the previously predicted word. While this approach is mathmatically elegant, encoding the source sentense ($S$) into a finite sized vector $h_{|S|}$ is in practice very difficult. The original implementation required a 8000 real valued dimentional vector for the sentence encoding. They also limited the source vocabulary to 16000 words and 8000 words for the target vocabulary.
-
-Word-based neural machine translation models have shown to work well in practise, however they also have obviouse limitations. Words not in the vocabulary can't be translated, a common issue is names which for charecter-based models are very easy to translate because they require no translation. The softmax of a large vocabulary is also expensive, in the original Sutskever implementation they used 4 GPUs for just the softmax and 4 more GPUs for the rest of the network. This again can be solved by using charecter-based models because the ``vocabulary'' is just the diffrent letters, which there are a lot fewer off.
-
-Using charecter instead of words in the Sutskever model may seam like a good idea at first, however the source and target sequences becomes much longer. Long sequences are difficult to encode and decode because the state is updated in each iteration, thus the state produced for the begining of the sentence is easily forgotten. In theory LSTM units solves this vanshing-moment issue, but in practise it still exists. In particullar Sutskever reversed the input sentence to get better performance, if there where no memory issues reversing the input sentence should have no effect.
-
-\subsubsection{Bahdanau Attention Model}
-
-\begin{equationbox}[H]
-\begin{equation*}
-\begin{aligned}
-\text{encoding:} & \\
-& \mathbf{h}_j = f(\mathbf{x}_j, \mathbf{h}_{j-1}) \quad \forall j \in [1, |S|] \\
-\text{attention:} & \\
-& e_{ij} = a(\mathbf{s}_{i-1}, \mathbf{h}_j) \\
-& \bm{\alpha}_i = \mathrm{sparsemax}(\mathbf{e}_i) \\
-& \mathbf{c}_i = {\textstyle \sum_{t=1}^T} \alpha_{it} \mathbf{h}_t \\
-\text{decoder:} & \\
-&\mathbf{s}_i = \mathrm{g}(\mathbf{c}_i, \mathbf{s}_{i-1}) \\
-&\mathbf{y}_i = \mathrm{softmax}(\mathbf{s}_i) \quad \forall i \in [1, |T|] 
-\end{aligned}
-\end{equation*}
-\caption{The attention based Bahdanau 2015 model \cite{bahdanau-2015-nmt}.}
-\end{equationbox}
-
-Bahdanau et. al. solved this memory issue by letting the decoder look at selected parts of the encoding state sequence. It does this though what is called an attention mecanishim. The attention $\bm{\alpha}_i$ is a weight vector, that is used in a weighted mean calculation over the encoded states $\mathbf{h}_t$. The weights a calculated using a sub-network that depends on the previuse output state $\mathbf{s}_{i-1}$ and the encoding states. The weighted mean is then used to calculate the next output state $\mathbf{s}_{i}$.
-
-The attention mecanishim essentially recalculate a new encoding vector for each output state. This creates what called a resolution preserving encoding, that is an encoding which size depends on the source sequence, this is diffrent from the Sutskever model that uses a fixed sized vector. The Bahdanau et. al model is words-based and achieved state-of-the-art like performance. On the surface there is nothing that prevents the Bahdanau et. al. model from being chatecter-based, but by looking at the computational complexity it becomes clear that using chatecters is not a viable solution.
-
-In each iteration on the output sequence, the attention model needs to calculate the weighted mean over the encoding sequence, this takes $\mathcal{O}(|S|)$ time. These calculations can not be reused in the next iteration because they also depends on the output state from the previuse iteration $s_{i-1}$. The attention thus needs to be recaulated for each output state, resulting in a computational complexity of $\mathcal{O}(|S||T|)$.
-
-Having this quadratic-like computational complexity $\mathcal{O}(|S||T|)$, means that using characters instead of words dramatically increases the running time.
-
 \subsection{ByteNet Residual Block}
 
 Before explaining the full ByteNet network, a central component of the ByteNet model called the \textit{ByteNet residual block} needs to be explained first. There are two variations of this an \textit{Encoder Residual Block}, and a \textit{Decoder Residual Block}. First the encoder version is explained and then some slight alterations of this will turn it into the decoder version. For a visual representation see Figure \ref{fig:bytenet:residual-block}.
@@ -99,6 +45,57 @@ The decoder is very similar to the encoder, the differences exists such that the
 
 Masking the convolution means that only the part of the convolution kernel that looks at the past is preserved. This is equivalent to fixing the right side (the future side) of the preserved kernel to zero.
 
-\subsection{Encoder}
-\subsection{Decoder}
-\subsection{Forward Pass}
+\subsection{Hierarchical Dilated Convolution}
+
+Each \textit{ByteNet Residual Block} can conceptually be seen as just a modified dilated convolution. This conceptual model is usefull for understanding the main trick that makes \textit{ByteNet} so powerful, \textit{Hierarchical Dilated Convolution}.
+
+The idea behind \textit{Hierarchical Dilated Convolution} is that by expoentially increasing the dilation rate in stacked dilated convolution layers, the effective kernel width will expoentially increase for each layer, while the amount of weight in the kernel only increases linearly. The encoder part (bottom half) of figure \ref{fig:bytenet:simplified-hdc} helps to understand this idea in detail.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=1]{theory/bytenet-hierarchical-dialted-convolution-enc-dec.pdf}
+    \caption{A simplified version of the ByteNet model, showing the interaction between the decoder and encoder.}
+    \label{fig:bytenet:simplified-hdc}
+\end{figure}
+
+Let the dilation rate for the encoding layers $\ell \in [1, L_{enc}]$ be denoted $r_\ell$, the exponential increasing dilation rate used in the ByteNet model is then $r_\ell = 2^{\ell - 1}$. The top layer $(L_{enc})$ will thus have a width of $(k-1) 2^{L_{enc} -1} + 1$. The effective total width is slightly larger, because the layer below have a width of $(k-1) 2^{L_{enc} - 2} + 1$. This pattern continues down to the first layer, resulting in a effective total width of:
+\begin{equation}
+\sum_{\ell = 1}^{L_{enc}} (k - 1) 2^{\ell-1} + 1 = (k - 1) (2^{L_{enc}} - 1) + 1
+\end{equation}
+The kernel size however is $k \times d$ for all layers, thus the total amount of weights is:
+\begin{equation}
+\sum_{\ell = 1}^{L_{enc}} k d = L_{enc} k d
+\end{equation}
+
+In the original ByteNet model they uses 4 dilated convolution layers, each with a kernel width of $5$, this results in an effective kernel width of 125 charecters (actaully it is 373 charecter wide, because they repeat the pattern 3 times). Having a wide but computationally cheap kernel is extreamly important for a character-based translation model such as ByteNet. In an attention-based translation model, such as the Bahdanau model \cite{bahdanau-nmt} the width is in theory arbitrarily wide (though in practice very wide attention mechanisms works poorly), however as discussed previously this approach causes a qudradic computational complexity (section \ref{sec:theory:sequential:bahdanau}). By \textit{hierarchical dilated convolution} ByteNet maneges to keep the complexity linear, while still haveing a very wide kernel. In practise sentences have a limited length and thus a hierarchical dilated convolution approach can be compareable to an attention approch. In the WMT 2014 en-de dataset, the longest sentences are 400 characters wide (Figure \ref{fig:bytenet:wmt-deen-density}).
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=1]{theory/wmt-deen-density.pdf}
+    \caption{Density estimate of the sentence length in the WMT 2014 en-de dataset.}
+    \label{fig:bytenet:wmt-deen-density}
+\end{figure}
+
+\subsection{The Network}
+
+The full \textit{ByteNet} model combines the \textit{Residual Blocks}s with the \textit{Hierarchical Dilated Convolution} as dicussed earlier. The \textit{Hierarchical Dilated Convolution} pattern is then repeated 3 times for both the encoder and decoder, as vislalized in figure \ref{fig:bytenet:network}.
+
+The input to the encoder is the source sequences mapped using an embedding matrix. The input to the decoder is the encoded sequence concatenated with the previuse target prediction. This target prediction is then also mapped using a diffrent embedding matrix. Note in particular that because the encoded vector is concatenated with the target sequence vector, the internal dimentionality of the decoder is twice that of the encoder. The decoded output is finally projected using a dense layer such the output has vocabulary sized dimensionality. After this a softmax is used to transform the output into the properbility domain.
+
+An interresting effect of this network is that all layers are invariant to adding bais term. The encoder embedding and encoder layers are invariant because of Batch-Normalization. The decoder embedding and decoder layers are invariant because of Layer-Normalization. The final dense layer is invariant because of the following softmax.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=1]{theory/bytenet-network.pdf}
+    \caption{The training network for the ByteNet Model, where the shifted target sequence is feed into the network. In the inference network the shifted target sequence is replaced by the $\mathrm{argmax}(\cdot)$ of the softmax output. ResBlock$(k, r)$ in the encoder refers to the Encoder-Residual-Block$(k, r)$, in the decoder it refers to Decoder-Residual-Block$(k, r)$.}
+    \label{fig:bytenet:network}
+\end{figure}
+
+\subsubsection{Training versus Inference}
+The ByteNet model actually uses a different network for training than it does for inference. This is not strictly necessary, as one could use the same network for both training and interference like in a FFNN, however for sequental models the optimization can often converge faster if the target sequence is feed into the model.
+
+Feeding the target sequence to the network is an optimization trick that may seam counter intutive at first. The idea is that because prediction of the current charecter depends on the prediction of the previuse charecters ($\mathbf{y}_t = f(\mathbf{x}_{1:|S|}, \mathbf{y}_{1:t-1})$), then instead of letting the prediction cascade, which will also cause prediction errors to cascade, $\mathbf{y}_{1:t-1}$ is replaced with the known target sequence such that $\mathbf{y}_t = f(\mathbf{x}_{1:|S|}, \mathbf{t}_{1:t-1})$.
+
+This trick also has the added benefit that training can be parallelized over target sentence and not just the observations and source sentence. 
+
+\todo[inline]{There are some indications of this being suboptimal \url{https://arxiv.org/abs/1506.03099}}
