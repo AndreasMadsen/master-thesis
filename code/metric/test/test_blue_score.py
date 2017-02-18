@@ -9,42 +9,10 @@ import sugartensor as stf
 from code.model.abstract import Model
 from code.metric.bleu_score import BleuScore
 from code.dataset import WMTBilingualNews
+from code.metric.test.dummy_model import DummyModel
 
 
-class DummyModel(Model):
-    def __init__(self, dataset,
-                 save_dir='asset/blue-score-test',
-                 **kwargs):
-        super().__init__(dataset, save_dir=save_dir, **kwargs)
-
-        # read google translated lines
-        this_dir = path.dirname(path.realpath(__file__))
-        filepath = path.join(this_dir, 'fixtures/raw.google.ru.txt')
-        with open(filepath, encoding='utf-8') as file:
-            translated_lines = [line.rstrip() for line in file]
-
-        # encode translated text
-        self._translated = self.dataset.encode_as_batch(translated_lines)
-
-    def inference_model(self, x, reuse=False):
-        observations = int(self.dataset.target.get_shape()[0])
-
-        translated = tf.convert_to_tensor(self._translated)
-        translated = tf.train.slice_input_producer(
-            [translated], shuffle=False
-        )[0]
-        translated = tf.train.batch(
-            [translated], observations,
-            name='inference',
-            num_threads=1,
-            capacity=observations,
-            allow_smaller_final_batch=False
-        )
-
-        return translated
-
-
-def test_bleu_score():
+def test_out_of_bound():
     """test bleu score metric on google translated output"""
     dataset = WMTBilingualNews(
         year=2015, source_lang='en', target_lang='ru',
@@ -53,7 +21,17 @@ def test_bleu_score():
         shuffle=False
     )
 
-    model = DummyModel(dataset)
+    # read google translated lines
+    this_dir = path.dirname(path.realpath(__file__))
+    filepath = path.join(this_dir, 'fixtures/raw.google.ru.txt')
+    with open(filepath, encoding='utf-8') as file:
+        translated_lines = [line.rstrip() for line in file]
+
+    # encode translated text
+    translated = dataset.encode_as_batch(translated_lines)
+
+    # setup model
+    model = DummyModel(dataset, translated)
     bleu_2gram = BleuScore(dataset, ngram=2).build(model)
     bleu_4gram = BleuScore(dataset).build(model)
 
