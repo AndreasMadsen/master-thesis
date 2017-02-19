@@ -10,9 +10,19 @@ from code.model.abstract import Model
 from code.metric.bleu_score import BleuScore
 from code.dataset import WMTBilingualNews
 from code.metric.test.dummy_model import DummyModel
+from code.metric.test.dummy_dataset import DummyDataset
 
 
-def test_out_of_bound():
+def _load_fixture(name):
+    # read google translated lines
+    this_dir = path.dirname(path.realpath(__file__))
+    filepath = path.join(this_dir, f'fixtures/{name}.txt')
+    with open(filepath, encoding='utf-8') as file:
+        translated_lines = [line.rstrip() for line in file]
+    return translated_lines
+
+
+def test_blue_score_on_google():
     """test bleu score metric on google translated output"""
     dataset = WMTBilingualNews(
         year=2015, source_lang='en', target_lang='ru',
@@ -21,14 +31,8 @@ def test_out_of_bound():
         shuffle=False
     )
 
-    # read google translated lines
-    this_dir = path.dirname(path.realpath(__file__))
-    filepath = path.join(this_dir, 'fixtures/raw.google.ru.txt')
-    with open(filepath, encoding='utf-8') as file:
-        translated_lines = [line.rstrip() for line in file]
-
     # encode translated text
-    translated = dataset.encode_as_batch(translated_lines)
+    translated = dataset.encode_as_batch(_load_fixture('trans.google.ru'))
 
     # setup model
     model = DummyModel(dataset, translated)
@@ -46,3 +50,26 @@ def test_out_of_bound():
             # actual values should be.
             assert_almost_equals(score_2gram, 39.987335, places=6)
             assert_almost_equals(score_4gram, 23.176613, places=6)
+
+
+def test_blue_score_on_poorly():
+    """test bleu score metric on poorly translated output"""
+    dataset = DummyDataset(
+        _load_fixture('ref.poor.en'),
+        source_lang='fr', target_lang='en',
+        batch_size=128, observations=128,
+        shuffle=False
+    )
+
+    # encode translated text
+    translated = dataset.encode_as_batch(_load_fixture('trans.poor.en'))
+
+    # setup model
+    model = DummyModel(dataset, translated)
+    bleu_4gram = BleuScore(dataset).build(model)
+
+    with tf.Session() as sess:
+        stf.sg_init(sess)
+        with stf.sg_queue_context():
+            score_4gram = sess.run(bleu_4gram)
+            assert_almost_equals(score_4gram, 0.0, places=1)

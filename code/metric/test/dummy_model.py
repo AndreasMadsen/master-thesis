@@ -1,6 +1,4 @@
 
-import os.path as path
-
 import tensorflow as tf
 
 from code.model.abstract import Model

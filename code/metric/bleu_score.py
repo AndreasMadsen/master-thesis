@@ -1,12 +1,11 @@
 
-from typing import List
-
 import numpy as np
 import tensorflow as tf
 
 from code.metric.abstract import Metric
 from code.dataset.abstract import Dataset
 from code.metric.util.nltk_env import NLTKEnv
+from code.metric.calculate.multi_bleu import multi_bleu
 
 
 def _tokenize_line(tokenizer, line):
@@ -22,10 +21,10 @@ def _tokenize_line(tokenizer, line):
 
 
 class BleuScore(Metric):
-    _weights: List[float]
+    _ngram: int
 
     def __init__(self, dataset: Dataset, name: str="BLEU-score", ngram=4):
-        self._weights = [1/ngram]*ngram
+        self._ngram = ngram
 
         super().__init__(dataset, name=name)
 
@@ -52,7 +51,6 @@ class BleuScore(Metric):
 
         with NLTKEnv() as nltk_env:
             from nltk.tokenize.moses import MosesTokenizer
-            from nltk.translate.bleu_score import corpus_bleu
 
             tokenizer = MosesTokenizer(lang=self.dataset.target_lang)
 
@@ -62,13 +60,13 @@ class BleuScore(Metric):
                 _tokenize_line(tokenizer, line) for line in hypothesis
             ]
             references_tokens = [
-                [_tokenize_line(tokenizer, line)] for line in references
+                _tokenize_line(tokenizer, line) for line in references
             ]
 
             # calculate corpus-bleu score
-            bleu = corpus_bleu(
-                references_tokens, hypothesis_tokens,
-                weights=self._weights
+            score, precisions, brevity_penalty, _, _ = multi_bleu(
+                hypothesis_tokens, [references_tokens],
+                maxn=self._ngram
             )
 
-            return np.asarray(bleu * 100, dtype=np.float32)
+            return np.asarray(score, dtype=np.float32)
