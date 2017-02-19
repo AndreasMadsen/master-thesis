@@ -5,7 +5,7 @@ import itertools
 import tensorflow as tf
 
 from code.model import ByteNet
-from code.dataset import WMTBilingualNews
+from code.dataset import NLTKComtrans, WMTBilingualNews
 
 
 def grouper(iterable, n):
@@ -22,7 +22,8 @@ def remove_linebreak(batch):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-c", "--dataset", type=str, default='wmt')
+parser.add_argument("-c", "--dataset", type=str, default='wmt',
+                    choices=('nltk', 'wmt'))
 parser.add_argument("-s", "--source-lang", type=str, default='de')
 parser.add_argument("-t", "--target-lang", type=str, default='en')
 parser.add_argument("-y", "--year", type=int, default=2014)
@@ -31,10 +32,15 @@ parser.add_argument("-d", "--save-dir", type=str, default='asset/bytenet')
 args = parser.parse_args()
 
 # build training dataset
-dataset = WMTBilingualNews(
-    year=args.year,
-    source_lang=args.source_lang, target_lang=args.target_lang
-)
+if args.dataset == 'wmt':
+    dataset = WMTBilingualNews(
+        year=args.year,
+        source_lang=args.source_lang, target_lang=args.target_lang
+    )
+elif args.dataset == 'nltk':
+    dataset = NLTKComtrans(
+        source_lang=args.source_lang, target_lang=args.target_lang
+    )
 
 # build bytenet graph
 model = ByteNet(dataset, save_dir=args.save_dir)
@@ -46,7 +52,7 @@ with tf.Session() as sess:
 
     # build inference model
     x = tf.placeholder(dtype=tf.int32,
-                       shape=(16, dataset.effective_max_length))
+                       shape=(None, dataset.effective_max_length))
     translate = model.inference_model(x, reuse=True)
 
     # translate stdin
