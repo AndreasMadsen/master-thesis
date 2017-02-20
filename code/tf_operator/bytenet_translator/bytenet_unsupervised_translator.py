@@ -26,7 +26,7 @@ def bytenet_unsupervised_translator(x,
         emb_y = embedding_matrix(
             voca_size=voca_size,
             dim=latent_dim,
-            name='embedding-source',
+            name='embedding-target',
             labels=labels, container=container
         )
 
