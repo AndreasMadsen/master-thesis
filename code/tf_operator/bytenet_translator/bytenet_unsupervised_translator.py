@@ -38,7 +38,7 @@ def bytenet_unsupervised_translator(x,
         # decode graph ( causal convolution )
         #
         # initalize scan state
-        init_state = seq_bytenet_decoder_init(enc)
+        init_state = seq_bytenet_decoder_init(enc, num_blocks=num_blocks)
 
         # apply seq_decoder_residual_block to all time steps
         def scan_op(acc, enc_t):
