@@ -11,6 +11,7 @@ from code.tf_operator.embedding import embedding_matrix
 
 def bytenet_unsupervised_translator(x,
                                     latent_dim=20, voca_size=20, num_blocks=3,
+                                    rate=[1, 2, 4, 8, 16],
                                     labels=None, container=None,
                                     name=None, reuse=False):
     with tf.variable_scope(name, "bytenet-unsupervised-translator",
@@ -31,14 +32,16 @@ def bytenet_unsupervised_translator(x,
 
         # encode graph ( atrous convolution )
         enc = x.sg_lookup(emb=emb_x)
-        enc = parallel_bytenet_encoder(enc, num_blocks=num_blocks,
+        enc = parallel_bytenet_encoder(enc,
+                                       num_blocks=num_blocks, rate=rate,
                                        name="encoder")
 
         #
         # decode graph ( causal convolution )
         #
         # initalize scan state
-        init_state = seq_bytenet_decoder_init(enc, num_blocks=num_blocks)
+        init_state = seq_bytenet_decoder_init(enc,
+                                              num_blocks=num_blocks, rate=rate)
 
         # apply seq_decoder_residual_block to all time steps
         def scan_op(acc, enc_t):
@@ -48,7 +51,9 @@ def bytenet_unsupervised_translator(x,
             dec = enc_t.sg_concat(target=y_tm1.sg_lookup(emb=emb_y))
             # decode graph ( causal convolution )
             state_t, dec = seq_bytenet_decoder(
-                state_tm1, dec, num_blocks=num_blocks, name="decoder"
+                state_tm1, dec,
+                num_blocks=num_blocks, rate=rate,
+                name="decoder"
             )
 
             # final fully convolution layer for softmax
