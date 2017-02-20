@@ -8,6 +8,7 @@ from code.tf_operator.embedding import embedding_matrix
 
 
 def bytenet_supervised_translator(x, y,
+                                  shift=True,
                                   latent_dim=20, voca_size=20, num_blocks=3,
                                   labels=None, container=None,
                                   name=None, reuse=False):
@@ -28,13 +29,16 @@ def bytenet_supervised_translator(x, y,
         )
 
         # shift target for training source
-        with tf.name_scope("shift-target", values=[y]):
-            y_src = tf.concat(1, [
-                # first value is zero
-                tf.zeros((stf.shape(y)[0], 1), y.dtype),
-                # skip last value
-                y[:, :-1]
-            ])
+        if shift:
+            with tf.name_scope("shift-target", values=[y]):
+                y_src = tf.concat(1, [
+                    # first value is zero
+                    tf.zeros((stf.shape(y)[0], 1), y.dtype),
+                    # skip last value
+                    y[:, :-1]
+                ])
+        else:
+            y_src = y
 
         # encode graph ( atrous convolution )
         enc = x.sg_lookup(emb=emb_x)
