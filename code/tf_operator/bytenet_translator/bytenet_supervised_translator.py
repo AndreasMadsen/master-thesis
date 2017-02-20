@@ -32,12 +32,12 @@ def bytenet_supervised_translator(x, y,
         # shift target for training source
         if shift:
             with tf.name_scope("shift-target", values=[y]):
-                y_src = tf.concat(1, [
+                y_src = tf.concat([
                     # first value is zero
                     tf.zeros((stf.shape(y)[0], 1), y.dtype),
                     # skip last value
                     y[:, :-1]
-                ])
+                ], 1)
         else:
             y_src = y
 

@@ -20,6 +20,6 @@ def embedding_matrix(voca_size: int, dim: int,
 
         # 1st row should be zero and not be updated by backprop because of
         # zero padding.
-        emb = tf.concat(0, [tf.zeros((1, dim), dtype=tf.float32), w])
+        emb = tf.concat([tf.zeros((1, dim), dtype=tf.float32), w], 0)
 
         return emb
