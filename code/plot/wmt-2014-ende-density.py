@@ -1,6 +1,5 @@
 
 import pandas as pd
-import numpy as np
 
 from code.dataset import WMTBilingualNews
 from code.plot.util.ggplot import GGPlot

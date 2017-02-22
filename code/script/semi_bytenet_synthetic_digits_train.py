@@ -12,7 +12,7 @@ dataset_x2y = SyntheticDigits(batch_size=16, examples=500, seed=10)
 dataset_x = SyntheticDigits(batch_size=16, examples=500, seed=11)
 
 dataset_test_x2y = SyntheticDigits(batch_size=50, examples=50, seed=12)
-missrate = MisclassificationRate(test_dataset_x,
+missrate = MisclassificationRate(dataset_test_x2y,
                                  name="misclassification-rate-x2y")
 
 model = SemiSupervisedByteNet(dataset_x2y,

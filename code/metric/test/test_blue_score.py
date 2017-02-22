@@ -6,7 +6,6 @@ import os.path as path
 import tensorflow as tf
 import sugartensor as stf
 
-from code.model.abstract import Model
 from code.metric.bleu_score import BleuScore
 from code.dataset import WMTBilingualNews
 from code.metric.test.dummy_model import DummyModel

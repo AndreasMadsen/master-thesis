@@ -1,6 +1,5 @@
 
 import tensorflow as tf
-import sugartensor as stf
 
 from code.tf_operator.seq_dense import seq_dense
 from code.tf_operator.bytenet_encoder import parallel_bytenet_encoder

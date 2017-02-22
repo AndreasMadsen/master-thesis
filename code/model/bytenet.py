@@ -10,8 +10,7 @@ from code.tf_operator import \
     cross_entropy_direct, \
     bytenet_supervised_translator, \
     bytenet_unsupervised_translator, \
-    bytenet_sampling_translator, \
-    EmbeddingContainer
+    bytenet_sampling_translator
 
 
 class ByteNet(Model):

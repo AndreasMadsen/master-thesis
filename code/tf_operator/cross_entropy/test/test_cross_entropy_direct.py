@@ -1,7 +1,6 @@
 
 from nose.tools import assert_equal
 
-import numpy as np
 import tensorflow as tf
 import sugartensor as stf
 

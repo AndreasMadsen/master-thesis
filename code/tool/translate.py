@@ -1,8 +1,5 @@
-import sys
 import argparse
-import itertools
 
-import tensorflow as tf
 import tqdm
 
 from code.model import ByteNet

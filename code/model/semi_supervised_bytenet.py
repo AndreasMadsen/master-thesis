@@ -1,8 +1,5 @@
 
-from typing import List
-
 import tensorflow as tf
-import sugartensor as stf
 
 from code.model.abstract.model import Model
 from code.dataset.abstract.text_dataset import TextDataset

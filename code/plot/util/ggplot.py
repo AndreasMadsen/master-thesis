@@ -43,7 +43,7 @@ class GGPlot:
             env['LANGUAGE'] = 'en'
 
             try:
-                p = subprocess.run(
+                subprocess.run(
                     ['Rscript', fd.name, output_file],
                     env=env,
                     input=bytes(csv_file.getvalue(), 'utf8'),
