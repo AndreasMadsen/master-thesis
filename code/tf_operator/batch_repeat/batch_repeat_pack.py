@@ -7,7 +7,7 @@ def batch_repeat_pack(x, name=None):
         # x.shape = (batches, repeats, ...)
 
         # reshape to (batches * repeats, ...)
-        shape = tf.concat_v2([[-1], tf.shape(x)[2:]], axis=0)
+        shape = tf.concat([[-1], tf.shape(x)[2:]], axis=0)
         t = tf.reshape(x, shape=shape)
         # restore .get_shape() dimentions of output
         t.set_shape(

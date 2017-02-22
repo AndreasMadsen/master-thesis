@@ -12,7 +12,7 @@ def batch_repeat(x, repeats=1, name=None):
         t = tf.tile(x, multiples=multiples)
 
         # reshape into (repeats, batches, ....)
-        shape = tf.concat_v2([[repeats], tf.shape(x)], axis=0)
+        shape = tf.concat([[repeats], tf.shape(x)], axis=0)
         t = tf.reshape(t, shape=shape)
 
         # transpose into (batches, repeats, ....)
