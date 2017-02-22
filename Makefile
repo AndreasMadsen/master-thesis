@@ -28,7 +28,7 @@ fetch:
 	rsync -urltv --delete -e ssh dtu:~/workspace/kandidat/asset/ ./hpc_asset
 
 sync:
-	rsync -urltv --delete --exclude 'hpc-asset' --exclude 'asset' -e ssh ./ dtu:~/workspace/kandidat
+	rsync -urltv --delete --exclude 'hpc_asset' --exclude 'asset' -e ssh ./ dtu:~/workspace/kandidat
 
 report: report/thesis.tex
 	cd report && latexmk -pdf -pdflatex="$(XELATEX)" -use-make thesis.tex
