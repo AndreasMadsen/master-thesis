@@ -36,6 +36,7 @@ class ByteNet(Model):
             samples=samples,
             voca_size=self.dataset.vocabulary_size,
             latent_dim=self.latent_dim,
+            num_blocks=self.num_blocks,
             name="bytenet-model",
             reuse=reuse
         )
@@ -53,6 +54,7 @@ class ByteNet(Model):
             x, y,
             voca_size=self.dataset.vocabulary_size,
             latent_dim=self.latent_dim,
+            num_blocks=self.num_blocks,
             container=self.embeddings,
             labels=self.dataset.decode,
             name="bytenet-model",
@@ -72,6 +74,7 @@ class ByteNet(Model):
             x,
             voca_size=self.dataset.vocabulary_size,
             latent_dim=self.latent_dim,
+            num_blocks=self.num_blocks,
             name="bytenet-model",
             reuse=reuse
         )
