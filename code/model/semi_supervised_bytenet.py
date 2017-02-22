@@ -55,6 +55,8 @@ class SemiSupervisedByteNet(Model):
                 voca_size=self.dataset.vocabulary_size,
                 latent_dim=self.latent_dim,
                 num_blocks=self.num_blocks,
+                container=self.embeddings,
+                labels=self.dataset.decode,
                 name=name,
                 reuse=reuse
             )
