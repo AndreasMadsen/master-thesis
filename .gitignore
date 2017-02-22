@@ -1,7 +1,7 @@
 
 # temporary directories
 asset
-hpc-asset
+hpc_asset
 
 # code directory
 __pycache__
