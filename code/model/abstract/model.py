@@ -1,6 +1,6 @@
 
 import abc
-from typing import List
+from typing import List, Iterator
 
 import tensorflow as tf
 import sugartensor as stf
@@ -74,14 +74,39 @@ class Model:
         # restore parameters
         stf.sg_restore(session, self._latest_checkpoint())
 
-    def predict(self, sources: List[str], **kwargs) -> List[str]:
+    def predict_from_dataset(self, dataset: Dataset,
+                             show_eos=True,
+                             **kwargs) -> Iterator[str]:
+
+        # build inference_model
+        label = self.inference_model(dataset.source, **kwargs)
+
+        # run graph for translation
+        with tf.Session() as sess:
+            self.restore(sess)
+            with stf.sg_queue_context():
+                for batch in range(dataset.num_batch):
+                    source, target, translation = sess.run(
+                        (dataset.source, dataset.target, label)
+                    )
+
+                    yield from zip(
+                        self.dataset.decode_as_batch(source,
+                                                     show_eos=show_eos),
+                        self.dataset.decode_as_batch(target,
+                                                     show_eos=show_eos),
+                        self.dataset.decode_as_batch(translation,
+                                                     show_eos=show_eos)
+                    )
+
+    def predict_from_str(self, sources: List[str], **kwargs) -> List[str]:
         sources = self.dataset.encode_as_batch(sources)
 
         # build model
-        x = stf.placeholder(dtype=stf.int32, shape=sources.shape)
+        x = stf.placeholder(dtype=tf.int32, shape=sources.shape)
         label = self.inference_model(x, **kwargs)
 
-        # run graph for translating
+        # run graph for translation
         with tf.Session() as sess:
             self.restore(sess)
             pred = sess.run(label, {x: sources})
