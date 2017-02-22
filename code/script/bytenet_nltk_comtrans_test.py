@@ -1,23 +1,25 @@
 
 import sugartensor as stf
 
-from code.dataset import NLTKComtrans
-from code.model import ExportDataset
+from code.dataset import NLTKComtrans, WMTBilingualNews
 from code.model import ByteNet
 
 # set log level to debug
 stf.sg_verbosity(10)
 
-dataset = NLTKComtrans(batch_size=16)
-model = ByteNet(dataset, num_blocks=3, latent_dim=400)
+dataset_train = NLTKComtrans(batch_size=16)
+dataset_test = WMTBilingualNews(batch_size=128,
+                                year=2014, source_lang='fr', target_lang='en',
+                                vocabulary=dataset_train.vocabulary,
+                                validate=True,
+                                shuffle=False, repeat=False)
+model = ByteNet(dataset_train,
+                num_blocks=3, latent_dim=400,
+                save_dir='hpc_asset/bytenet_nltk_comtrans')
 
-export = ExportDataset(dataset, limit=10)
-export.train()
+translation_tuple = model.predict_from_dataset(dataset_test)
 
-test_predict = model.predict(export.sources)
-
-for i, (source, target, predict) in \
-        enumerate(zip(export.sources, export.targets, test_predict)):
+for i, (source, target, translation) in zip(range(128), translation_tuple):
     print('  %d  source: %s' % (i, source))
     print('     target: %s' % (target, ))
-    print('    predict: %s' % (predict, ))
+    print('    predict: %s' % (translation, ))
