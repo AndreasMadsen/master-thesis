@@ -72,5 +72,3 @@ def test_bytenet_unsupervised_translator():
 
         np.testing.assert_almost_equal(naive_logits, logits, decimal=6)
         np.testing.assert_almost_equal(naive_labels, label, decimal=6)
-
-test_bytenet_unsupervised_translator()
