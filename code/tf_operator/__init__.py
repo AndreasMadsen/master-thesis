@@ -12,3 +12,4 @@ from code.tf_operator.select_value import *
 from code.tf_operator.seq_prop import *
 from code.tf_operator.cross_entropy import *
 from code.tf_operator.debug import *
+from code.tf_operator.train import *

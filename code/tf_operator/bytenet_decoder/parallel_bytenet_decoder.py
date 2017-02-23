@@ -8,6 +8,7 @@ from code.tf_operator.decoder_residual_block \
 def parallel_bytenet_decoder(dec,
                              num_blocks=3, size=3,
                              rate=[1, 2, 4, 8, 16],
+                             low_memory=False,
                              name=None, reuse=False):
     with tf.variable_scope(name, "bytenet-decoder", values=[dec], reuse=reuse):
         # loop dilated causal conv block
@@ -16,6 +17,7 @@ def parallel_bytenet_decoder(dec,
                 for rate_i in rate:
                     dec = parallel_decoder_residual_block(
                         dec, size=size, rate=rate_i,
+                        low_memory=low_memory,
                         name=f'decoder-res-block.{i}.{size}.{rate_i}'
                     )
 
