@@ -33,7 +33,10 @@ class Model:
     def train_model(self) -> tf.Tensor:
         return self.loss_model(self.dataset.source, self.dataset.target)
 
-    def train(self, max_ep: int=20, **kwargs) -> None:
+    def train(self, max_ep: int=20,
+              allow_soft_placement=True,
+              log_device_placement=False,
+              **kwargs) -> None:
         # build training model
         loss = self.train_model()
 
@@ -51,17 +54,23 @@ class Model:
         print(f'     on: http://localhost:6006')
 
         # train
-        sess_config = tf.ConfigProto(allow_soft_placement=True)
+        sess_config = tf.ConfigProto(allow_soft_placement=allow_soft_placement,
+                                     log_device_placement=log_device_placement)
         with tf.Session(config=sess_config) as sess:
-            stf.sg_train(loss=loss,
-                         ep_size=self.dataset.num_batch,
-                         max_ep=max_ep,
-                         eval_metric=eval_metric,
-                         early_stop=False,
-                         save_dir=self._save_dir,
-                         sess=sess,
-                         embeds=self.embeddings,
-                         **kwargs)
+            self._train_loop(
+                loss=loss,
+                ep_size=self.dataset.num_batch,
+                max_ep=max_ep,
+                eval_metric=eval_metric,
+                early_stop=False,
+                save_dir=self._save_dir,
+                sess=sess,
+                # embeds=self.embeddings,
+                **kwargs
+            )
+
+    def _train_loop(self, **kwargs):
+        stf.sg_train(**kwargs)
 
     @abc.abstractmethod
     def inference_model(self, x: tf.Tensor) -> tf.Tensor:
