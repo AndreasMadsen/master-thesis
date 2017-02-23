@@ -2,24 +2,24 @@
 import sugartensor as stf
 
 from code.dataset import SyntheticDigits
-from code.model import ExportDataset
 from code.model import SemiSupervisedByteNet
+from code.metric import BleuScore, ModelLoss, OutOfBound
 
 # set log level to debug
 stf.sg_verbosity(10)
 
-dataset = SyntheticDigits(examples=10, shuffle=False, seed=99)
-model = SemiSupervisedByteNet(dataset,
+dataset_train = SyntheticDigits(batch_size=8)
+dataset_semi = SyntheticDigits(batch_size=8)
+dataset_test = SyntheticDigits(batch_size=16)
+
+model = SemiSupervisedByteNet(dataset_train,
+                              dataset_x=dataset_semi, dataset_x_loss_factor=0.01,
                               num_blocks=3, latent_dim=20,
                               save_dir='asset/semi_bytenet_synthetic_digits')
 
-export = ExportDataset(dataset)
-export.train()
+translation_tuple = model.predict_from_dataset(dataset_test)
 
-test_predict = model.predict(export.sources)
-
-for i, (source, target, predict) in \
-        enumerate(zip(export.sources, export.targets, test_predict)):
+for i, (source, target, translation) in zip(range(16), translation_tuple):
     print('  %d  source: %s' % (i, source))
     print('     target: %s' % (target, ))
-    print('    predict: %s' % (predict, ))
+    print('    predict: %s' % (translation, ))

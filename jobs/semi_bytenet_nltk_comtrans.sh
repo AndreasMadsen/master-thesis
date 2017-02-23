@@ -1,8 +1,8 @@
 #!/bin/sh
 #BSUB -q gpuqueuetitanx
 #BSUB -J semi-bytenet-nltk-comtrans
-#BSUB -n 4
-#BSUB -R "rusage[ngpus_excl_p=1]"
+#BSUB -n 6
+#BSUB -R "rusage[ngpus_excl_p=2]"
 #BSUB -W 12:00
 #BSUB -u amwebdk@gmail.com
 #BSUB -B
