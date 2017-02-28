@@ -1,6 +1,27 @@
 
+import os.path as path
+
 import tensorflow as tf
 import sugartensor as stf
+from tensorflow.python.client import timeline as tf_timeline
+from tqdm import tqdm
+
+
+class _ShouldProfile:
+    iterations: int = 0
+    want_iterations: int = 0
+    enable: bool = False
+
+    def __init__(self, profile: int):
+        if profile > 0:
+            self.enable = True
+            self.want_iterations = profile
+
+    def increment(self):
+        self.iterations += 1
+
+    def should_profile(self):
+        return self.iterations == self.want_iterations and self.enable
 
 
 def distributed_train(**kwargs):
@@ -9,7 +30,8 @@ def distributed_train(**kwargs):
     assert opt.distribution is not None, 'distribution is mandatory.'
 
     # default training options
-    opt += stf.sg_opt(optim='MaxProp', lr=0.001, beta1=0.9, beta2=0.99)
+    opt += stf.sg_opt(profile=0,
+                      optim='MaxProp', lr=0.001, beta1=0.9, beta2=0.99)
 
     # create prefix <=> device mapping
     unmapped_update_ops = set(tf.get_collection(tf.GraphKeys.UPDATE_OPS))
@@ -37,7 +59,7 @@ def distributed_train(**kwargs):
     # validate all update_ops and variables mapped to a device
     assert len(unmapped_variables) == 0, 'not all variables are mapped'
     assert len(unmapped_update_ops) == 0, 'not all variables are mapped'
-
+    
     # collect optimizer
     train_op = []
 
@@ -49,10 +71,34 @@ def distributed_train(**kwargs):
                                      beta1=opt.beta1, beta2=opt.beta2,
                                      category=category_prefixes)
 
+    profile_state = _ShouldProfile(opt.profile)
+
     # define train function
     @stf.sg_train_func
     def train_func(sess, arg):
-        return sess.run([opt.loss] + train_op)[0]
+        profile_state.increment()
+        tqdm.write('sub-iteration: %d' % profile_state.iterations)
+
+        if profile_state.should_profile():
+            tqdm.write('starting profile run')
+            options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+            run_metadata = tf.RunMetadata()
+        else:
+            options = None
+            run_metadata = None
+
+        loss = sess.run([opt.loss] + train_op,
+                        options=options,
+                        run_metadata=run_metadata)[0]
+
+        if profile_state.should_profile():
+            tqdm.write('saving profile run at %s' % path.join(opt.save_dir, 'timeline.json'))
+            tl = tf_timeline.Timeline(run_metadata.step_stats)
+            ctf = tl.generate_chrome_trace_format()
+            with open(path.join(opt.save_dir, 'timeline.json'), 'w') as fd:
+                print(ctf, file=fd)
+
+        return loss
 
     # run train function
     train_func(**opt)

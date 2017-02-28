@@ -15,4 +15,4 @@ model = SemiSupervisedByteNet(dataset_train,
                               dataset_x=dataset_semi, dataset_x_loss_factor=0.01,
                               num_blocks=3, latent_dim=20,
                               save_dir='asset/semi_bytenet_synthetic_digits')
-model.train(max_ep=300, lr=0.001)
+model.train(max_ep=300, lr=0.001, profile=10)
