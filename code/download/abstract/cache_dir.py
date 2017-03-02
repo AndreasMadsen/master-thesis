@@ -4,6 +4,7 @@ import os.path as path
 import urllib.request
 
 from code.download.util.download_dir import download_dir
+from code.download.util.tqdm_download import download
 
 
 class CacheDir:
@@ -27,8 +28,8 @@ class CacheDir:
 
     def download(self, name: str, url: str) -> None:
         if not self.exists(name):
-            urllib.request.urlretrieve(url, self.filepath(name))
             print(f'downloading: {self.dirname}/{name} from {url}')
+            download(url, self.filepath(name), desc=name)
 
     def exists(self, name: str) -> bool:
         return path.exists(self.filepath(name))
