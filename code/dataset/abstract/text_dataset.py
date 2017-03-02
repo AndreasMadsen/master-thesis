@@ -34,12 +34,17 @@ class TextDataset(Dataset):
 
         # get corpus properties
         self.vocabulary = vocabulary
-        if vocabulary is None:
-            self.vocabulary = self._compute_vocabulary()
-
         self.max_length = max_length
-        if max_length is None:
-            self.max_length = self._compute_length()
+
+        # compute properties if necessary
+        if vocabulary is None or max_length is None:
+            computed_vocabulary, computed_max_length = \
+                self._compute_corpus_properties()
+
+            if vocabulary is None:
+                self.vocabulary = computed_vocabulary
+            if max_length is None:
+                self.max_length = computed_max_length
 
         # validate properties
         if '^' in self.vocabulary:
@@ -91,22 +96,19 @@ class TextDataset(Dataset):
             max_length=self.max_length
         )
 
-    def _compute_vocabulary(self) -> FrozenSet[str]:
+    def _compute_corpus_properties(self) -> Tuple[FrozenSet[str], int]:
+        max_length = 0
         unique_chars = set()
+
         for source, target in self:
             # add source and target to the char set
             unique_chars |= set(source)
             unique_chars |= set(target)
 
-        return frozenset(unique_chars)
-
-    def _compute_length(self) -> int:
-        max_length = 0
-        for source, target in self:
             # update max length
             max_length = max(max_length, len(source), len(target))
 
-        return max_length
+        return (unique_chars, max_length)
 
     def _setup_encoding(self) -> None:
         # set effective max length, (longest str + <EOS>)
