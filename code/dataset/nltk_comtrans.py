@@ -1,7 +1,7 @@
 
 from typing import Iterator, List, Tuple
 
-from code.dataset.util.nltk_env import NLTKEnv
+from code.download import NLTKEnv
 from code.dataset.abstract.text_dataset import TextDataset
 
 

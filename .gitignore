@@ -1,26 +1,26 @@
 
 # temporary directories
-asset
-hpc_asset
+/asset
+/hpc_asset
+/download
 
 # code directory
 __pycache__
-code/download
 
 # LaTeX Directory
-report/thesis.pdf
-report/graphics/Signature.png
 *.aux
-report/thesis.toc
-report/thesis.run.xml
-report/thesis.out
-report/thesis.log
-report/thesis.fls
-report/thesis.fdb_latexmk
-report/thesis.blg
-report/thesis.bcf
-report/thesis.bbl
+/report/thesis.pdf
+/report/graphics/Signature.png
+/report/thesis.toc
+/report/thesis.run.xml
+/report/thesis.out
+/report/thesis.log
+/report/thesis.fls
+/report/thesis.fdb_latexmk
+/report/thesis.blg
+/report/thesis.bcf
+/report/thesis.bbl
 
 # extra
-papers
-external
+/papers
+/external

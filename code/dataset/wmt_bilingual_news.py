@@ -3,7 +3,7 @@ from typing import Iterator, Tuple, NamedTuple
 import xml.dom.minidom
 import tarfile
 
-from code.dataset.util.wmt_env import WMTEnv
+from code.download import WMTCache
 from code.dataset.abstract.text_dataset import TextDataset
 
 BilingualPair = NamedTuple('BilingualPair', [
@@ -104,12 +104,12 @@ class WMTBilingualNews(TextDataset):
         )
 
     def __iter__(self) -> Iterator[Tuple[str, str]]:
-        with WMTEnv() as wmt_env:
+        with WMTCache() as wmt_cache:
             # download tarball
-            wmt_env.download(self._tarball.name, self._tarball.url)
+            wmt_cache.download(self._tarball.name, self._tarball.url)
 
             # peak in tarball
-            filepath = wmt_env.filepath(self._tarball.name)
+            filepath = wmt_cache.filepath(self._tarball.name)
             with tarfile.open(filepath, 'r:gz', encoding='utf-8') as tar:
                 # extract the SGML files from the tarball without unpacking
                 # everything

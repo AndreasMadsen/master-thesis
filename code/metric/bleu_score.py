@@ -4,7 +4,7 @@ import tensorflow as tf
 
 from code.metric.abstract import Metric
 from code.dataset.abstract import Dataset
-from code.metric.util.nltk_env import NLTKEnv
+from code.download import NLTKEnv
 from code.metric.calculate.multi_bleu import multi_bleu
 
 
