@@ -90,9 +90,11 @@ class TextDataset(Dataset):
 
     @property
     def corpus_properties(self) -> CorpusProperties:
+        # don't encode <eos> char in exposed max length, otherwise reusing
+        # max length will keep incrementing the property
         return CorpusProperties(
             vocabulary=self.vocabulary,
-            max_length=self.max_length
+            max_length=self.max_length - 1
         )
 
     @property
