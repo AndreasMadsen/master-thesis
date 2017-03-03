@@ -1,16 +1,13 @@
 
-from typing import List, Tuple, Mapping, Iterator, FrozenSet, NamedTuple
+from typing import Any, List, Tuple, Mapping, Iterator, FrozenSet
 import abc
 
 import numpy as np
 
 from code.dataset.abstract.dataset import Dataset
 from code.dataset.util.size_to_type import size_to_signed_type
-
-CorpusProperties = NamedTuple('CorpusProperties', [
-    ('vocabulary', FrozenSet[str]),
-    ('max_length', int)
-])
+from code.dataset.util.dataset_properties_cache import \
+    CorpusProperties, property_cache
 
 
 class TextDataset(Dataset):
@@ -24,7 +21,8 @@ class TextDataset(Dataset):
     target_lang: str
 
     def __init__(self,
-                 source_lang, target_lang,
+                 source_lang: str, target_lang: str,
+                 key: Any=None,
                  vocabulary: FrozenSet[str]=None,
                  max_length: int=None,
                  validate: bool=False,
@@ -33,8 +31,11 @@ class TextDataset(Dataset):
 
         # compute properties if necessary
         if vocabulary is None or max_length is None:
+            if key is None:
+                raise ValueError('dataset key missing')
+
             computed_vocabulary, computed_max_length = \
-                self._compute_corpus_properties()
+                self._fetch_corpus_properties(name, key)
 
             if vocabulary is None:
                 vocabulary = computed_vocabulary
@@ -101,7 +102,14 @@ class TextDataset(Dataset):
     def labels(self) -> Mapping[int, str]:
         return self._decode
 
-    def _compute_corpus_properties(self) -> Tuple[FrozenSet[str], int]:
+    def _fetch_corpus_properties(self,
+                                 name: str, key: Any) -> CorpusProperties:
+        if key not in property_cache[name]:
+            property_cache[name][key] = self._compute_corpus_properties()
+
+        return property_cache[name][key]
+
+    def _compute_corpus_properties(self) -> CorpusProperties:
         max_length = 0
         unique_chars = set()
 
@@ -113,7 +121,10 @@ class TextDataset(Dataset):
             # update max length
             max_length = max(max_length, len(source), len(target))
 
-        return (unique_chars, max_length)
+        return CorpusProperties(
+            vocabulary=unique_chars,
+            max_length=max_length
+        )
 
     def _setup_encoding(self) -> None:
         # to ensure consistent encoding, sort the chars.

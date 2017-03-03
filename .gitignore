@@ -6,6 +6,7 @@
 
 # code directory
 __pycache__
+code/dataset/cache
 
 # LaTeX Directory
 *.aux
