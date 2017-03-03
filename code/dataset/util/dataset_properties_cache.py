@@ -13,6 +13,15 @@ CorpusProperties = NamedTuple('CorpusProperties', [
 
 _this_dir = path.dirname(path.realpath(__file__))
 
+_format_string = '''\
+\t[
+\t\t{key},
+\t\t{{
+\t\t\t"max_length": {max_length},
+\t\t\t"vocabulary": {vocabulary}
+\t\t}}
+\t]{tail}'''
+
 
 class DatasetCache:
     """Maneges the cache for all datasets"""
@@ -39,13 +48,16 @@ class DatasetCache:
 
     def _save_cache(self):
         with open(self._filepath, 'w') as fd:
-            cache_export = [
-                (key, {
-                    'max_length': val.max_length,
-                    'vocabulary': list(val.vocabulary)
-                }) for key, val in self._cache.items()
-            ]
-            json.dump(cache_export, fd)
+            print('[', file=fd)
+
+            for i, (key, val) in enumerate(self._cache.items()):
+                print(_format_string.format(
+                    key=json.dumps(key),
+                    max_length=val.max_length,
+                    vocabulary=json.dumps(list(val.vocabulary)),
+                    tail='' if i + 1 == len(self._cache) else ','
+                ), file=fd)
+            print(']', file=fd)
 
     def __getitem__(self, key: Any):
         return self._cache[key]
