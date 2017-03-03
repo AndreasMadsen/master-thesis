@@ -55,7 +55,7 @@ class ByteNet(Model):
             latent_dim=self.latent_dim,
             num_blocks=self.num_blocks,
             container=self.embeddings,
-            labels=self.dataset.decode,
+            labels=self.dataset.labels,
             name="bytenet-model",
             reuse=reuse
         )

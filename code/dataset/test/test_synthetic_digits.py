@@ -49,4 +49,4 @@ def test_corpus_properties():
         dataset.corpus_properties.vocabulary,
         frozenset('zerontwhufivsxg0123456789 ')
     )
-    assert_equal(dataset.corpus_properties.max_length, 17)
+    assert_equal(dataset.corpus_properties.max_length, 18)

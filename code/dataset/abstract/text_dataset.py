@@ -14,13 +14,12 @@ CorpusProperties = NamedTuple('CorpusProperties', [
 
 
 class TextDataset(Dataset):
-    effective_max_length: int
     vocabulary_size: int
     vocabulary: FrozenSet[str]
     max_length: int
-    decode: Mapping[int, str]
-    encode: Mapping[str, int]
-    encode_dtype: np.unsignedinteger
+    _decode: Mapping[int, str]
+    _encode: Mapping[str, int]
+    _encode_dtype: np.unsignedinteger
     source_lang: str
     target_lang: str
 
@@ -32,28 +31,28 @@ class TextDataset(Dataset):
                  name: str='unamed',
                  **kwargs) -> None:
 
-        # get corpus properties
-        self.vocabulary = vocabulary
-        self.max_length = max_length
-
         # compute properties if necessary
         if vocabulary is None or max_length is None:
             computed_vocabulary, computed_max_length = \
                 self._compute_corpus_properties()
 
             if vocabulary is None:
-                self.vocabulary = computed_vocabulary
+                vocabulary = computed_vocabulary
             if max_length is None:
-                self.max_length = computed_max_length
+                max_length = computed_max_length
+
+        # increment max_length such it includes eos
+        self.vocabulary = vocabulary
+        self.max_length = max_length + 1
 
         # validate properties
-        if '^' in self.vocabulary:
+        if '^' in vocabulary:
             raise ValueError('a special char (^) was found in the vocabulary')
-        if '_' in self.vocabulary:
+        if '_' in vocabulary:
             raise ValueError('a special char (_) was found in the vocabulary')
-        if '~' in self.vocabulary:
+        if '~' in vocabulary:
             raise ValueError('a special char (~) was found in the vocabulary')
-        if self.max_length <= 0:
+        if max_length <= 0:
             raise ValueError('max_length must be positive')
 
         # create encoding schema
@@ -96,6 +95,10 @@ class TextDataset(Dataset):
             max_length=self.max_length
         )
 
+    @property
+    def labels(self) -> Mapping[int, str]:
+        return self._decode
+
     def _compute_corpus_properties(self) -> Tuple[FrozenSet[str], int]:
         max_length = 0
         unique_chars = set()
@@ -111,38 +114,35 @@ class TextDataset(Dataset):
         return (unique_chars, max_length)
 
     def _setup_encoding(self) -> None:
-        # set effective max length, (longest str + <EOS>)
-        self.effective_max_length = self.max_length + 1
-
         # to ensure consistent encoding, sort the chars.
         # also add a null char for padding and and <EOS> char for EOS.
-        self.decode = ['_', '^'] + sorted(self.vocabulary)
+        self._decode = ['_', '^'] + sorted(self.vocabulary)
 
         # set vocabulary size
-        self.vocabulary_size = len(self.decode)
+        self.vocabulary_size = len(self._decode)
 
         # reverse the decoder list to create an encoder map
-        self.encode = {
-            val: index for index, val in enumerate(self.decode)
+        self._encode = {
+            val: index for index, val in enumerate(self._decode)
         }
 
         # auto detect appropiate encoding type
-        self.encode_dtype = size_to_signed_type(len(self.decode))
+        self._encode_dtype = size_to_signed_type(self.vocabulary_size)
 
     def _detect_missing_chars(self, corpus: List[str]) -> FrozenSet[str]:
         missing_chars = set()
 
         for text in corpus:
             for char in text:
-                if char not in self.encode:
+                if char not in self._encode:
                     missing_chars.add(char)
 
         return frozenset(missing_chars)
 
     def encode_as_batch(self, corpus: List[str]) -> np.ndarray:
         batch = np.empty(
-            (len(corpus), self.effective_max_length),
-            self.encode_dtype
+            (len(corpus), self.max_length),
+            self._encode_dtype
         )
 
         for i, text in enumerate(corpus):
@@ -153,20 +153,20 @@ class TextDataset(Dataset):
     def encode_as_iter(self, decoded: str) -> Iterator[int]:
         length = 0
         for char in decoded:
-            if char in self.encode:
-                yield self.encode[char]
+            if char in self._encode:
+                yield self._encode[char]
                 length += 1
 
         yield 1  # <EOS>
 
-        for _ in range(0, self.effective_max_length - length - 1):
+        for _ in range(0, self.max_length - length - 1):
             yield 0  # NULL
 
     def encode_as_array(self, decoded: str) -> np.ndarray:
         return np.fromiter(
             iter=self.encode_as_iter(decoded),
-            dtype=self.encode_dtype,
-            count=self.effective_max_length
+            dtype=self._encode_dtype,
+            count=self.max_length
         )
 
     def decode_as_str(self, encoded: np.ndarray, show_eos: bool=True) -> str:
@@ -175,7 +175,7 @@ class TextDataset(Dataset):
             if code >= self.vocabulary_size:
                 decoded += '~'
             elif code != 1 or show_eos:
-                decoded += self.decode[code]
+                decoded += self._decode[code]
 
             if code == 1:
                 break
