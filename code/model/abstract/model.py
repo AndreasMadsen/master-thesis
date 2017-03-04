@@ -30,15 +30,17 @@ class Model:
     def loss_model(self, x: tf.Tensor, y: tf.Tensor, **kwargs) -> tf.Tensor:
         pass
 
-    def train_model(self) -> tf.Tensor:
-        return self.loss_model(self.dataset.source, self.dataset.target)
+    def train_model(self, **kwargs) -> tf.Tensor:
+        return self.loss_model(self.dataset.source, self.dataset.target,
+                               **kwargs)
 
     def train(self, max_ep: int=20,
-              allow_soft_placement=True,
-              log_device_placement=False,
+              reuse: bool=False,
+              allow_soft_placement: bool=True,
+              log_device_placement: bool=False,
               **kwargs) -> None:
         # build training model
-        loss = self.train_model()
+        loss = self.train_model(reuse=reuse)
 
         # build eval metrics
         eval_metric = [
@@ -57,17 +59,19 @@ class Model:
         sess_config = tf.ConfigProto(allow_soft_placement=allow_soft_placement,
                                      log_device_placement=log_device_placement)
         with tf.Session(config=sess_config) as sess:
-            self._train_loop(
-                loss=loss,
-                ep_size=self.dataset.num_batch,
-                max_ep=max_ep,
-                eval_metric=eval_metric,
-                early_stop=False,
-                save_dir=self._save_dir,
-                sess=sess,
-                # embeds=self.embeddings,
-                **kwargs
-            )
+            with tf.variable_scope('train', reuse=reuse,
+                                   values=[loss] + eval_metric):
+                self._train_loop(
+                    loss=loss,
+                    ep_size=self.dataset.num_batch,
+                    max_ep=max_ep,
+                    eval_metric=eval_metric,
+                    early_stop=False,
+                    save_dir=self._save_dir,
+                    sess=sess,
+                    # embeds=self.embeddings,
+                    **kwargs
+                )
 
     def _train_loop(self, **kwargs):
         stf.sg_train(**kwargs)
