@@ -49,6 +49,8 @@ class BleuScore(Metric):
         hypothesis = self.dataset.decode_as_batch(hypothesis, show_eos=False)
         references = self.dataset.decode_as_batch(references, show_eos=False)
 
+        print(len(hypothesis), len(references))
+
         with NLTKEnv():
             from nltk.tokenize.moses import MosesTokenizer
 

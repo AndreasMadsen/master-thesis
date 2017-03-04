@@ -53,9 +53,6 @@ def test_blue_score_on_google():
             assert_almost_equals(score_4gram, 23.189312, places=6)
 
 
-test_blue_score_on_google()
-
-
 def test_blue_score_on_poorly():
     """test bleu score metric on poorly translated output"""
     dataset = DummyDataset(

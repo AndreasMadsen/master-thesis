@@ -34,13 +34,10 @@ def tensorflow_extract_all(dataset):
                     dataset.source, dataset.target
                 ])
 
-                all_sources.append(sources)
-                all_targets.append(targets)
+                all_sources += dataset.decode_as_batch(sources)
+                all_targets += dataset.decode_as_batch(targets)
 
-    return list(zip(
-        dataset.decode_as_batch(np.vstack(all_sources)),
-        dataset.decode_as_batch(np.vstack(all_targets))
-    ))
+    return list(zip(all_sources, all_targets))
 
 
 def test_all_examples_exposed_one():

@@ -13,7 +13,6 @@ def test_properties_2013():
         source_lang='fr', target_lang='en', year=2013
     )
     assert_equal(dataset_2013.properties, CorpusProperties(
-        max_length=150,
         observations=1531,
         vocabulary=dataset_2013.properties.vocabulary
     ))
@@ -26,7 +25,6 @@ def test_properties_2014():
         source_lang='fr', target_lang='en', year=2014
     )
     assert_equal(dataset_2014.properties, CorpusProperties(
-        max_length=150,
         observations=1373,
         vocabulary=dataset_2014.properties.vocabulary
     ))

@@ -49,5 +49,4 @@ def test_properties():
         dataset.properties.vocabulary,
         frozenset('zerontwhufivsxg0123456789 ')
     )
-    assert_equal(dataset.properties.max_length, 17)
     assert_equal(dataset.properties.observations, 1)

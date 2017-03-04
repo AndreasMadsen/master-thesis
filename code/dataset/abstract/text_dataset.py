@@ -22,27 +22,23 @@ class TextDataset(Dataset):
                  source_lang: str, target_lang: str,
                  key: Any=None,
                  vocabulary: FrozenSet[str]=None,
-                 max_length: int=None,
                  observations: int=None,
                  validate: bool=False,
                  name: str='unamed',
                  **kwargs) -> None:
 
         # compute properties if necessary
-        if vocabulary is None or max_length is None or observations is None:
+        if vocabulary is None or observations is None:
             computed_properties = self._fetch_corpus_properties(name, key)
 
             if vocabulary is None:
                 vocabulary = computed_properties.vocabulary
-            if max_length is None:
-                max_length = computed_properties.max_length
             if observations is None:
                 observations = computed_properties.observations
 
         # increment max_length such it includes eos
         self.properties = CorpusProperties(
             vocabulary=vocabulary,
-            max_length=max_length,
             observations=observations
         )
 
@@ -53,8 +49,6 @@ class TextDataset(Dataset):
             raise ValueError('a special char (_) was found in the vocabulary')
         if '~' in vocabulary:
             raise ValueError('a special char (~) was found in the vocabulary')
-        if max_length <= 0:
-            raise ValueError('max_length must be positive')
 
         # create encoding schema
         self._setup_encoding()
@@ -63,27 +57,15 @@ class TextDataset(Dataset):
         self.source_lang = source_lang
         self.target_lang = target_lang
 
-        # extract sources and targets
-        sources, targets = zip(*self)
-
-        # validate vocabulary
+        # validate corpus properties
         if validate:
-            missing_chars = self._detect_missing_chars(sources)
-            missing_chars |= self._detect_missing_chars(targets)
-            print(f'Dataset validation ({name}):')
-            if len(missing_chars):
-                print('  The following chars was not found in the vocabulary:')
-                print('  {' + ', '.join(sorted(missing_chars)) + '}')
-                print('  Missing characters will be ignored.')
-            else:
-                print('  The vocabulary was complete.')
-
-        # encode source and targets
-        sources = self.encode_as_batch(sources)
-        targets = self.encode_as_batch(targets)
+            self._validate_corpus_properties()
 
         # setup tensorflow pipeline
-        super().__init__(sources, targets, name=name, **kwargs)
+        super().__init__(observations=observations,
+                         dtype=self._encode_dtype,
+                         name=name,
+                         **kwargs)
 
     @abc.abstractmethod
     def __iter__(self) -> Iterator[Tuple[str, str]]:
@@ -97,11 +79,6 @@ class TextDataset(Dataset):
     @property
     def vocabulary(self) -> FrozenSet[str]:
         return self.properties.vocabulary
-
-    @property
-    def max_length(self) -> int:
-        # add <eos> symbol
-        return self.properties.max_length + 1
 
     @property
     def labels(self) -> Mapping[int, str]:
@@ -120,7 +97,6 @@ class TextDataset(Dataset):
         return property_cache[name][key]
 
     def _compute_corpus_properties(self) -> CorpusProperties:
-        max_length = 0
         unique_chars = set()
         observations = 0
 
@@ -129,17 +105,37 @@ class TextDataset(Dataset):
             unique_chars |= set(source)
             unique_chars |= set(target)
 
-            # update max length
-            max_length = max(max_length, len(source), len(target))
-
             # increment observations
             observations += 1
 
         return CorpusProperties(
             vocabulary=unique_chars,
-            max_length=max_length,
             observations=observations
         )
+
+    def _validate_corpus_properties(self) -> None:
+        truth = self._compute_corpus_properties()
+        properties_valid = True
+
+        print(f'Dataset validation ({name}):')
+
+        if len(truth.vocabulary - self.properties.vocabulary) > 0:
+            properties_valid = False
+
+            missing_chars = truth.vocabulary - self.properties.vocabulary
+            print(f'  The following chars was not found in the vocabulary:')
+            print(f'  {{{", ".join(sorted(missing_chars))}}}')
+            print(f'  Missing characters will be ignored.')
+
+        if self.properties.observations != truth.observations:
+            properties_valid = False
+
+            print(f'  The observations count is wrong:')
+            print(f'  {self.properties.observations} != {truth.observations}')
+            print(f'  The behaviour is undefined.')
+
+        if properties_valid:
+            print('  The corpus properties are valid.')
 
     def _setup_encoding(self) -> None:
         # to ensure consistent encoding, sort the chars.
@@ -154,24 +150,23 @@ class TextDataset(Dataset):
         # auto detect appropiate encoding type
         self._encode_dtype = size_to_signed_type(self.vocabulary_size)
 
-    def _detect_missing_chars(self, corpus: List[str]) -> FrozenSet[str]:
-        missing_chars = set()
+    def encode_as_batch(self, corpus: Iterator[str]) -> np.ndarray:
+        max_length = 0
+        observations = 0
 
-        for text in corpus:
-            for char in text:
-                if char not in self._encode:
-                    missing_chars.add(char)
+        for i, text in enumerate(corpus):
+            # include <EOS> in the length
+            max_length = max(max_length, len(text) + 1)
+            observations += 1
 
-        return frozenset(missing_chars)
-
-    def encode_as_batch(self, corpus: List[str]) -> np.ndarray:
         batch = np.empty(
-            (len(corpus), self.max_length),
+            (observations, max_length),
             self._encode_dtype
         )
 
         for i, text in enumerate(corpus):
-            batch[i] = self.encode_as_array(text)
+            datum = self.encode_as_array(text)
+            batch[i] = np.pad(datum, (0, max_length - len(datum)), 'constant')
 
         return batch
 
@@ -184,14 +179,10 @@ class TextDataset(Dataset):
 
         yield 1  # <EOS>
 
-        for _ in range(0, self.max_length - length - 1):
-            yield 0  # NULL
-
     def encode_as_array(self, decoded: str) -> np.ndarray:
         return np.fromiter(
             iter=self.encode_as_iter(decoded),
-            dtype=self._encode_dtype,
-            count=self.max_length
+            dtype=self._encode_dtype
         )
 
     def decode_as_str(self, encoded: np.ndarray, show_eos: bool=True) -> str:

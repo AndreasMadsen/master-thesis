@@ -7,7 +7,6 @@ import json
 
 
 CorpusProperties = NamedTuple('CorpusProperties', [
-    ('max_length', int),
     ('observations', int),
     ('vocabulary', FrozenSet[str])
 ])
@@ -18,7 +17,6 @@ _format_string = '''\
 \t[
 \t\t{key},
 \t\t{{
-\t\t\t"max_length": {max_length},
 \t\t\t"observations": {observations},
 \t\t\t"vocabulary": {vocabulary}
 \t\t}}
@@ -43,7 +41,6 @@ class DatasetCache:
             deserialized_cache = json.load(fd)
             self._cache = {
                 tuple(key): CorpusProperties(
-                    max_length=val['max_length'],
                     observations=val['observations'],
                     vocabulary=frozenset(val['vocabulary'])
                 ) for key, val in deserialized_cache
@@ -56,7 +53,6 @@ class DatasetCache:
             for i, (key, val) in enumerate(self._cache.items()):
                 print(_format_string.format(
                     key=json.dumps(key),
-                    max_length=val.max_length,
                     observations=val.observations,
                     vocabulary=json.dumps(list(val.vocabulary)),
                     tail='' if i + 1 == len(self._cache) else ','

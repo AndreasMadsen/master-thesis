@@ -102,7 +102,6 @@ class WMTBilingualNews(TextDataset):
         super().__init__(
             source_lang, target_lang,
             key=(year, source_lang, target_lang, min_length, max_length),
-            max_length=self._max_length,
             name='wmt-bilinual-news',
             **kwargs
         )
