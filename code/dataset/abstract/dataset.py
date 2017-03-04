@@ -14,15 +14,9 @@ class Dataset:
 
     def __init__(self, sources: np.ndarray, targets: np.ndarray,
                  batch_size: int=32,
-                 observations: int=None,
                  name: str='unamed',
                  shuffle=True, seed: int=None,
                  repeat=True) -> None:
-
-        # take top `observations` from sources and targets
-        if observations is not None:
-            sources = sources[:observations]
-            targets = targets[:observations]
 
         # to constant tensor
         sources = tf.convert_to_tensor(sources)

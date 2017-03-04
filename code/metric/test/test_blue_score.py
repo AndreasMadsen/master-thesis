@@ -25,7 +25,7 @@ def test_blue_score_on_google():
     """test bleu score metric on google translated output"""
     dataset = WMTBilingualNews(
         year=2015, source_lang='en', target_lang='ru',
-        batch_size=100, observations=100,
+        batch_size=100, max_observations=100,
         min_length=0, max_length=1024,
         shuffle=False
     )
@@ -47,8 +47,13 @@ def test_blue_score_on_google():
             # TODO: these are not quite correct because of the tokenizer,
             # see https://github.com/nltk/nltk/issues/1330 for what the
             # actual values should be.
-            assert_almost_equals(score_2gram, 39.987335, places=6)
-            assert_almost_equals(score_4gram, 23.176613, places=6)
+            # NOTE: dataset.vocabulary does not contain all chars from
+            # translated, which also causes some discrepancies.
+            assert_almost_equals(score_2gram, 40.008049, places=6)
+            assert_almost_equals(score_4gram, 23.189312, places=6)
+
+
+test_blue_score_on_google()
 
 
 def test_blue_score_on_poorly():
@@ -56,7 +61,7 @@ def test_blue_score_on_poorly():
     dataset = DummyDataset(
         _load_fixture('ref.poor.en'),
         source_lang='fr', target_lang='en',
-        batch_size=128, observations=128,
+        batch_size=128,
         shuffle=False
     )
 

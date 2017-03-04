@@ -39,14 +39,15 @@ def test_output_order():
     ])
 
 
-def test_corpus_properties():
+def test_properties():
     """ensure that SyntheticDigits vocabilary and max_length is correct"""
     dataset = SyntheticDigits(
         examples=1, seed=99
     )
 
     assert_equal(
-        dataset.corpus_properties.vocabulary,
+        dataset.properties.vocabulary,
         frozenset('zerontwhufivsxg0123456789 ')
     )
-    assert_equal(dataset.corpus_properties.max_length, 17)
+    assert_equal(dataset.properties.max_length, 17)
+    assert_equal(dataset.properties.observations, 1)

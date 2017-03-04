@@ -11,9 +11,7 @@ from code.dataset.util.dataset_properties_cache import \
 
 
 class TextDataset(Dataset):
-    vocabulary_size: int
-    vocabulary: FrozenSet[str]
-    max_length: int
+    properties: CorpusProperties
     _decode: Mapping[int, str]
     _encode: Mapping[str, int]
     _encode_dtype: np.unsignedinteger
@@ -25,26 +23,28 @@ class TextDataset(Dataset):
                  key: Any=None,
                  vocabulary: FrozenSet[str]=None,
                  max_length: int=None,
+                 observations: int=None,
                  validate: bool=False,
                  name: str='unamed',
                  **kwargs) -> None:
 
         # compute properties if necessary
-        if vocabulary is None or max_length is None:
-            if key is None:
-                raise ValueError('dataset key missing')
-
-            computed_vocabulary, computed_max_length = \
-                self._fetch_corpus_properties(name, key)
+        if vocabulary is None or max_length is None or observations is None:
+            computed_properties = self._fetch_corpus_properties(name, key)
 
             if vocabulary is None:
-                vocabulary = computed_vocabulary
+                vocabulary = computed_properties.vocabulary
             if max_length is None:
-                max_length = computed_max_length
+                max_length = computed_properties.max_length
+            if observations is None:
+                observations = computed_properties.observations
 
         # increment max_length such it includes eos
-        self.vocabulary = vocabulary
-        self.max_length = max_length + 1
+        self.properties = CorpusProperties(
+            vocabulary=vocabulary,
+            max_length=max_length,
+            observations=observations
+        )
 
         # validate properties
         if '^' in vocabulary:
@@ -90,13 +90,18 @@ class TextDataset(Dataset):
         pass
 
     @property
-    def corpus_properties(self) -> CorpusProperties:
-        # don't encode <eos> char in exposed max length, otherwise reusing
-        # max length will keep incrementing the property
-        return CorpusProperties(
-            vocabulary=self.vocabulary,
-            max_length=self.max_length - 1
-        )
+    def vocabulary_size(self) -> int:
+        # add <eos> <null> symbols
+        return len(self.properties.vocabulary) + 2
+
+    @property
+    def vocabulary(self) -> FrozenSet[str]:
+        return self.properties.vocabulary
+
+    @property
+    def max_length(self) -> int:
+        # add <eos> symbol
+        return self.properties.max_length + 1
 
     @property
     def labels(self) -> Mapping[int, str]:
@@ -104,6 +109,11 @@ class TextDataset(Dataset):
 
     def _fetch_corpus_properties(self,
                                  name: str, key: Any) -> CorpusProperties:
+        # don't involve the cache if key is None
+        if key is None:
+            return self._compute_corpus_properties()
+
+        # build the cache if not already build
         if key not in property_cache[name]:
             property_cache[name][key] = self._compute_corpus_properties()
 
@@ -112,6 +122,7 @@ class TextDataset(Dataset):
     def _compute_corpus_properties(self) -> CorpusProperties:
         max_length = 0
         unique_chars = set()
+        observations = 0
 
         for source, target in self:
             # add source and target to the char set
@@ -121,18 +132,19 @@ class TextDataset(Dataset):
             # update max length
             max_length = max(max_length, len(source), len(target))
 
+            # increment observations
+            observations += 1
+
         return CorpusProperties(
             vocabulary=unique_chars,
-            max_length=max_length
+            max_length=max_length,
+            observations=observations
         )
 
     def _setup_encoding(self) -> None:
         # to ensure consistent encoding, sort the chars.
         # also add a null char for padding and and <EOS> char for EOS.
         self._decode = ['_', '^'] + sorted(self.vocabulary)
-
-        # set vocabulary size
-        self.vocabulary_size = len(self._decode)
 
         # reverse the decoder list to create an encoder map
         self._encode = {

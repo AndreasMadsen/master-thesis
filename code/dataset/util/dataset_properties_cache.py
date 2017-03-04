@@ -7,8 +7,9 @@ import json
 
 
 CorpusProperties = NamedTuple('CorpusProperties', [
-    ('vocabulary', FrozenSet[str]),
-    ('max_length', int)
+    ('max_length', int),
+    ('observations', int),
+    ('vocabulary', FrozenSet[str])
 ])
 
 _this_dir = path.dirname(path.realpath(__file__))
@@ -18,6 +19,7 @@ _format_string = '''\
 \t\t{key},
 \t\t{{
 \t\t\t"max_length": {max_length},
+\t\t\t"observations": {observations},
 \t\t\t"vocabulary": {vocabulary}
 \t\t}}
 \t]{tail}'''
@@ -42,6 +44,7 @@ class DatasetCache:
             self._cache = {
                 tuple(key): CorpusProperties(
                     max_length=val['max_length'],
+                    observations=val['observations'],
                     vocabulary=frozenset(val['vocabulary'])
                 ) for key, val in deserialized_cache
             }
@@ -54,6 +57,7 @@ class DatasetCache:
                 print(_format_string.format(
                     key=json.dumps(key),
                     max_length=val.max_length,
+                    observations=val.observations,
                     vocabulary=json.dumps(list(val.vocabulary)),
                     tail='' if i + 1 == len(self._cache) else ','
                 ), file=fd)

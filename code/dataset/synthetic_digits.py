@@ -46,6 +46,7 @@ class SyntheticDigits(TextDataset):
             source_lang='text', target_lang='digits',
             vocabulary=self._get_vocabulary(),
             max_length=self._get_max_length(),
+            observations=examples,
             name='synthetic-digits',
             seed=seed, **kwargs
         )

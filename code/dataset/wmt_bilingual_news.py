@@ -78,12 +78,14 @@ class WMTBilingualNews(TextDataset):
     _tarball: BilingualTarball
     _min_length: int
     _max_length: int
+    _max_observations: int = None
 
     def __init__(self,
                  year: int=2013,
                  source_lang: str='fr',
                  target_lang: str='en',
                  min_length: int=50, max_length: int=150,
+                 max_observations=None,
                  **kwargs) -> None:
 
         self._files = _wmt_bilingual_news_filename[
@@ -95,6 +97,7 @@ class WMTBilingualNews(TextDataset):
 
         self._min_length = min_length
         self._max_length = max_length
+        self._max_observations = max_observations
 
         super().__init__(
             source_lang, target_lang,
@@ -133,6 +136,7 @@ class WMTBilingualNews(TextDataset):
                 source_sentence_elems = source_dom.getElementsByTagName('seg')
                 target_sentence_elems = target_dom.getElementsByTagName('seg')
 
+                observations = 0
                 for source_sentence_elem, target_sentence_elem in \
                         zip(source_sentence_elems, target_sentence_elems):
 
@@ -144,3 +148,8 @@ class WMTBilingualNews(TextDataset):
                     if self._min_length <= len(source) < self._max_length and \
                        self._min_length <= len(target) < self._max_length:
                         yield (source, target)
+                        observations += 1
+
+                        if self._max_observations is not None and \
+                           observations >= self._max_observations:
+                            break
