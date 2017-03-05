@@ -38,6 +38,21 @@ class _SequenceTable:
         return datum
 
 
+def _shuffle_queue(input_queue, dequeue_many=32, **kwargs):
+    dequeue_op = input_queue.dequeue_many(dequeue_many)
+    dtypes = [dequeue_op.dtype]
+    shapes = [dequeue_op.get_shape()[1:]]
+
+    shuffle_queue = tf.RandomShuffleQueue(
+        dtypes=dtypes, shapes=shapes,
+        **kwargs)
+    shuffle_enqueue = shuffle_queue.enqueue_many([dequeue_op])
+    tf.train.add_queue_runner(
+        tf.train.QueueRunner(shuffle_queue, [shuffle_enqueue])
+    )
+    return shuffle_queue
+
+
 class Dataset:
     source: tf.Tensor
     target: tf.Tensor
@@ -83,23 +98,35 @@ class Dataset:
             global_min_length = min(global_min_length,
                                     len(source), len(target))
 
+        # bucket_by_sequence_length requires the input_length and tensors
+        # arguments to be queues. Use a range_input_producer queue to shuffle
+        # an index for sliceing the input_length and tensors laters.
+        # This strategy is idendical to the one used in slice_input_producer.
+        index_queue = tf.train.range_input_producer(
+            len(length_data),
+            name=f'dataset/{name}',
+            shuffle=shuffle, seed=seed,
+            num_epochs=None if repeat else 1
+        )
+
+        # To get a continues shuffling behaviour similar to suffle_batch
+        # put in a RandomShuffleQueue
+        if shuffle:
+            data_index = _shuffle_queue(
+                index_queue,
+                capacity=batch_size * 128,
+                min_after_dequeue=batch_size * 64,
+                dequeue_many=batch_size * 32
+            ).dequeue()
+        else:
+            data_index = index_queue.dequeue()
+
         # create bucket boundaries
         bucket_boundaries = [
             (i + 1) * 20 for i in range(global_max_length // 20)
         ]
         if len(bucket_boundaries) == 0:
             bucket_boundaries = [(global_min_length + global_max_length) // 2]
-
-        # bucket_by_sequence_length requires the input_length and tensors
-        # arguments to be queues. Use a range_input_producer queue to shuffle
-        # an index for sliceing the input_length and tensors laters.
-        # This strategy is idendical to the one used in slice_input_producer.
-        data_index = tf.train.range_input_producer(
-            len(length_data),
-            name=f'dataset/{name}',
-            shuffle=shuffle, seed=seed,
-            num_epochs=None if repeat else 1
-        ).dequeue()
 
         # the first argument is the sequence length specifed in the
         # input_length I did not find a use for it.
