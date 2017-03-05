@@ -37,7 +37,7 @@ class DatasetCache:
 
     def _load_cache(self):
         # load cache
-        with open(self._filepath, 'r') as fd:
+        with open(self._filepath, 'r', encoding='utf-8') as fd:
             deserialized_cache = json.load(fd)
             self._cache = {
                 tuple(key): CorpusProperties(
@@ -54,7 +54,9 @@ class DatasetCache:
                 print(_format_string.format(
                     key=json.dumps(key),
                     observations=val.observations,
-                    vocabulary=json.dumps(list(val.vocabulary)),
+                    vocabulary=json.dumps(
+                        list(val.vocabulary), ensure_ascii=False
+                    ),
                     tail='' if i + 1 == len(self._cache) else ','
                 ), file=fd)
             print(']', file=fd)

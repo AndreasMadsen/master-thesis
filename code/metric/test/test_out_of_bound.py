@@ -12,7 +12,7 @@ from code.metric.test.dummy_model import DummyModel
 
 def test_out_of_bound():
     """test out of bound metric"""
-    dataset = SyntheticDigits(batch_size=16)
+    dataset = SyntheticDigits(batch_size=16, tqdm=False)
 
     # encode translated text
     translated = np.asarray([

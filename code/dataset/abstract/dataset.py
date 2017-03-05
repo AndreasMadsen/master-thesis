@@ -4,7 +4,7 @@ import math
 import abc
 
 import numpy as np
-from tqdm import tqdm
+from tqdm import tqdm as tqdm_bar
 
 import tensorflow as tf
 
@@ -65,8 +65,9 @@ class Dataset:
                  dtype: np.unsignedinteger,
                  batch_size: int=32,
                  name: str='unamed',
-                 shuffle=True, seed: int=None,
-                 repeat=True) -> None:
+                 shuffle: bool=True, seed: int=None,
+                 repeat: bool=True,
+                 tqdm: bool=True) -> None:
 
         source_data = _SequenceTable(observations, dtype)
         target_data = _SequenceTable(observations, dtype)
@@ -77,9 +78,10 @@ class Dataset:
         global_min_length = float('inf')
         global_max_length = 0
 
-        for i, (source, target) in tqdm(enumerate(self),
-                                        total=observations,
-                                        unit='obs', desc='encoding'):
+        for i, (source, target) in tqdm_bar(enumerate(self),
+                                            total=observations,
+                                            unit='obs', desc='encoding',
+                                            disable=not tqdm):
             # encode data
             source = self.encode_as_array(source)
             target = self.encode_as_array(target)

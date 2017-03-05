@@ -27,7 +27,8 @@ def test_blue_score_on_google():
         year=2015, source_lang='en', target_lang='ru',
         batch_size=100, max_observations=100,
         min_length=0, max_length=1024,
-        shuffle=False
+        shuffle=False,
+        tqdm=False
     )
 
     # encode translated text
@@ -59,7 +60,8 @@ def test_blue_score_on_poorly():
         _load_fixture('ref.poor.en'),
         source_lang='fr', target_lang='en',
         batch_size=128,
-        shuffle=False
+        shuffle=False,
+        tqdm=False
     )
 
     # encode translated text

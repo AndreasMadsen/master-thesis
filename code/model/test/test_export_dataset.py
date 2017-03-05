@@ -7,7 +7,9 @@ from code.model.export_dataset import ExportDataset
 
 def test_export_dataset():
     """ExportDataset() collects the dataset"""
-    dataset = SyntheticDigits(examples=10, shuffle=False, seed=99)
+    dataset = SyntheticDigits(examples=10,
+                              shuffle=False, seed=99,
+                              tqdm=False)
     export = ExportDataset(dataset)
     export.train()
 
@@ -28,7 +30,9 @@ def test_export_dataset():
 
 def test_export_dataset_show_eos():
     """ExportDataset(show_eos=True) collects the dataset"""
-    dataset = SyntheticDigits(examples=10, shuffle=False, seed=99)
+    dataset = SyntheticDigits(examples=10,
+                              shuffle=False, seed=99,
+                              tqdm=False)
     export = ExportDataset(dataset, show_eos=True)
     export.train()
 

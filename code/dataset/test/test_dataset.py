@@ -43,7 +43,9 @@ def tensorflow_extract_all(dataset):
 def test_all_examples_exposed_one():
     """ensure all examples are exposed when batch_size = observations"""
     dataset = SyntheticDigits(
-        batch_size=11, examples=11, seed=99, shuffle=False, repeat=False
+        batch_size=11, examples=11,
+        seed=99, shuffle=False, repeat=False,
+        tqdm=False
     )
     actual = tensorflow_extract_one(dataset)
     expected = list(map(lambda v: (f'{v[0]}^', f'{v[1]}^'), dataset))
@@ -57,7 +59,9 @@ def test_all_examples_exposed_one():
 def test_all_examples_exposed_all():
     """ensure all examples are exposed when batch_size < observations"""
     dataset = SyntheticDigits(
-        batch_size=2, examples=11, seed=99, shuffle=False, repeat=False
+        batch_size=2, examples=11,
+        seed=99, shuffle=False, repeat=False,
+        tqdm=False
     )
     actual = tensorflow_extract_all(dataset)
     expected = list(map(lambda v: (f'{v[0]}^', f'{v[1]}^'), dataset))
@@ -71,14 +75,16 @@ def test_all_examples_exposed_all():
 def test_decode_encoding():
     """test special chars in decoding algorithm"""
     dataset = SyntheticDigits(
-        batch_size=2, examples=11, seed=99, shuffle=False, repeat=False
+        batch_size=2, examples=11, seed=99,
+        shuffle=False, repeat=False,
+        tqdm=False
     )
 
     assert_equal(
         dataset.decode_as_str(
             np.asarray([0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 28, 1, 2])
         ),
-        '_0123456789~^'
+        '⨯0123456789�^'
     )
 
     assert_equal(
@@ -86,5 +92,5 @@ def test_decode_encoding():
             np.asarray([0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 28, 1, 2]),
             show_eos=False
         ),
-        '_0123456789~'
+        '⨯0123456789�'
     )

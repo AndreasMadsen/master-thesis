@@ -32,7 +32,9 @@ def tar_extract_file(tar_filepath, content_filepath):
     with tarfile.open(tar_filepath, 'r|gz', encoding='utf-8') as target_tar:
         for t in target_tar:
             if t.name == content_filepath:
-                yield target_tar.extractfile(t)
+                yield (
+                    line.decode('utf-8') for line in target_tar.extractfile(t)
+                )
                 break
 
 

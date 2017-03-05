@@ -14,7 +14,8 @@ def test_bytenet_on_digits():
     """ByteNet() works on single digits"""
     dataset = SyntheticDigits(
         examples=50, min_length=1, max_length=1,
-        seed=99
+        seed=99,
+        tqdm=False
     )
 
     test_source = [

@@ -3,7 +3,7 @@ from typing import Any, List, Tuple, Mapping, Iterator, FrozenSet
 import abc
 
 import numpy as np
-from tqdm import tqdm
+from tqdm import tqdm as tqdm_bar
 
 from code.dataset.abstract.dataset import Dataset
 from code.dataset.util.size_to_type import size_to_signed_type
@@ -16,6 +16,7 @@ class TextDataset(Dataset):
     _decode: Mapping[int, str]
     _encode: Mapping[str, int]
     _encode_dtype: np.unsignedinteger
+    _show_tqdm: bool=False
     source_lang: str
     target_lang: str
 
@@ -26,7 +27,10 @@ class TextDataset(Dataset):
                  observations: int=None,
                  validate: bool=False,
                  name: str='unamed',
+                 tqdm: bool=True,
                  **kwargs) -> None:
+        # save basic properties
+        self._show_tqdm = tqdm
 
         # compute properties if necessary
         if vocabulary is None or observations is None:
@@ -46,12 +50,13 @@ class TextDataset(Dataset):
         )
 
         # validate properties
+        # http://unicode-search.net/unicode-namesearch.pl
         if '^' in vocabulary:
-            raise ValueError('a special char (^) was found in the vocabulary')
-        if '_' in vocabulary:
-            raise ValueError('a special char (_) was found in the vocabulary')
-        if '~' in vocabulary:
-            raise ValueError('a special char (~) was found in the vocabulary')
+            raise ValueError('a eos char (^) was found in the vocabulary')
+        if '⨯' in vocabulary:
+            raise ValueError('a null char (⨯) was found in the vocabulary')
+        if '�' in vocabulary:
+            raise ValueError('an invalid char (�) was found in the vocabulary')
 
         # create encoding schema
         self._setup_encoding()
@@ -68,6 +73,7 @@ class TextDataset(Dataset):
         super().__init__(observations=observations,
                          dtype=self._encode_dtype,
                          name=name,
+                         tqdm=tqdm,
                          **kwargs)
 
     @abc.abstractmethod
@@ -107,9 +113,10 @@ class TextDataset(Dataset):
         unique_chars = set()
         observations = 0
 
-        for source, target in tqdm(self,
-                                   total=expected_obs,
-                                   unit='obs', desc='corpus properties'):
+        for source, target in tqdm_bar(self,
+                                       total=expected_obs,
+                                       unit='obs', desc='corpus properties',
+                                       disable=not self._show_tqdm):
             # add source and target to the char set
             unique_chars |= set(source)
             unique_chars |= set(target)
@@ -151,7 +158,7 @@ class TextDataset(Dataset):
     def _setup_encoding(self) -> None:
         # to ensure consistent encoding, sort the chars.
         # also add a null char for padding and and <EOS> char for EOS.
-        self._decode = ['_', '^'] + sorted(self.vocabulary)
+        self._decode = ['⨯', '^'] + sorted(self.vocabulary)
 
         # reverse the decoder list to create an encoder map
         self._encode = {
@@ -200,7 +207,7 @@ class TextDataset(Dataset):
         decoded = ''
         for code in encoded:
             if code >= self.vocabulary_size:
-                decoded += '~'
+                decoded += '�'
             elif code != 1 or show_eos:
                 decoded += self._decode[code]
 
