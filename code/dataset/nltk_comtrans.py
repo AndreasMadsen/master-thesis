@@ -1,9 +1,9 @@
 
-from typing import Iterator, List, Tuple
+from typing import Optional, Iterator, List, Tuple
 
 from code.download import NLTKEnv
 from code.dataset.abstract.text_dataset import TextDataset
-
+from code.dataset.util.length_checker import LengthChecker
 
 _bilingual_noswap = {
     ('en', 'fr'),
@@ -17,21 +17,19 @@ _bilingual_swap = {
 
 
 class NLTKComtrans(TextDataset):
-    _source_lang: str
-    _target_lang: str
+    _length_checker: LengthChecker
     _min_length: int
     _max_length: int
 
     def __init__(self,
                  source_lang: str='fr',
                  target_lang: str='en',
-                 min_length: int=50, max_length: int=150,
+                 min_length: Optional[int]=50, max_length: Optional[int]=150,
                  **kwargs) -> None:
 
         self._source_lang = source_lang
         self._target_lang = target_lang
-        self._min_length = min_length
-        self._max_length = max_length
+        self._length_checker = LengthChecker(min_length, max_length)
 
         super().__init__(
             source_lang, target_lang,
@@ -76,6 +74,5 @@ class NLTKComtrans(TextDataset):
             source = source_detokenizer.detokenize(source, return_str=True)
             target = target_detokenizer.detokenize(target, return_str=True)
 
-            if self._min_length <= len(source) < self._max_length and \
-               self._min_length <= len(target) < self._max_length:
+            if self._length_checker(source, target):
                 yield (source, target)

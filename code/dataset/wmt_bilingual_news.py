@@ -1,10 +1,11 @@
 
-from typing import Iterator, Tuple, NamedTuple
+from typing import Optional, Iterator, Tuple, NamedTuple
 import xml.dom.minidom
 import tarfile
 
 from code.download import WMTCache
 from code.dataset.abstract.text_dataset import TextDataset
+from code.dataset.util.length_checker import LengthChecker
 
 BilingualPair = NamedTuple('BilingualPair', [
     ('tarball', str),
@@ -76,15 +77,14 @@ _wmt_bilingual_news_filename.update({
 class WMTBilingualNews(TextDataset):
     _files: BilingualPair
     _tarball: BilingualTarball
-    _min_length: int
-    _max_length: int
+    _length_checker: LengthChecker
     _max_observations: int = None
 
     def __init__(self,
                  year: int=2013,
                  source_lang: str='fr',
                  target_lang: str='en',
-                 min_length: int=50, max_length: int=150,
+                 min_length: Optional[int]=50, max_length: Optional[int]=150,
                  max_observations=None,
                  **kwargs) -> None:
 
@@ -95,8 +95,7 @@ class WMTBilingualNews(TextDataset):
             self._files.tarball
         ]
 
-        self._min_length = min_length
-        self._max_length = max_length
+        self._length_checker = LengthChecker(min_length, max_length)
         self._max_observations = max_observations
 
         super().__init__(
@@ -144,8 +143,7 @@ class WMTBilingualNews(TextDataset):
                     target = target_sentence_elem.firstChild.nodeValue
 
                     # check string size
-                    if self._min_length <= len(source) < self._max_length and \
-                       self._min_length <= len(target) < self._max_length:
+                    if self._length_checker(source, target):
                         yield (source, target)
                         observations += 1
 

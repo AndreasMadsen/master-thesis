@@ -4,6 +4,7 @@ import math
 import abc
 
 import numpy as np
+from tqdm import tqdm
 
 import tensorflow as tf
 
@@ -76,7 +77,9 @@ class Dataset:
         global_min_length = float('inf')
         global_max_length = 0
 
-        for i, (source, target) in enumerate(self):
+        for i, (source, target) in tqdm(enumerate(self),
+                                        total=observations,
+                                        unit='obs', desc='encoding'):
             # encode data
             source = self.encode_as_array(source)
             target = self.encode_as_array(target)

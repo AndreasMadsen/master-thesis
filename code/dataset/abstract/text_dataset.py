@@ -3,6 +3,7 @@ from typing import Any, List, Tuple, Mapping, Iterator, FrozenSet
 import abc
 
 import numpy as np
+from tqdm import tqdm
 
 from code.dataset.abstract.dataset import Dataset
 from code.dataset.util.size_to_type import size_to_signed_type
@@ -29,7 +30,9 @@ class TextDataset(Dataset):
 
         # compute properties if necessary
         if vocabulary is None or observations is None:
-            computed_properties = self._fetch_corpus_properties(name, key)
+            computed_properties = self._fetch_corpus_properties(
+                name, key, observations=observations
+            )
 
             if vocabulary is None:
                 vocabulary = computed_properties.vocabulary
@@ -85,22 +88,28 @@ class TextDataset(Dataset):
         return self._decode
 
     def _fetch_corpus_properties(self,
-                                 name: str, key: Any) -> CorpusProperties:
+                                 name: str, key: Any,
+                                 observations: int=None) -> CorpusProperties:
         # don't involve the cache if key is None
         if key is None:
-            return self._compute_corpus_properties()
+            return self._compute_corpus_properties(expected_obs=observations)
 
         # build the cache if not already build
         if key not in property_cache[name]:
-            property_cache[name][key] = self._compute_corpus_properties()
+            property_cache[name][key] = self._compute_corpus_properties(
+                expected_obs=observations
+            )
 
         return property_cache[name][key]
 
-    def _compute_corpus_properties(self) -> CorpusProperties:
+    def _compute_corpus_properties(self,
+                                   expected_obs: int=None) -> CorpusProperties:
         unique_chars = set()
         observations = 0
 
-        for source, target in self:
+        for source, target in tqdm(self,
+                                   total=expected_obs,
+                                   unit='obs', desc='corpus properties'):
             # add source and target to the char set
             unique_chars |= set(source)
             unique_chars |= set(target)
@@ -114,7 +123,9 @@ class TextDataset(Dataset):
         )
 
     def _validate_corpus_properties(self) -> None:
-        truth = self._compute_corpus_properties()
+        truth = self._compute_corpus_properties(
+            expected_obs=self.properties.observations
+        )
         properties_valid = True
 
         print(f'Dataset validation ({name}):')
