@@ -13,4 +13,4 @@
 export PYTHONPATH=./
 source ~/stdpy3/bin/activate
 
-python3 code/script/bytenet_europarl.py
+python3 code/script/bytenet_europarl_train.py
