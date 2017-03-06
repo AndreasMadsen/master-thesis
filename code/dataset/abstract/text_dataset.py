@@ -16,7 +16,7 @@ class TextDataset(Dataset):
     _decode: Mapping[int, str]
     _encode: Mapping[str, int]
     _encode_dtype: np.unsignedinteger
-    _show_tqdm: bool=False
+    _show_tqdm: bool = False
     source_lang: str
     target_lang: str
 
@@ -67,7 +67,7 @@ class TextDataset(Dataset):
 
         # validate corpus properties
         if validate:
-            self._validate_corpus_properties()
+            self._validate_corpus_properties(name)
 
         # setup tensorflow pipeline
         super().__init__(observations=observations,
@@ -129,7 +129,7 @@ class TextDataset(Dataset):
             observations=observations
         )
 
-    def _validate_corpus_properties(self) -> None:
+    def _validate_corpus_properties(self, name: str) -> None:
         truth = self._compute_corpus_properties(
             expected_obs=self.properties.observations
         )

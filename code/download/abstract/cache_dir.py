@@ -1,7 +1,6 @@
 
 import os
 import os.path as path
-import urllib.request
 
 from code.download.util.download_dir import download_dir
 from code.download.util.tqdm_download import download

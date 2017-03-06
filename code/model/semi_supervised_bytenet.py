@@ -97,7 +97,8 @@ class SemiSupervisedByteNet(Model):
                 # logits.shape = (batch * samples, times, vocabulary)
                 # labels.shape = (batch * samples, times)
                 logits, labels = bytenet_supervised_translator(
-                    batch_repeat_pack(sample_labels), batch_repeat_pack(x_repeat),
+                    batch_repeat_pack(sample_labels),
+                    batch_repeat_pack(x_repeat),
                     voca_size=self.dataset.vocabulary_size,
                     latent_dim=self.latent_dim,
                     num_blocks=self.num_blocks,
@@ -144,10 +145,12 @@ class SemiSupervisedByteNet(Model):
 
         with tf.name_scope(None, "supervised", values=[source, target]):
             with tf.device('/gpu:0'):
-                logits_x2y = self._build_supervised_model(x_x2y, y_x2y, order='x2y',
+                logits_x2y = self._build_supervised_model(x_x2y, y_x2y,
+                                                          order='x2y',
                                                           reuse=reuse)
             with tf.device('/gpu:1'):
-                logits_y2x = self._build_supervised_model(y_y2x, x_y2x, order='y2x',
+                logits_y2x = self._build_supervised_model(y_y2x, x_y2x,
+                                                          order='y2x',
                                                           reuse=reuse)
 
         with tf.device('/gpu:0'):

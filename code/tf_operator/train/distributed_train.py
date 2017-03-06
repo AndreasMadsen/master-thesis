@@ -4,7 +4,6 @@ import os.path as path
 import tensorflow as tf
 import sugartensor as stf
 from tensorflow.python.client import timeline as tf_timeline
-from tqdm import tqdm
 
 
 class _ShouldProfile:
@@ -59,7 +58,7 @@ def distributed_train(**kwargs):
     # validate all update_ops and variables mapped to a device
     assert len(unmapped_variables) == 0, 'not all variables are mapped'
     assert len(unmapped_update_ops) == 0, 'not all variables are mapped'
-    
+
     # collect optimizer
     train_op = []
 
@@ -77,10 +76,8 @@ def distributed_train(**kwargs):
     @stf.sg_train_func
     def train_func(sess, arg):
         profile_state.increment()
-        tqdm.write('sub-iteration: %d' % profile_state.iterations)
 
         if profile_state.should_profile():
-            tqdm.write('starting profile run')
             options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
             run_metadata = tf.RunMetadata()
         else:
@@ -92,7 +89,6 @@ def distributed_train(**kwargs):
                         run_metadata=run_metadata)[0]
 
         if profile_state.should_profile():
-            tqdm.write('saving profile run at %s' % path.join(opt.save_dir, 'timeline.json'))
             tl = tf_timeline.Timeline(run_metadata.step_stats)
             ctf = tl.generate_chrome_trace_format()
             with open(path.join(opt.save_dir, 'timeline.json'), 'w') as fd:

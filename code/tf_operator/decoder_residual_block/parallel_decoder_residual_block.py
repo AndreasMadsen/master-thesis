@@ -5,6 +5,7 @@ import sugartensor as stf  # noqa: F401
 from code.tf_operator.decoder_residual_block.seq_causal_aconv1d \
     import seq_causal_aconv1d
 
+
 def seq_aconv1d_init(tensor,
                      size=3, rate=1):
     default_name = f"seq-aconv1d-{size}-{rate}-init"

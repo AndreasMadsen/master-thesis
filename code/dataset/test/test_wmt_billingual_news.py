@@ -1,8 +1,6 @@
 
 from nose.tools import assert_equal
 
-import sugartensor as stf
-
 from code.dataset.util.dataset_properties_cache import CorpusProperties
 from code.dataset.wmt_bilingual_news import WMTBilingualNews
 

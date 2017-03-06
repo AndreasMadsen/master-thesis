@@ -3,7 +3,6 @@ import sugartensor as stf
 
 from code.dataset import NLTKComtrans, WMTBilingualNews
 from code.model import SemiSupervisedByteNet
-from code.metric import BleuScore, ModelLoss, OutOfBound
 
 # set log level to debug
 stf.sg_verbosity(10)
