@@ -64,7 +64,7 @@ class Europarl(TextDataset):
             **kwargs
         )
 
-    def _observation(self) -> int:
+    def _observation(self) -> Optional[int]:
         if not self._all_observations:
             return None
 

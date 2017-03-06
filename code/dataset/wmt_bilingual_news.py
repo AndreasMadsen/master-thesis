@@ -10,7 +10,8 @@ from code.dataset.util.length_checker import LengthChecker
 BilingualPair = NamedTuple('BilingualPair', [
     ('tarball', str),
     ('source_filename', str),
-    ('target_filename', str)
+    ('target_filename', str),
+    ('observations', int)
 ])
 
 BilingualTarball = NamedTuple('BilingualTarball', [
@@ -34,42 +35,51 @@ _wmt_bilingual_news_filename = {
     (2013, 'fr', 'en'): BilingualPair(
         tarball='dev',
         source_filename='dev/newstest2013-src.fr.sgm',
-        target_filename='dev/newstest2013-ref.en.sgm'
+        target_filename='dev/newstest2013-ref.en.sgm',
+        observations=3000
     ),
     (2013, 'de', 'en'): BilingualPair(
         tarball='dev',
         source_filename='dev/newstest2013-src.de.sgm',
-        target_filename='dev/newstest2013-ref.en.sgm'
+        target_filename='dev/newstest2013-ref.en.sgm',
+        observations=3000
     ),
     (2014, 'fr', 'en'): BilingualPair(
         tarball='dev',
         source_filename='dev/newstest2014-fren-src.fr.sgm',
-        target_filename='dev/newstest2014-fren-ref.en.sgm'
+        target_filename='dev/newstest2014-fren-ref.en.sgm',
+        observations=3003
     ),
     (2014, 'de', 'en'): BilingualPair(
         tarball='dev',
         source_filename='dev/newstest2014-deen-src.de.sgm',
-        target_filename='dev/newstest2014-deen-ref.en.sgm'
+        target_filename='dev/newstest2014-deen-ref.en.sgm',
+        observations=3003
     ),
     (2015, 'de', 'en'): BilingualPair(
         tarball='dev',
         source_filename='dev/newstest2015-deen-src.de.sgm',
-        target_filename='dev/newstest2015-deen-ref.en.sgm'
+        target_filename='dev/newstest2015-deen-ref.en.sgm',
+        observations=2169
     ),
     (2015, 'ru', 'en'): BilingualPair(
         tarball='dev',
         source_filename='dev/newstest2015-ruen-src.ru.sgm',
-        target_filename='dev/newstest2015-ruen-ref.en.sgm'
+        target_filename='dev/newstest2015-ruen-ref.en.sgm',
+        observations=2818
     )
 }
 
 # append swaped target and source
 _wmt_bilingual_news_filename.update({
     (key_year, key_target, key_source): BilingualPair(
-        val_file, val_target, val_source
+        tarball=pair.tarball,
+        source_filename=pair.target_filename,
+        target_filename=pair.source_filename,
+        observations=pair.observations
     )
 
-    for (key_year, key_source, key_target), (val_file, val_source, val_target)
+    for (key_year, key_source, key_target), pair
     in _wmt_bilingual_news_filename.items()
 })
 
@@ -79,6 +89,7 @@ class WMTBilingualNews(TextDataset):
     _tarball: BilingualTarball
     _length_checker: LengthChecker
     _max_observations: int = None
+    _all_observations: bool = False
 
     def __init__(self,
                  year: int=2013,
@@ -100,10 +111,18 @@ class WMTBilingualNews(TextDataset):
 
         super().__init__(
             source_lang, target_lang,
+            observations=self._observation(min_length, max_length),
             key=(year, source_lang, target_lang, min_length, max_length),
             name='wmt-bilinual-news',
             **kwargs
         )
+
+    def _observation(self, min_length: int, max_length: int) -> Optional[int]:
+        if self._max_observations is not None:
+            return self._max_observations
+
+        if min_length is None and max_length is None:
+            return self._files.observations
 
     def __iter__(self) -> Iterator[Tuple[str, str]]:
         with WMTCache() as wmt_cache:
