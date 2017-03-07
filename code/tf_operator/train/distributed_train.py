@@ -5,6 +5,8 @@ import tensorflow as tf
 import sugartensor as stf
 from tensorflow.python.client import timeline as tf_timeline
 
+from code.tf_operator.device.gpu_device import gpu_device
+
 
 class _ShouldProfile:
     iterations: int = 0
@@ -65,7 +67,7 @@ def distributed_train(**kwargs):
     for (category_name, device_name), category_prefixes \
             in zip(opt.distribution, category_prefixes):
 
-        with tf.device(device_name):
+        with gpu_device(device_name):
             train_op += stf.sg_optim(opt.loss, optim=opt.optim, lr=opt.lr,
                                      beta1=opt.beta1, beta2=opt.beta2,
                                      category=category_prefixes)

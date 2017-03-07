@@ -5,7 +5,7 @@ import tensorflow as tf
 
 def parallel_encoder_residual_block(tensor,
                                     size=3, rate=1,
-                                    name=None, reuse=False):
+                                    name=None, reuse=None):
     default_name = f"encoder-res-block-{size}-{rate}"
 
     with tf.variable_scope(name, default_name, [tensor], reuse=reuse):

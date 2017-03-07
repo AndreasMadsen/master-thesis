@@ -9,7 +9,7 @@ def parallel_bytenet_decoder(dec,
                              num_blocks=3, size=3,
                              rate=[1, 2, 4, 8, 16],
                              low_memory=False,
-                             name=None, reuse=False):
+                             name=None, reuse=None):
     with tf.variable_scope(name, "bytenet-decoder", values=[dec], reuse=reuse):
         # loop dilated causal conv block
         for i in range(num_blocks):

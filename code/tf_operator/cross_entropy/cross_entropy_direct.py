@@ -3,7 +3,7 @@ import tensorflow as tf
 import sugartensor as stf
 
 
-def cross_entropy_direct(logits, target, name, reuse=False):
+def cross_entropy_direct(logits, target, name, reuse=None):
     loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,
                                                           labels=target)
     loss *= tf.cast(tf.not_equal(target, tf.zeros_like(target)), tf.float32)

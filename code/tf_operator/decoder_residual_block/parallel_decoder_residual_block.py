@@ -30,7 +30,7 @@ def seq_aconv1d_init(tensor,
 def parallel_decoder_residual_block(tensor,
                                     size=3, rate=1,
                                     low_memory=False,
-                                    name=None, reuse=False):
+                                    name=None, reuse=None):
     default_name = f"decoder-res-block-{size}-{rate}"
 
     with tf.variable_scope(name, default_name, [tensor], reuse=reuse):

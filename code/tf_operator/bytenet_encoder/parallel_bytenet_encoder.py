@@ -8,7 +8,7 @@ from code.tf_operator.encoder_residual_block \
 def parallel_bytenet_encoder(x,
                              num_blocks=3, size=5,
                              rate=[1, 2, 4, 8, 16],
-                             name=None, reuse=False):
+                             name=None, reuse=None):
     with tf.variable_scope(name, "bytenet-encoder", values=[x], reuse=reuse):
         enc = x
 

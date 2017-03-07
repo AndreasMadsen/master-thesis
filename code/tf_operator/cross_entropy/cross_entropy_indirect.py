@@ -3,7 +3,7 @@ import tensorflow as tf
 import sugartensor as stf
 
 
-def cross_entropy_indirect(batch_loss, name, reuse=False):
+def cross_entropy_indirect(batch_loss, name, reuse=None):
     if not reuse:
         stf.sg_summary_loss(batch_loss, name=f'cross_entropy/{name}')
 

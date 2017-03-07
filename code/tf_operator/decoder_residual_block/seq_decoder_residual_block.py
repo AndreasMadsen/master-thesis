@@ -32,7 +32,7 @@ def seq_decoder_residual_block_init(tensor,
 
 def seq_decoder_residual_block(tensor, previous,
                                size=3, rate=1,
-                               name=None, reuse=False):
+                               name=None, reuse=None):
     default_name = f"seq-decoder-res-block-{size}-{rate}"
 
     scope_variables = [tensor] + list(previous)

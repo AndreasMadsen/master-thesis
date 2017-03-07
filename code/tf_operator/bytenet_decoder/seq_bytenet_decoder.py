@@ -24,7 +24,7 @@ def seq_bytenet_decoder_init(enc, name=None,
 def seq_bytenet_decoder(state_tm1, dec,
                         num_blocks=3, size=3,
                         rate=[1, 2, 4, 8, 16],
-                        name=None, reuse=False):
+                        name=None, reuse=None):
     assert len(state_tm1) == num_blocks
 
     # loop dilated causal conv block

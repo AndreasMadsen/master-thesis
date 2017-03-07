@@ -13,7 +13,7 @@ def bytenet_supervised_translator(x, y,
                                   rate=[1, 2, 4, 8, 16],
                                   low_memory=False,
                                   labels=None, container=None,
-                                  name=None, reuse=False):
+                                  name=None, reuse=None):
     with tf.variable_scope(name, "bytenet-supervised-translator",
                            values=[x, y], reuse=reuse):
         # make embedding matrix for source and target

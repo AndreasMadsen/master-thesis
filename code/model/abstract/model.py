@@ -1,12 +1,15 @@
 
 import abc
-from typing import List, Iterator
+from typing import List, Tuple, Iterator
 
 import tensorflow as tf
 import sugartensor as stf
 
 from code.dataset.abstract import Dataset
-from code.tf_operator import EmbeddingContainer
+from code.tf_operator import \
+    EmbeddingContainer, \
+    tower_optim, \
+    basic_train
 
 
 class Model:
@@ -27,10 +30,13 @@ class Model:
         self._metrics.append(metric)
 
     @abc.abstractmethod
-    def loss_model(self, x: tf.Tensor, y: tf.Tensor, **kwargs) -> tf.Tensor:
+    def loss_model(self,
+                   x: tf.Tensor, y: tf.Tensor,
+                   **kwargs) -> Tuple[tf.Tensor, List[Tuple[str, tf.Tensor]]]:
         pass
 
-    def train_model(self, **kwargs) -> tf.Tensor:
+    def train_model(self,
+                    **kwargs) -> Tuple[tf.Tensor, List[Tuple[str, tf.Tensor]]]:
         return self.loss_model(self.dataset.source, self.dataset.target,
                                **kwargs)
 
@@ -38,9 +44,11 @@ class Model:
               reuse: bool=False,
               allow_soft_placement: bool=True,
               log_device_placement: bool=False,
+              tqdm=True,
               **kwargs) -> None:
         # build training model
-        loss = self.train_model(reuse=reuse)
+        loss, losses = self.train_model(reuse=reuse)
+        losses_ops = [loss for device, loss in losses]
 
         # build eval metrics
         eval_metric = [
@@ -60,21 +68,23 @@ class Model:
                                      log_device_placement=log_device_placement)
         with tf.Session(config=sess_config) as sess:
             with tf.variable_scope('train', reuse=reuse,
-                                   values=[loss] + eval_metric):
-                self._train_loop(
-                    loss=loss,
-                    ep_size=self.dataset.num_batch,
-                    max_ep=max_ep,
-                    eval_metric=eval_metric,
-                    early_stop=False,
-                    save_dir=self._save_dir,
-                    sess=sess,
-                    # embeds=self.embeddings,
-                    **kwargs
-                )
+                                   values=[loss] + losses_ops + eval_metric):
+                update = self._update_model(losses, **kwargs)
+                self._train_loop(loss, update,
+                                 ep_size=self.dataset.num_batch,
+                                 max_ep=max_ep,
+                                 eval_metric=eval_metric,
+                                 early_stop=False,
+                                 save_dir=self._save_dir,
+                                 sess=sess,
+                                 tqdm=tqdm)
 
-    def _train_loop(self, **kwargs):
-        stf.sg_train(**kwargs)
+    def _update_model(self, losses: List[Tuple[str, tf.Tensor]],
+                      **kwargs) -> List[tf.Tensor]:
+        return tower_optim(losses, **kwargs)
+
+    def _train_loop(self, loss, update_op, **kwargs):
+        basic_train(loss, update_op, **kwargs)
 
     @abc.abstractmethod
     def inference_model(self, x: tf.Tensor) -> tf.Tensor:

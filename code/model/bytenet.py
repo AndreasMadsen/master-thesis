@@ -10,19 +10,24 @@ from code.tf_operator import \
     cross_entropy_direct, \
     bytenet_supervised_translator, \
     bytenet_unsupervised_translator, \
-    bytenet_sampling_translator
+    bytenet_sampling_translator, \
+    tower_scope, \
+    mean_n
 
 
 class ByteNet(Model):
     latent_dim: int
     num_blocks: int
+    _gpus: int
 
     def __init__(self, dataset: TextDataset,
                  latent_dim: int=400, num_blocks: int=3,
                  save_dir: str='asset/bytenet',
+                 gpus=1,
                  **kwargs) -> None:
         super().__init__(dataset, save_dir=save_dir, **kwargs)
 
+        self._gpus = gpus
         self.latent_dim = latent_dim
         self.num_blocks = num_blocks
 
@@ -42,27 +47,39 @@ class ByteNet(Model):
         return labels
 
     def loss_model(self,
-                   source: tf.Tensor, target: tf.Tensor,
+                   source_all: tf.Tensor, target_all: tf.Tensor,
                    reuse: bool=False) -> tf.Tensor:
-        with tf.name_scope(None, "preprocessing", values=[source, target]):
-            # get source and target tensors
-            x = tf.cast(source, tf.int32)
-            y = tf.cast(target, tf.int32)
+        source_split = tf.split(source_all, self._gpus, 0)
+        target_split = tf.split(target_all, self._gpus, 0)
 
-        logits, _ = bytenet_supervised_translator(
-            x, y,
-            voca_size=self.dataset.vocabulary_size,
-            latent_dim=self.latent_dim,
-            num_blocks=self.num_blocks,
-            container=self.embeddings,
-            labels=self.dataset.labels,
-            name="bytenet-model",
-            reuse=reuse
+        losses = []
+
+        for (index, device), source, target in zip(
+                tower_scope(range(self._gpus), reuse=reuse),
+                source_split, target_split
+        ):
+            with tf.name_scope(f'tower-{index}', values=[source, target]):
+                x = tf.cast(source, tf.int32)
+                y = tf.cast(target, tf.int32)
+
+                logits, _ = bytenet_supervised_translator(
+                    x, y,
+                    voca_size=self.dataset.vocabulary_size,
+                    latent_dim=self.latent_dim,
+                    num_blocks=self.num_blocks,
+                    container=self.embeddings,
+                    labels=self.dataset.labels,
+                    name="bytenet-model"
+                )
+
+                losses.append(
+                    (device, cross_entropy_direct(logits, y, "supervised-x2y"))
+                )
+
+        return (
+            mean_n([loss for _, loss in losses]),
+            losses
         )
-
-        loss = cross_entropy_direct(logits, y, "supervised-x2y", reuse=reuse)
-
-        return loss
 
     def inference_model(self,
                         source: tf.Tensor,

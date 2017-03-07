@@ -12,5 +12,8 @@ class ModelLoss(Metric):
     def _build_metric(self, model: 'code.model.abstract.Model') -> tf.Tensor:
         with tf.name_scope(None, self.metric_name,
                            values=[self.dataset.source, self.dataset.target]):
-            return model.loss_model(self.dataset.source, self.dataset.target,
-                                    reuse=True)
+            loss, losses = model.loss_model(
+                self.dataset.source, self.dataset.target,
+                reuse=True
+            )
+            return loss

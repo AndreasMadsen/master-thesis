@@ -15,7 +15,7 @@ def bytenet_sampling_translator(x,
                                 rate=[1, 2, 4, 8, 16],
                                 labels=None, container=None,
                                 samples=1, seed=None,
-                                name=None, reuse=False):
+                                name=None, reuse=None):
     with tf.variable_scope(name, "bytenet-sampling-translator",
                            values=[x], reuse=reuse):
         # make embedding matrix for source and target
