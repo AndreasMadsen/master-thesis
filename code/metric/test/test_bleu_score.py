@@ -76,3 +76,27 @@ def test_blue_score_on_poorly():
         with stf.sg_queue_context():
             score_4gram = sess.run(bleu_4gram)
             assert_almost_equals(score_4gram, 0.0, places=1)
+
+
+def test_blue_score_on_empty_string():
+    """test bleu score metric on empty strings"""
+    dataset = DummyDataset(
+        [''] * 128,
+        source_lang='fr', target_lang='en',
+        batch_size=128,
+        shuffle=False,
+        tqdm=False
+    )
+
+    # encode translated text
+    translated = dataset.encode_as_batch(_load_fixture('trans.poor.en'))
+
+    # setup model
+    model = DummyModel(dataset, translated)
+    bleu_4gram = BleuScore(dataset).build(model)
+
+    with tf.Session() as sess:
+        stf.sg_init(sess)
+        with stf.sg_queue_context():
+            score_4gram = sess.run(bleu_4gram)
+            assert_almost_equals(score_4gram, 0.0, places=1)

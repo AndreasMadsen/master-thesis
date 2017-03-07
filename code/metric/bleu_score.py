@@ -10,9 +10,13 @@ from code.metric.calculate.multi_bleu import multi_bleu
 
 def _tokenize_line(tokenizer, line):
     tokens = tokenizer.tokenize(line)
-    last_token = tokens[-1]
+
+    # empty strings has no tokens
+    if len(tokens) == 0:
+        return tokens
 
     # split dot if the last token ends with .
+    last_token = tokens[-1]
     if last_token[-1] == '.' and len(last_token) > 1:
         tokens[-1] = last_token[:-1]
         tokens.append('.')
@@ -48,8 +52,6 @@ class BleuScore(Metric):
     def _py_implementaton(self, hypothesis, references):
         hypothesis = self.dataset.decode_as_batch(hypothesis, show_eos=False)
         references = self.dataset.decode_as_batch(references, show_eos=False)
-
-        print(len(hypothesis), len(references))
 
         with NLTKEnv():
             from nltk.tokenize.moses import MosesTokenizer
