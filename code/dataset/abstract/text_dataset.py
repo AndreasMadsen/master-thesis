@@ -109,13 +109,14 @@ class TextDataset(Dataset):
         return property_cache[name][key]
 
     def _compute_corpus_properties(self,
+                                   tqdm_message: str='corpus properties',
                                    expected_obs: int=None) -> CorpusProperties:
         unique_chars = set()
         observations = 0
 
         for source, target in tqdm_bar(self,
                                        total=expected_obs,
-                                       unit='obs', desc='corpus properties',
+                                       unit='obs', desc=tqdm_message,
                                        disable=not self._show_tqdm):
             # add source and target to the char set
             unique_chars |= set(source)
@@ -131,6 +132,7 @@ class TextDataset(Dataset):
 
     def _validate_corpus_properties(self, name: str) -> None:
         truth = self._compute_corpus_properties(
+            tqdm_message='validate properties',
             expected_obs=self.properties.observations
         )
         properties_valid = True
