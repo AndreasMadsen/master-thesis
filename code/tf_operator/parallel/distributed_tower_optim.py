@@ -6,14 +6,28 @@ from code.tf_operator.parallel.tower_gradient import tower_gradient
 from code.tf_operator.train.optimizer import optimizer
 
 
-def tower_optim(losses, **kwargs):
+def distributed_tower_optim(losses, **kwargs):
+    '''
+    losses = {
+        cat0: [(gpu0, loss0), (gpu2, loss1)],
+        cat1: [(gpu1, loss0), (gpu3, loss1)]
+    }
+    distribution = [cat0, cat1]
+    '''
+
     opt = optimizer(**kwargs)
 
-    # get trainable variables
+    gradient = []
     var_list = tf.trainable_variables()
+    for category_name, category_tower_losses in losses.items():
+        # get trainable variables
+        category_vars = [
+            var for var in var_list if var.name.startswith(category_name)
+        ]
 
-    # calc gradients (represented as (grad, var) pairs) like compute_gradients
-    gradient = tower_gradient(opt, losses, var_list)
+        # calc gradients (represented as (grad, var) pairs) like
+        # compute_gradients
+        gradient += tower_gradient(opt, category_tower_losses, category_vars)
 
     # add summary
     for g, v in gradient:

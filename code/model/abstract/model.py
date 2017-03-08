@@ -1,6 +1,6 @@
 
 import abc
-from typing import List, Tuple, Iterator
+from typing import TypeVar, Any, List, Tuple, Iterator
 
 import tensorflow as tf
 import sugartensor as stf
@@ -10,6 +10,8 @@ from code.tf_operator import \
     EmbeddingContainer, \
     tower_optim, \
     basic_train
+
+LossesType = Iterator[Any]
 
 
 class Model:
@@ -30,13 +32,10 @@ class Model:
         self._metrics.append(metric)
 
     @abc.abstractmethod
-    def loss_model(self,
-                   x: tf.Tensor, y: tf.Tensor,
-                   **kwargs) -> Tuple[tf.Tensor, List[Tuple[str, tf.Tensor]]]:
+    def loss_model(self, x: tf.Tensor, y: tf.Tensor, **kwargs) -> LossesType:
         pass
 
-    def train_model(self,
-                    **kwargs) -> Tuple[tf.Tensor, List[Tuple[str, tf.Tensor]]]:
+    def train_model(self, **kwargs) -> LossesType:
         return self.loss_model(self.dataset.source, self.dataset.target,
                                **kwargs)
 
@@ -45,6 +44,7 @@ class Model:
               allow_soft_placement: bool=True,
               log_device_placement: bool=False,
               tqdm=True,
+              lr=0.001,
               **kwargs) -> None:
         # build training model
         loss, losses = self.train_model(reuse=reuse)
@@ -69,7 +69,7 @@ class Model:
         with tf.Session(config=sess_config) as sess:
             with tf.variable_scope('train', reuse=reuse,
                                    values=[loss] + losses_ops + eval_metric):
-                update = self._update_model(losses, **kwargs)
+                update = self._update_model(losses, lr=lr, **kwargs)
                 self._train_loop(loss, update,
                                  ep_size=self.dataset.num_batch,
                                  max_ep=max_ep,
@@ -77,13 +77,15 @@ class Model:
                                  early_stop=False,
                                  save_dir=self._save_dir,
                                  sess=sess,
-                                 tqdm=tqdm)
+                                 tqdm=tqdm,
+                                 lr=lr)
 
-    def _update_model(self, losses: List[Tuple[str, tf.Tensor]],
-                      **kwargs) -> List[tf.Tensor]:
+    def _update_model(self, losses: LossesType, **kwargs) -> List[tf.Tensor]:
         return tower_optim(losses, **kwargs)
 
-    def _train_loop(self, loss, update_op, **kwargs):
+    def _train_loop(self,
+                    loss: tf.Tensor, update_op: List[tf.Tensor],
+                    **kwargs) -> None:
         basic_train(loss, update_op, **kwargs)
 
     @abc.abstractmethod

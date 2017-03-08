@@ -1,10 +1,10 @@
 
-from typing import List
+from typing import List, Tuple
 
 import tensorflow as tf
 import sugartensor as stf
 
-from code.model.abstract.model import Model
+from code.model.abstract.model import Model, LossesType
 from code.dataset.abstract.text_dataset import TextDataset
 from code.tf_operator import \
     cross_entropy_direct, \
@@ -48,7 +48,7 @@ class ByteNet(Model):
 
     def loss_model(self,
                    source_all: tf.Tensor, target_all: tf.Tensor,
-                   reuse: bool=False) -> tf.Tensor:
+                   reuse: bool=False) -> Tuple[tf.Tensor, LossesType]:
         source_split = tf.split(source_all, self._gpus, 0)
         target_split = tf.split(target_all, self._gpus, 0)
 

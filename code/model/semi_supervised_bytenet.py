@@ -1,7 +1,9 @@
 
+from typing import Tuple, List
+
 import tensorflow as tf
 
-from code.model.abstract.model import Model
+from code.model.abstract.model import Model, LossesType
 from code.dataset.abstract.text_dataset import TextDataset
 from code.tf_operator import \
     batch_repeat, batch_repeat_pack, batch_repeat_unpack, \
@@ -10,7 +12,7 @@ from code.tf_operator import \
     bytenet_supervised_translator, \
     bytenet_unsupervised_translator, \
     bytenet_sampling_translator, \
-    distributed_train
+    distributed_tower_optim
 
 
 class SemiSupervisedByteNet(Model):
@@ -130,7 +132,7 @@ class SemiSupervisedByteNet(Model):
 
     def loss_model(self,
                    source: tf.Tensor, target: tf.Tensor,
-                   reuse: bool=False) -> tf.Tensor:
+                   reuse: bool=False) -> Tuple[tf.Tensor, LossesType]:
         loss = []
 
         with tf.device('/gpu:0'):
@@ -162,9 +164,16 @@ class SemiSupervisedByteNet(Model):
                                              name='supervised-y2x',
                                              reuse=reuse))
 
-        return tf.add_n(loss)
+        total_loss = tf.add_n(loss)
 
-    def train_model(self):
+        return (
+            total_loss,
+            {
+                'x2y': (['/gpu:0', '/gpu:1'], total_loss)
+            }
+        )
+
+    def train_model(self) -> Tuple[tf.Tensor, LossesType]:
         loss = []
 
         loss.append(self.loss_model(self.dataset.source, self.dataset.target))
@@ -202,7 +211,15 @@ class SemiSupervisedByteNet(Model):
         loss_sum = tf.add_n(loss)
 
         tf.summary.scalar('losses/total', loss_sum)
-        return loss_sum
+        return (
+            loss_sum,
+            {
+                'x2y': (['/gpu:0', '/gpu:1'], loss_sum)
+            }
+        )
+
+    def _update_model(self, losses: LossesType, **kwargs) -> List[tf.Tensor]:
+        return distributed_tower_optim(losses, **kwargs)
 
     def inference_model(self,
                         source: tf.Tensor,
@@ -219,9 +236,3 @@ class SemiSupervisedByteNet(Model):
             reuse=reuse
         )
         return tf.cast(labels, source.dtype)
-
-    def _train_loop(self, **kwargs):
-        distributed_train(distribution=[
-            ('bytenet-x2y', '/gpu:0'),
-            ('bytenet-y2x', '/gpu:1')
-        ], **kwargs)
