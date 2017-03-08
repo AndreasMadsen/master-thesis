@@ -52,7 +52,7 @@ def bytenet_sampling_translator(x,
 
         # apply seq_decoder_residual_block to all time steps
         def scan_op(acc, enc_t):
-            (state_tm1, label_tm1, y_tm1) = acc
+            (state_tm1, logits_tm1, y_tm1) = acc
 
             # concat encoding at `t` and decoding at `t-1`
             dec = enc_t.sg_concat(target=y_tm1.sg_lookup(emb=emb_y))
