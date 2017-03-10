@@ -9,7 +9,7 @@ def cross_entropy_direct(logits, target, name, reuse=None):
     loss *= tf.cast(tf.not_equal(target, tf.zeros_like(target)), tf.float32)
 
     batch_loss = tf.reduce_sum(loss, axis=1)
-    if not reuse:
+    if not reuse and not tf.get_variable_scope().reuse:
         stf.sg_summary_loss(batch_loss, name=f'cross_entropy/{name}')
 
     batch_loss = tf.reduce_mean(batch_loss, axis=0)

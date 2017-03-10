@@ -58,23 +58,22 @@ class ByteNet(Model):
                 tower_scope(range(self._gpus), reuse=reuse),
                 source_split, target_split
         ):
-            with tf.name_scope(f'tower-{index}', values=[source, target]):
-                x = tf.cast(source, tf.int32)
-                y = tf.cast(target, tf.int32)
+            x = tf.cast(source, tf.int32)
+            y = tf.cast(target, tf.int32)
 
-                logits, _ = bytenet_supervised_translator(
-                    x, y,
-                    voca_size=self.dataset.vocabulary_size,
-                    latent_dim=self.latent_dim,
-                    num_blocks=self.num_blocks,
-                    container=self.embeddings,
-                    labels=self.dataset.labels,
-                    name="bytenet-model"
-                )
+            logits, _ = bytenet_supervised_translator(
+                x, y,
+                voca_size=self.dataset.vocabulary_size,
+                latent_dim=self.latent_dim,
+                num_blocks=self.num_blocks,
+                container=self.embeddings,
+                labels=self.dataset.labels,
+                name="bytenet-model"
+            )
 
-                losses.append(
-                    (device, cross_entropy_direct(logits, y, "supervised-x2y"))
-                )
+            losses.append(
+                (device, cross_entropy_direct(logits, y, "supervised-x2y"))
+            )
 
         return (
             mean_n([loss for _, loss in losses]),
