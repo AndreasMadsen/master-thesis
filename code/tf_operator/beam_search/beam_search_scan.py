@@ -11,17 +11,6 @@ from code.tf_operator.batch_repeat.batch_repeat_unpack import \
     batch_repeat_unpack
 
 
-def _print_shape(*vals):
-    print(nest.map_structure(
-        lambda item: item.get_shape().as_list(),
-        vals
-    ))
-
-
-def _map_structure(func, *args):
-    return [nest.map_structure(func, arg) for arg in args]
-
-
 def _transpose_to_time(tensor):
     permutation = list(range(len(tensor.get_shape())))
     permutation[0] = 2
@@ -40,16 +29,29 @@ def _transpose_to_batch(tensor):
 
 def beam_search_scan(scan_func, elems=None, initializer=None,
                      beam_size=2,
-                     name=None):
-    """
-    scan like API but wraps scan_func with a beam search
+                     name=None, **kwargs):
+    '''
+    scan like API but wraps scan_func with a beam search.
 
-    scan_func(
-        (state_tm1, logits_tm1, label_tm1): initializer, elems_t: elems[0]
-    ) -> state_t, logits_t
+    Arguments:
+        scan_func: (state_t, logits_t) = scan_func(
+                    (state_tm1, logits_tm1, label_tm1), elems_t
+                   )
 
-    initializer(state_t, logits_tm1, label_tm1)
-    """
+        elems: The input sequence elements. shape = (batch, time, ...)
+
+        initializer:
+            state_tm1: The initial state.
+            logits_tm1: The initial logits. shape = (batch, dims)
+            label_tm1: The initial labels. shape = (batch, )
+
+    Returns:
+        state: The Scan state output, mostly useless.
+        logprops: The scan output for the sequence log properbilities.
+                  shape = (batch, beam, time)
+        labels: The label sequences.
+                shape = (batch, beam, time)
+    '''
     if elems is None:
         raise ValueError('elems must be specified in beam search scan')
     if not isinstance(initializer, tuple) or len(initializer) != 3:
@@ -103,30 +105,30 @@ def beam_search_scan(scan_func, elems=None, initializer=None,
                 *args, **kwargs
             ),
             elems=elems,
-            initializer=(*initializer, logprobs, ended, labels_full, 0)
+            initializer=(*initializer, logprobs, ended, labels_full, 0),
+            **kwargs
         )
 
         # transpose batch axis first
-        (state, logits, labels, logprops) = _map_structure(
+        state = nest.map_structure(
             lambda item: _transpose_to_batch(item),
-            state, logits, labels, logprops
+            state
         )
+        logprops = _transpose_to_batch(logprops)
 
         return (state, logprops, labels_full[-1])
 
 
 def _pack(*args):
-    return _map_structure(
-        lambda item: batch_repeat_pack(item),
-        *args
-    )
+    return [nest.map_structure(
+        lambda item: batch_repeat_pack(item), arg
+    ) for arg in args]
 
 
 def _unpack(*args, repeats=1):
-    return _map_structure(
-        lambda item: batch_repeat_unpack(item, repeats=repeats),
-        *args
-    )
+    return [nest.map_structure(
+        lambda item: batch_repeat_unpack(item, repeats=repeats), arg
+    ) for arg in args]
 
 
 def _scan_wrapper(scan_func,
