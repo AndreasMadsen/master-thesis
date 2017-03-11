@@ -71,7 +71,6 @@ def beam_search_scan(scan_func, elems=None, initializer=None,
         batch_size_val = elems.get_shape()[0]  # possibly None
         time_size_op = tf.shape(elems)[1]
         time_size_val = elems.get_shape()[1]  # possibly None
-        dim_size = int(elems.get_shape()[-1])  # must be defined
 
         # initialize time communicative normalized logits:
         #   log(P(state|t=0)) = 0, because P(·|t=0) = 1
@@ -101,7 +100,7 @@ def beam_search_scan(scan_func, elems=None, initializer=None,
         (state, logits, labels, logprops, ended, labels_full, time) = tf.scan(
             lambda *args, **kwargs: _scan_wrapper(
                 scan_func,
-                batch_size_op, batch_size_val, beam_size, dim_size,
+                batch_size_op, batch_size_val, beam_size,
                 *args, **kwargs
             ),
             elems=elems,
@@ -132,52 +131,58 @@ def _unpack(*args, repeats=1):
 
 
 def _scan_wrapper(scan_func,
-                  batch_size_op, batch_size_val, beam_size, dim_size,
+                  batch_size_op, batch_size_val, beam_size,
                   prev_tm1, elems_t):
     (state_tm1, logits_tm1, labels_tm1,
      logprops_tm1, ended_tm1, labels_full_tm1,
      time_tm1) = prev_tm1
 
     # pack input, call `scan_func`, unpack output
-    (state_t, logits_t) = _unpack(*scan_func(
-        *_pack((state_tm1, logits_tm1, labels_tm1), elems_t)
-    ), repeats=beam_size)
+    input_pack = _pack((state_tm1, logits_tm1, labels_tm1), elems_t)
+    with tf.name_scope(None, 'beam-search-scan-func', values=input_pack):
+        output_pack = scan_func(*input_pack)
+        (state_t, logits_t) = _unpack(*output_pack, repeats=beam_size)
+
+    # get vocabulary size
+    vocab_size = int(logits_t.get_shape()[-1])
 
     # calculate logprops_t_current
-    # logprops_t_current.shape = (batch, beam, dims)
+    # logprops_t_current.shape = (batch, beam, vocab)
     logprops_t_current = tf.nn.log_softmax(logits_t)
-    logprops_t_current = tf.reshape(logprops_t_current, [-1, dim_size])
+    logprops_t_current = tf.reshape(logprops_t_current, [-1, vocab_size])
     logprops_t_fill = tf.tile(
         # create a log(P(·)) vector where P(<null>) = 1
-        tf.constant([[0] + [-np.inf] * (dim_size - 1)], dtype=elems_t.dtype),
+        tf.constant([[0] + [-np.inf] * (vocab_size - 1)], dtype=elems_t.dtype),
         (batch_size_op * beam_size, 1)
     )
-    logprops_t_fill.set_shape([batch_size_val * beam_size, dim_size])
     # force P(<null>|y_{t-1} = {<eos>, <null>}) = 1
     logprops_t_current = tf.where(
         tf.reshape(ended_tm1, [-1]),
         logprops_t_fill, logprops_t_current
     )
+    logprops_t_current = tf.reshape(logprops_t_current,
+                                    [batch_size_op, beam_size, vocab_size])
+    logprops_t_current.set_shape([batch_size_val, beam_size, vocab_size])
 
     # calculate logprops_t
     # log(P(y|T<=t)) = log(P(y|T<t)  * P(y|T=t))
     #                = log(P(y|T<t)) + log(P(y|T=t))
     #                = log(P(y|T<t)) + logsoftmax(logits)
-    # logprops_t_full.shape = (batch, beam, dims)
+    # logprops_t_full.shape = (batch, beam, vocab)
     logprops_t_full = tf.expand_dims(logprops_tm1, -1) + logprops_t_current
 
     # select `beam_size`-most likely properbilities from logprops_t_full
     # {logprops_t, logprops_t_indices}.shape = (batch, beam)
     logprops_t_full_compact = tf.reshape(logprops_t_full,
-                                         [-1, beam_size * dim_size])
-    logprops_t_full_compact.set_shape([batch_size_val, beam_size * dim_size])
+                                         [-1, beam_size * vocab_size])
+    logprops_t_full_compact.set_shape([batch_size_val, beam_size * vocab_size])
     logprops_t, logprops_t_indices = tf.nn.top_k(logprops_t_full_compact,
                                                  k=beam_size, sorted=False)
 
     # convert logprops_t_indices to label_t and beam_t (beam indices)
     # {label_t, beam_t}.shape = (batch, beam)
-    labels_t = logprops_t_indices % dim_size
-    beam_t = logprops_t_indices // dim_size
+    labels_t = logprops_t_indices % vocab_size
+    beam_t = logprops_t_indices // vocab_size
 
     # transfer and copy labels_full_t
     time_t = time_tm1 + 1
