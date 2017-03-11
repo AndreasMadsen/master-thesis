@@ -8,17 +8,13 @@ from code.model import ByteNet
 # set log level to debug
 stf.sg_verbosity(10)
 
-dataset = SyntheticDigits(examples=10, shuffle=False, seed=99)
+dataset = SyntheticDigits(examples=10, seed=99, shuffle=False, repeat=False)
 model = ByteNet(dataset, num_blocks=3, latent_dim=20,
                 save_dir='asset/bytenet_synthetic_digits')
 
-export = ExportDataset(dataset)
-export.train()
+predict_sample = model.sample_from_dataset(dataset, samples=5)
 
-samples_predict = model.sample(export.sources, samples=5)
-
-for i, (source, target, predicts) in \
-        enumerate(zip(export.sources, export.targets, samples_predict)):
+for i, (source, target, predicts) in enumerate(predict_sample):
     print('  %d  source: %s' % (i, source))
     print('     target: %s' % (target, ))
     print('    predict:')

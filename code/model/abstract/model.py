@@ -104,7 +104,7 @@ class Model:
         stf.sg_restore(session, self._latest_checkpoint())
 
     def predict_from_dataset(self, dataset: Dataset,
-                             show_eos=True,
+                             show_eos: bool=True,
                              **kwargs) -> Iterator[str]:
 
         # build inference_model
@@ -141,3 +141,29 @@ class Model:
             pred = sess.run(label, {x: sources})
 
         return self.dataset.decode_as_batch(pred)
+
+    def sample_from_dataset(self, dataset: Dataset,
+                            show_eos: bool=True, samples: int=1,
+                            **kwargs) -> Iterator[str]:
+
+        # build inference_model
+        label = self.sample_model(dataset.source, samples=samples, **kwargs)
+
+        # run graph for translation
+        with tf.Session() as sess:
+            self.restore(sess)
+            with stf.sg_queue_context():
+                for batch in range(dataset.num_batch):
+                    source, target, translation_samples = sess.run(
+                        (dataset.source, dataset.target, label)
+                    )
+
+                    yield from zip(
+                        self.dataset.decode_as_batch(source,
+                                                     show_eos=show_eos),
+                        self.dataset.decode_as_batch(target,
+                                                     show_eos=show_eos),
+                        (self.dataset.decode_as_batch(batch,
+                                                      show_eos=show_eos)
+                         for batch in translation_samples)
+                    )

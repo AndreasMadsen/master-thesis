@@ -11,8 +11,8 @@ from code.tf_operator import \
     bytenet_supervised_translator, \
     bytenet_unsupervised_translator, \
     bytenet_sampling_translator, \
-    tower_scope, \
-    mean_n
+    tower_scope, mean_n, \
+    batch_beam_gather
 
 
 class ByteNet(Model):
@@ -30,21 +30,6 @@ class ByteNet(Model):
         self._gpus = gpus
         self.latent_dim = latent_dim
         self.num_blocks = num_blocks
-
-    def _build_sample_model(self,
-                            x: tf.Tensor,
-                            samples=1,
-                            reuse: bool=False) -> tf.Tensor:
-        logits, labels = bytenet_sampling_translator(
-            x,
-            samples=samples,
-            voca_size=self.dataset.vocabulary_size,
-            latent_dim=self.latent_dim,
-            num_blocks=self.num_blocks,
-            name="bytenet-model",
-            reuse=reuse
-        )
-        return labels
 
     def loss_model(self,
                    source_all: tf.Tensor, target_all: tf.Tensor,
@@ -84,6 +69,28 @@ class ByteNet(Model):
 
         return (total_loss, losses)
 
+    def sample_model(self,
+                     source: tf.Tensor,
+                     samples=1,
+                     reuse: bool=False) -> tf.Tensor:
+        x = tf.cast(source, tf.int32)
+
+        logprops, labels = bytenet_sampling_translator(
+            x,
+            beam_size=samples,
+            voca_size=self.dataset.vocabulary_size,
+            latent_dim=self.latent_dim,
+            num_blocks=self.num_blocks,
+            name="bytenet-model",
+            reuse=reuse
+        )
+
+        # sort by logprops
+        _, indices = tf.nn.top_k(logprops, k=samples, sorted=True)
+        labels = batch_beam_gather(labels, indices)
+
+        return tf.cast(labels, source.dtype)
+
     def inference_model(self,
                         source: tf.Tensor,
                         reuse: bool=False) -> tf.Tensor:
@@ -99,31 +106,3 @@ class ByteNet(Model):
         )
 
         return tf.cast(labels, source.dtype)
-
-    def sample(self, sources: List[str], samples=10,
-               reuse: bool=False) -> List[str]:
-        sources = self.dataset.encode_as_batch(sources)
-
-        # build model
-        x = stf.placeholder(dtype=stf.int32, shape=sources.shape)
-        label = self._build_sample_model(x, samples=samples, reuse=reuse)
-
-        # run graph for translating
-        with tf.Session() as sess:
-            # init session vars
-            stf.sg_init(sess)
-
-            # restore parameters
-            stf.sg_restore(sess, self._latest_checkpoint())
-
-            pred = sess.run(label, {x: sources})
-
-        # reshape to (batch * samples) and back to (batch, samples)
-        batch_size = pred.shape[0]
-        pred = pred.reshape([-1, pred.shape[-1]])
-        texts = self.dataset.decode_as_batch(pred)
-        return [
-            texts[batch_i * samples:(batch_i + 1) * samples]
-            for batch_i
-            in range(batch_size)
-        ]
