@@ -2,35 +2,35 @@
 import numpy as np
 import tensorflow as tf
 
-from code.tf_operator.seq_prop.seq_prop import seq_prop
+from code.tf_operator.seq_prop.seq_logprop import seq_logprop
 
 
 def test_output_unmasked():
-    "validate output of seq_prop(mask=None)"
+    "validate output of seq_logprop(mask=None)"
     with tf.Session() as sess:
-        data = np.asarray([
+        data = np.log(np.asarray([
             [0.1, 0.1, 0.1],
             [0.5, 0.5, 0.2],
             [0.1, 0.1, 0.2]
-        ], dtype=np.float32)
+        ], dtype=np.float32))
         tensor = tf.placeholder(shape=[None] * 2, name='x', dtype=tf.float32)
 
         np.testing.assert_almost_equal(
-            sess.run(seq_prop(tensor, axis=1), feed_dict={tensor: data}),
-            np.asarray([
+            sess.run(seq_logprop(tensor, axis=1), feed_dict={tensor: data}),
+            np.log(np.asarray([
                 0.001, 0.05, 0.002
-            ], dtype=np.float32)
+            ], dtype=np.float32))
         )
 
 
 def test_output_masked():
-    "validate output of seq_prop(mask=tf.Tensor)"
+    "validate output of seq_logprop(mask=tf.Tensor)"
     with tf.Session() as sess:
-        data = np.asarray([
+        data = np.log(np.asarray([
             [0.1, 0.1, 0.1],
             [0.5, 0.5, 0.2],
             [0.1, 0.1, 0.2]
-        ], dtype=np.float32)
+        ], dtype=np.float32))
         mask = np.asarray([
             [3, 2, 1],
             [1, 0, 0],
@@ -42,10 +42,10 @@ def test_output_masked():
 
         np.testing.assert_almost_equal(
             sess.run(
-                seq_prop(d_tensor, mask=m_tensor, axis=1),
+                seq_logprop(d_tensor, mask=m_tensor, axis=1),
                 feed_dict={d_tensor: data, m_tensor: mask}
             ),
-            np.asarray([
+            np.log(np.asarray([
                 0.001, 0.5, 0.01
-            ], dtype=np.float32)
+            ], dtype=np.float32))
         )
