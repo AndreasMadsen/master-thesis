@@ -11,14 +11,14 @@ from code.tf_operator.select_value.batch_gather import batch_gather
 def _makov_chain_scan_func(prev_tm1, elem_t):
     (state_tm1, logits_tm1, label_tm1) = prev_tm1
 
-    state_t = (tf.range(2), )
+    state_t = (tf.range(tf.shape(state_tm1[0])[0]), )
     logits_t = tf.log(batch_gather(elem_t, label_tm1))
 
     return (state_t, logits_t)
 
 
-def test_output_mc():
-    "validate output of beam_search_scan() on makov chain"
+def _test_output_switch():
+    "validate output of beam_search_scan() on beam switch"
     transfer_matrix = np.asarray([[
         # beam picks [[2], [3]]
         [[0.01, 0.01, 0.49, 0.49],
@@ -94,7 +94,77 @@ def test_output_mc():
         )
 
 
-def test_output_idendity():
+def test_output_early_eneded():
+    "validate output of beam_search_scan() on ended flag moves"
+    transfer_matrix = np.asarray([[
+        # beam picks [[2], [3], [1]], this marks beam 2 to ended
+        [[0.01, 0.48, 0.03, 0.48],
+         [0.97, 0.01, 0.01, 0.01],
+         [0.25, 0.25, 0.25, 0.25],
+         [0.25, 0.25, 0.25, 0.25]],
+
+        # beam now sees that 3, is the better choice and goes to
+        # [[3, 3], [1, 0], [3, 2]]
+        # this moves beam 2 to beam 1, this the ended flag needs to be moved
+        # if not [3, 2] will have ended, and the sequence becomes [3, 2, 0, 0]
+        [[0.97, 0.01, 0.01, 0.01],
+         [0.25, 0.25, 0.25, 0.25],
+         [0.25, 0.25, 0.25, 0.25],
+         [0.01, 0.01, 0.49, 0.49]],
+
+        # beam now moves to:
+        # [[3, 2, 1], [1, 0, 0], [3, 3, 1]]
+        [[0.97, 0.01, 0.01, 0.01],
+         [0.97, 0.01, 0.01, 0.01],
+         [0.01, 0.97, 0.01, 0.01],
+         [0.01, 0.97, 0.01, 0.01]],
+
+        # [[3, 2, 1, 0], [1, 0, 0, 0], [3, 3, 1, 0]]
+        [[0.97, 0.01, 0.01, 0.01],
+         [0.97, 0.01, 0.01, 0.01],
+         [0.25, 0.25, 0.25, 0.25],
+         [0.25, 0.25, 0.25, 0.25]]
+    ]], np.float32)
+
+    with tf.Session() as sess:
+        ret = beam_search_scan(
+            _makov_chain_scan_func, beam_size=3,
+            elems=transfer_matrix,
+            initializer=(
+                (tf.zeros(1, dtype=tf.int32), ),
+                tf.zeros((1, 4), dtype=tf.float32),
+                tf.zeros(1, dtype=tf.int32)
+            )
+        )
+
+        (state_op, logprops_op, labels_op) = ret
+        (state, logprops, labels) = sess.run(ret)
+
+        assert_equal(state_op[0].get_shape(), (1, 3, 4))  # (ba, be, t)
+        assert_equal(logprops_op.get_shape(), (1, 3, 4))  # (ba, be, t)
+        assert_equal(labels_op.get_shape(), (1, 3, 4))  # (ba, be, t)
+
+        np.testing.assert_almost_equal(
+            labels[0],
+            np.asarray([
+                [3, 3, 1, 0],
+                [1, 0, 0, 0],
+                [3, 2, 1, 0]
+            ], dtype=np.int32)
+        )
+
+        np.testing.assert_almost_equal(
+            logprops[0],
+            np.log(np.asarray([
+                [0.03, 0.48 * 0.49, 0.48 * 0.49 * 0.97, 0.48 * 0.49 * 0.97],
+                [0.48, 0.48 * 1.00, 0.48 * 1.00 * 1.00, 0.48 * 1.00 * 1.00],
+                [0.48, 0.48 * 0.49, 0.48 * 0.49 * 0.97, 0.48 * 0.49 * 0.97]
+            ], dtype=np.float32)),
+            decimal=6
+        )
+
+
+def _test_output_idendity():
     "validate output of beam_search_scan() on idendity transfer matrix"
     transfer_matrix = np.asarray([[
         [[0.98, 0.01, 0.01],

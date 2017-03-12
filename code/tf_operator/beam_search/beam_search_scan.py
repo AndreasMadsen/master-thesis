@@ -141,7 +141,7 @@ def _scan_wrapper(scan_func,
     input_pack = _pack((state_tm1, logits_tm1, labels_tm1), elems_t)
     with tf.name_scope(None, 'beam-search-scan-func', values=input_pack):
         output_pack = scan_func(*input_pack)
-        (state_t, logits_t) = _unpack(*output_pack, repeats=beam_size)
+    (state_t, logits_t) = _unpack(*output_pack, repeats=beam_size)
 
     # get vocabulary size
     vocab_size = int(logits_t.get_shape()[-1])
@@ -195,7 +195,11 @@ def _scan_wrapper(scan_func,
     labels_full_t.set_shape(labels_full_tm1.get_shape())
 
     # updated eneded state
-    ended_t = tf.logical_or(ended_tm1, tf.equal(labels_t, 1))
+    ended_t = tf.logical_or(
+        # move the ended state in case the beam index changed
+        batch_beam_gather(ended_tm1, beam_t),
+        tf.equal(labels_t, 1)
+    )
 
     # copy state from selected beam path
     # logits_t.shape = (batch, beam, dims)
