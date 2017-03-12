@@ -128,7 +128,9 @@ class Model:
                                                      show_eos=show_eos)
                     )
 
-    def predict_from_str(self, sources: List[str], **kwargs) -> List[str]:
+    def predict_from_str(self, sources: List[str],
+                         show_eos: bool=True,
+                         **kwargs) -> List[str]:
         sources = self.dataset.encode_as_batch(sources)
 
         # build model
@@ -140,7 +142,7 @@ class Model:
             self.restore(sess)
             pred = sess.run(label, {x: sources})
 
-        return self.dataset.decode_as_batch(pred)
+        return self.dataset.decode_as_batch(pred, show_eos=show_eos)
 
     def sample_from_dataset(self, dataset: Dataset,
                             show_eos: bool=True, samples: int=1,
@@ -167,3 +169,22 @@ class Model:
                                                       show_eos=show_eos)
                          for batch in translation_samples)
                     )
+
+    def sample_from_str(self, sources: List[str],
+                        show_eos: bool=True, samples: int=1,
+                        **kwargs) -> List[str]:
+        sources = self.dataset.encode_as_batch(sources)
+
+        # build model
+        x = stf.placeholder(dtype=tf.int32, shape=sources.shape)
+        label = self.sample_model(x, samples=samples, **kwargs)
+
+        # run graph for translation
+        with tf.Session() as sess:
+            self.restore(sess)
+            pred = sess.run(label, {x: sources})
+
+        return [
+            self.dataset.decode_as_batch(batch, show_eos=show_eos)
+            for batch in pred
+        ]
