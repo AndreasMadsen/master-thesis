@@ -7,7 +7,7 @@ from code.model.abstract.model import Model, LossesType
 from code.dataset.abstract.text_dataset import TextDataset
 from code.tf_operator import \
     batch_repeat, batch_repeat_pack, batch_repeat_unpack, \
-    select_dim_value, seq_prop, \
+    select_dim_value, seq_logprop, \
     cross_entropy_direct, cross_entropy_indirect, \
     bytenet_supervised_translator, \
     bytenet_unsupervised_translator, \
@@ -18,7 +18,7 @@ from code.tf_operator import \
 class SemiSupervisedByteNet(Model):
     latent_dim: int
     num_blocks: int
-    samples: int
+    beam_size: int
     dataset_x: TextDataset
     dataset_y: TextDataset
 
@@ -26,14 +26,14 @@ class SemiSupervisedByteNet(Model):
                  dataset_x2y: TextDataset,
                  dataset_x: TextDataset=None, dataset_x_loss_factor=0.1,
                  dataset_y: TextDataset=None, dataset_y_loss_factor=0.1,
-                 latent_dim: int=400, num_blocks: int=3, samples: int=10,
+                 latent_dim: int=400, num_blocks: int=3, beam_size: int=10,
                  save_dir: str='asset/semi-bytenet',
                  **kwargs) -> None:
         super().__init__(dataset_x2y, save_dir=save_dir, **kwargs)
 
         self.latent_dim = latent_dim
         self.num_blocks = num_blocks
-        self.samples = samples
+        self.beam_size = beam_size
 
         self.dataset_x = dataset_x
         self.dataset_x_loss_factor = dataset_x_loss_factor
@@ -56,7 +56,7 @@ class SemiSupervisedByteNet(Model):
                 latent_dim=self.latent_dim,
                 num_blocks=self.num_blocks,
                 container=self.embeddings,
-                labels=self.dataset.decode,
+                labels=self.dataset.labels,
                 name=name,
                 reuse=reuse
             )
@@ -75,29 +75,25 @@ class SemiSupervisedByteNet(Model):
 
         with tf.name_scope(name_scope, 'loss-unsupervised', values=[x]):
             with tf.device('/gpu:0'):
-                # x.shape = (batch, time)
-                # x_repeat.shape = (batch, samples, time)
-                x_repeat = batch_repeat(x, repeats=self.samples)
-
-                # sample_logits.shape = (batch, samples, times, vocabulary)
-                # sample_labels.shape = (batch, samples, times)
-                sample_logits, sample_labels = bytenet_sampling_translator(
+                # sample_logprops.shape = (batch, beam)
+                # sample_labels.shape = (batch, beam, times)
+                sample_logprops, sample_labels = bytenet_sampling_translator(
                     x,
                     voca_size=self.dataset.vocabulary_size,
                     latent_dim=self.latent_dim,
                     num_blocks=self.num_blocks,
-                    samples=self.samples,
+                    beam_size=self.beam_size,
                     name=name_forward,
-                    reuse=reuse
+                    reuse=reuse,
+                    back_prop=False
                 )
 
-                # sample_props.shape = (batch, samples, times)
-                sample_props = tf.nn.softmax(sample_logits)
-                sample_props = select_dim_value(sample_props, sample_labels)
-
             with tf.device('/gpu:1'):
-                # logits.shape = (batch * samples, times, vocabulary)
-                # labels.shape = (batch * samples, times)
+                # x_repeat.shape = (batch, beam, time)
+                x_repeat = batch_repeat(x, repeats=self.beam_size)
+
+                # logits.shape = (batch * beam, times, vocabulary)
+                # labels.shape = (batch * beam, times)
                 logits, labels = bytenet_supervised_translator(
                     batch_repeat_pack(sample_labels),
                     batch_repeat_pack(x_repeat),
@@ -109,26 +105,44 @@ class SemiSupervisedByteNet(Model):
                     reuse=reuse
                 )
 
+                # convert logits to sequence properbilities
                 # logits.shape = (batch, samples, times, vocabulary)
                 logits = batch_repeat_unpack(logits, repeats=self.samples)
+                # to convert logits in to logprops over the sequence,
+                # first normalize the logits and then select the correct
+                # logits dependent on the target. Doing this is actually
+                # just a cross entropy transform.
+                logprops = tf.nn.sparse_softmax_cross_entropy_with_logits(
+                    logits=logits, labels=x_repeat
+                )
+                # reduce logprops over the sequence
+                # logprops.shape = (batch, samples)
+                logprops = seq_logprop(logprops, mask=x_repeat, axis=2)
 
-                # props.shape = (batch, samples, times, vocabulary)
-                props = tf.nn.softmax(logits)
-                # props.shape = (batch, samples, times)
-                props = select_dim_value(props, x_repeat)
+            # -- no device specified
 
-                # sample_seq_props.shape = (batch, samples)
-                sample_seq_props = seq_prop(sample_props, mask=sample_labels,
-                                            axis=2)
-                # seq_props.shape = (batch, samples)
-                seq_props = seq_prop(props, mask=x_repeat, axis=2)
+            # marginal_logprop.shape (batch, )
+            # marginal = sum(P(y'|x) * P(x|y), axis=1)
+            #          = sum(exp(sample_logprops) * exp(logprops), axis=1)
+            #          = sum(exp(sample_logprops + logprops), axis=1)
+            # marginal_logprop = log(marginal)
+            # numerial statbility: reduce_logsumexp substracts the max from
+            # the input and adds it back in the final output.
+            # ln(sum(exp(x - k))) + k = ln(sum(exp(x) * exp(-k))) + k
+            #                         = ln(exp(-k) * sum(exp(x))) + k
+            #                         = ln(exp(-k)) + ln(sum(exp(x))) + k
+            #                         = -k + ln(sum(exp(x))) + k
+            #                         = ln(sum(exp(x)))
+            marginal_logprop = tf.reduce_logsumexp(
+                sample_logprops + logprops,
+                axis=1
+            )
 
-                # marginal_props.shape (batch, )
-                marginal_props = tf.reduce_sum(sample_seq_props * seq_props,
-                                               axis=1)
-
-                # cross entropy loss (scalar)
-                return -tf.log(marginal_props + 1e-9)
+            # cross entropy loss (scalar)
+            # the properbility should be maximised, by convention
+            # a minimization algorithm is used, this the sign is inverted.
+            loss = - marginal_logprop
+            return loss
 
     def loss_model(self,
                    source: tf.Tensor, target: tf.Tensor,
@@ -173,10 +187,13 @@ class SemiSupervisedByteNet(Model):
             }
         )
 
-    def train_model(self) -> Tuple[tf.Tensor, LossesType]:
+    def train_model(self, reuse: bool=False) -> Tuple[tf.Tensor, LossesType]:
         loss = []
 
-        loss.append(self.loss_model(self.dataset.source, self.dataset.target))
+        loss.append(
+            self.loss_model(self.dataset.source, self.dataset.target,
+                            reuse=reuse)
+        )
 
         if self.dataset_x is not None:
             with tf.name_scope(None, "unsupervised-x",
