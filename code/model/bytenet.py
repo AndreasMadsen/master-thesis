@@ -49,6 +49,8 @@ class ByteNet(Model):
     def loss_model(self,
                    source_all: tf.Tensor, target_all: tf.Tensor,
                    reuse: bool=False) -> Tuple[tf.Tensor, LossesType]:
+        # putting the split and join on the cpu is extreamly important for
+        # minimizing the syncronization time.
         with tf.device('/cpu:0'):
             source_split = tf.split(source_all, self._gpus, 0)
             target_split = tf.split(target_all, self._gpus, 0)
@@ -76,6 +78,7 @@ class ByteNet(Model):
                 (device, cross_entropy_direct(logits, y, "supervised-x2y"))
             )
 
+        # join the losses
         with tf.device('/cpu:0'):
             total_loss = mean_n([loss for _, loss in losses])
 
