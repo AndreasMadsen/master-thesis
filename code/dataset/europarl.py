@@ -42,36 +42,39 @@ class Europarl(TextDataset):
     _length_checker: LengthChecker
     _source_lang: str
     _target_lang: str
-    _all_observations: bool = False
+    _max_observations: int = None
 
     def __init__(self,
                  source_lang: str='fr',
                  target_lang: str='en',
                  min_length: Optional[int]=50, max_length: Optional[int]=150,
+                 max_observations=None,
                  **kwargs) -> None:
         self._source_lang = source_lang
         self._target_lang = target_lang
         self._length_checker = LengthChecker(min_length, max_length)
 
-        if min_length is None and max_length is None:
-            self._all_observations = True
+        self._max_observations = max_observations
 
         super().__init__(
             source_lang, target_lang,
-            observations=self._observation(),
+            observations=self._observation(min_length, max_length),
             key=(source_lang, target_lang, min_length, max_length),
             name='europarl',
             **kwargs
         )
 
-    def _observation(self) -> Optional[int]:
-        if not self._all_observations:
-            return None
+    def _observation(self, min_length, max_length) -> Optional[int]:
+        if self._max_observations is not None:
+            return self._max_observations
 
-        if (self._source_lang, self._target_lang) in _bilingual_noswap:
-            return _bilingual_noswap[self._source_lang, self._target_lang]
-        else:
-            return _bilingual_swap[self._source_lang, self._target_lang]
+        if min_length is None and max_length is None:
+            if (self._source_lang, self._target_lang) in _bilingual_noswap:
+                return _bilingual_noswap[self._source_lang, self._target_lang]
+            else:
+                return _bilingual_swap[self._source_lang, self._target_lang]
+
+        return None
 
     def _files(self) -> str:
         if (self._source_lang, self._target_lang) in _bilingual_swap:
@@ -94,6 +97,12 @@ class Europarl(TextDataset):
             with tar_extract_file(filepath, source_filepath) as source_file, \
                     tar_extract_file(filepath, target_filepath) as target_file:
 
+                observations = 0
                 for source, target in zip(source_file, target_file):
                     if self._length_checker(source, target):
                         yield (source, target)
+                        observations += 1
+
+                        if self._max_observations is not None and \
+                           observations >= self._max_observations:
+                            break
