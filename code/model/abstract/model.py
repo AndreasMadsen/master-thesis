@@ -43,6 +43,7 @@ class Model:
               reuse: bool=False,
               allow_soft_placement: bool=True,
               log_device_placement: bool=False,
+              log_interval=60, save_interval=600,
               tqdm=True,
               lr=0.001,
               **kwargs) -> None:
@@ -78,6 +79,8 @@ class Model:
                                  save_dir=self._save_dir,
                                  sess=sess,
                                  tqdm=tqdm,
+                                 log_interval=60,
+                                 save_interval=600,
                                  lr=lr)
 
     def _update_model(self, losses: LossesType, **kwargs) -> List[tf.Tensor]:
