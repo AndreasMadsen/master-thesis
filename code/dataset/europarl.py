@@ -99,6 +99,7 @@ class Europarl(TextDataset):
 
                 observations = 0
                 for source, target in zip(source_file, target_file):
+                    source, target = (source.rstrip(), target.rstrip())
                     if self._length_checker(source, target):
                         yield (source, target)
                         observations += 1

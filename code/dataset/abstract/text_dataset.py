@@ -7,6 +7,7 @@ from tqdm import tqdm as tqdm_bar
 
 from code.dataset.abstract.dataset import Dataset
 from code.dataset.util.size_to_type import size_to_signed_type
+from code.dataset.util.length_histogram import LengthHistogram
 from code.dataset.util.dataset_properties_cache import \
     CorpusProperties, property_cache
 
@@ -32,21 +33,18 @@ class TextDataset(Dataset):
         # save basic properties
         self._show_tqdm = tqdm
 
-        # compute properties if necessary
-        if vocabulary is None or observations is None:
-            computed_properties = self._fetch_corpus_properties(
-                name, key, observations=observations
-            )
+        # compute properties
+        computed_properties = self._fetch_corpus_properties(
+            name, key, observations=observations
+        )
+        # use computed vocabulary if not provided
+        if vocabulary is None:
+            vocabulary = computed_properties.vocabulary
 
-            if vocabulary is None:
-                vocabulary = computed_properties.vocabulary
-            if observations is None:
-                observations = computed_properties.observations
-
-        # increment max_length such it includes eos
+        # make properties public
         self.properties = CorpusProperties(
             vocabulary=vocabulary,
-            observations=observations
+            histogram=computed_properties.histogram
         )
 
         # validate properties
@@ -70,7 +68,7 @@ class TextDataset(Dataset):
             self._validate_corpus_properties(name)
 
         # setup tensorflow pipeline
-        super().__init__(observations=observations,
+        super().__init__(histogram=self.properties.histogram,
                          dtype=self._encode_dtype,
                          name=name,
                          tqdm=tqdm,
@@ -112,7 +110,7 @@ class TextDataset(Dataset):
                                    tqdm_message: str='corpus properties',
                                    expected_obs: int=None) -> CorpusProperties:
         unique_chars = set()
-        observations = 0
+        histogram = LengthHistogram()
 
         for source, target in tqdm_bar(self,
                                        total=expected_obs,
@@ -122,22 +120,53 @@ class TextDataset(Dataset):
             unique_chars |= set(source)
             unique_chars |= set(target)
 
-            # increment observations
-            observations += 1
+            # source and target will be padded to equal length
+            length = max(len(source), len(target))
+            histogram.add(length)
 
         return CorpusProperties(
             vocabulary=unique_chars,
-            observations=observations
+            histogram=histogram
         )
 
     def _validate_corpus_properties(self, name: str) -> None:
         truth = self._compute_corpus_properties(
             tqdm_message='validate properties',
-            expected_obs=self.properties.observations
+            expected_obs=self.properties.histogram.observations
         )
         properties_valid = True
 
         print(f'Dataset validation ({name}):')
+        cache_hist = self.properties.histogram
+        truth_hist = truth.histogram
+
+        if cache_hist.observations != truth_hist.observations:
+            properties_valid = False
+
+            print(f'  The observations count is wrong:')
+            print(f'  {cache_hist.observations} != {truth_hist.observations}')
+            print(f'  The behaviour is undefined.')
+
+        if cache_hist.max_length != truth_hist.max_length:
+            properties_valid = False
+
+            print(f'  The max-length value is wrong:')
+            print(f'  {cache_hist.max_length} != {truth_hist.max_length}')
+            print(f'  This may not be an issue.')
+
+        if cache_hist.min_length != truth_hist.min_length:
+            properties_valid = False
+
+            print(f'  The min-length value is wrong:')
+            print(f'  {cache_hist.min_length} != {truth_hist.min_length}')
+            print(f'  This may not be an issue.')
+
+        if cache_hist.encode() != truth_hist.encode():
+            properties_valid = False
+
+            print(f'  The histogram does not match:')
+            print(f'  {cache_hist.encode()} != {truth_hist.encode()}')
+            print(f'  This may not be an issue.')
 
         if len(truth.vocabulary - self.properties.vocabulary) > 0:
             properties_valid = False
@@ -146,13 +175,6 @@ class TextDataset(Dataset):
             print(f'  The following chars was not found in the vocabulary:')
             print(f'  {{{", ".join(sorted(missing_chars))}}}')
             print(f'  Missing characters will be ignored.')
-
-        if self.properties.observations != truth.observations:
-            properties_valid = False
-
-            print(f'  The observations count is wrong:')
-            print(f'  {self.properties.observations} != {truth.observations}')
-            print(f'  The behaviour is undefined.')
 
         if properties_valid:
             print('  The corpus properties are valid.')

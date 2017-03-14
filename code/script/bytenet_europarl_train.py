@@ -10,7 +10,8 @@ stf.sg_verbosity(10)
 
 dataset_train = Europarl(batch_size=64,
                          source_lang='de', target_lang='en',
-                         min_length=None, max_length=None)
+                         min_length=None, max_length=None,
+                         external_encoding='build/europarl-full.tfrecord')
 
 dataset_test = WMTBilingualNews(batch_size=128,
                                 year=2015,

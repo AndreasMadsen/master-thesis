@@ -5,9 +5,10 @@ import os
 import os.path as path
 import json
 
+from code.dataset.util.length_histogram import LengthHistogram
 
 CorpusProperties = NamedTuple('CorpusProperties', [
-    ('observations', int),
+    ('histogram', LengthHistogram),
     ('vocabulary', FrozenSet[str])
 ])
 
@@ -17,7 +18,7 @@ _format_string = '''\
 \t[
 \t\t{key},
 \t\t{{
-\t\t\t"observations": {observations},
+\t\t\t"histogram": {histogram},
 \t\t\t"vocabulary": {vocabulary}
 \t\t}}
 \t]{tail}'''
@@ -41,7 +42,7 @@ class DatasetCache:
             deserialized_cache = json.load(fd)
             self._cache = {
                 tuple(key): CorpusProperties(
-                    observations=val['observations'],
+                    histogram=LengthHistogram(val['histogram']),
                     vocabulary=frozenset(val['vocabulary'])
                 ) for key, val in deserialized_cache
             }
@@ -53,7 +54,7 @@ class DatasetCache:
             for i, (key, val) in enumerate(self._cache.items()):
                 print(_format_string.format(
                     key=json.dumps(key),
-                    observations=val.observations,
+                    histogram=json.dumps(val.histogram.encode()),
                     vocabulary=json.dumps(
                         list(val.vocabulary), ensure_ascii=False
                     ),

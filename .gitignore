@@ -3,6 +3,7 @@
 /asset
 /hpc_asset
 /download
+/build
 
 # code directory
 __pycache__

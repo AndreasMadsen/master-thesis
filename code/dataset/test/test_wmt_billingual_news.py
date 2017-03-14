@@ -11,10 +11,7 @@ def test_properties_2013():
         source_lang='fr', target_lang='en', year=2013,
         tqdm=False
     )
-    assert_equal(dataset_2013.properties, CorpusProperties(
-        observations=1531,
-        vocabulary=dataset_2013.properties.vocabulary
-    ))
+    assert_equal(dataset_2013.properties.histogram.observations, 1531)
     assert_equal(len(dataset_2013.properties.vocabulary), 117)
 
 
@@ -24,10 +21,8 @@ def test_properties_2014():
         source_lang='fr', target_lang='en', year=2014,
         tqdm=False
     )
-    assert_equal(dataset_2014.properties, CorpusProperties(
-        observations=1373,
-        vocabulary=dataset_2014.properties.vocabulary
-    ))
+
+    assert_equal(dataset_2014.properties.histogram.observations, 1373)
     assert_equal(len(dataset_2014.properties.vocabulary), 106)
 
 

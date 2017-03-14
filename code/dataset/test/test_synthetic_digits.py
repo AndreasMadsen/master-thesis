@@ -42,7 +42,7 @@ def test_output_order():
 
 
 def test_properties():
-    """ensure that SyntheticDigits vocabilary and max_length is correct"""
+    """ensure that SyntheticDigits vocabilary and observations is correct"""
     dataset = SyntheticDigits(
         examples=1, seed=99,
         tqdm=False
@@ -52,4 +52,4 @@ def test_properties():
         dataset.properties.vocabulary,
         frozenset('zerontwhufivsxg0123456789 ')
     )
-    assert_equal(dataset.properties.observations, 1)
+    assert_equal(dataset.properties.histogram.observations, 1)

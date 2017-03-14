@@ -11,7 +11,10 @@ from code.tf_operator.embedding import *
 from code.tf_operator.encoder_residual_block import *
 from code.tf_operator.math import *
 from code.tf_operator.parallel import *
+from code.tf_operator.queue import *
+from code.tf_operator.record import *
 from code.tf_operator.select_value import *
 from code.tf_operator.seq_dense import *
 from code.tf_operator.seq_prop import *
+from code.tf_operator.table import *
 from code.tf_operator.train import *
