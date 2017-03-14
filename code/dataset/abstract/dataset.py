@@ -65,34 +65,42 @@ class Dataset:
                                            disable=not tqdm):
                 self.queue.write(*self._encode_pair(source, target))
 
-        # TODO: implement some naive histogram, for detecting too small buckets
-        # create bucket boundaries
-        # min_length and max_length does not include the <eos> char
-        min_length = histogram.min_length + 1
-        max_length = histogram.max_length + 1
-        bucket_boundaries = [
-            split for split in range(min_length, max_length, 20)
-        ]
-        if len(bucket_boundaries) == 0:
-            bucket_boundaries = [(min_length + max_length) // 2]
-
         # dequeue dataset
         length, source, target = self.queue.read()
 
-        # the first argument is the sequence length specifed in the
-        # input_length I did not find a use for it.
         if shuffle:
-            _, batch_queue = tf.contrib.training.bucket_by_sequence_length(
-                input_length=length,
-                tensors=[source, target],
-                bucket_boundaries=bucket_boundaries,
-                batch_size=batch_size,
-                dynamic_pad=True,
-                name=f'dataset/{name}',
-                num_threads=32,
-                capacity=batch_size * 64,
-                allow_smaller_final_batch=not repeat
+            # create bucket boundaries by partitioning the histogram
+            bucket_boundaries = histogram.extend(1).partition(
+                min_size=batch_size * 2,
+                min_width=10
             )
+
+            # if there are not enogth observation or spread to partition
+            # the dataset, just use a batch queue.
+            if len(bucket_boundaries) == 0:
+                batch_queue = tf.train.batch(
+                    tensors=[source, target],
+                    batch_size=batch_size,
+                    dynamic_pad=True,
+                    name=f'dataset/{name}',
+                    num_threads=32,
+                    capacity=batch_size * 64,
+                    allow_smaller_final_batch=not repeat
+                )
+            else:
+                # the first argument is the sequence length specifed in the
+                # input_length I did not find a use for it.
+                _, batch_queue = tf.contrib.training.bucket_by_sequence_length(
+                    input_length=length,
+                    tensors=[source, target],
+                    bucket_boundaries=bucket_boundaries,
+                    batch_size=batch_size,
+                    dynamic_pad=True,
+                    name=f'dataset/{name}',
+                    num_threads=32,
+                    capacity=batch_size * 64,
+                    allow_smaller_final_batch=not repeat
+                )
         else:
             batch_queue = tf.train.batch(
                 tensors=[source, target],
