@@ -3,8 +3,7 @@ import tensorflow as tf
 import sugartensor as stf  # noqa: F401
 
 from code.tf_operator.seq_dense import seq_dense
-from code.tf_operator.decoder_residual_block.seq_causal_aconv1d \
-    import seq_causal_aconv1d
+from code.tf_operator.convolution import seq_causal_aconv1d
 
 
 def seq_decoder_residual_block_init(tensor,

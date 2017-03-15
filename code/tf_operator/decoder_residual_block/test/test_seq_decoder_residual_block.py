@@ -27,50 +27,12 @@ def test_equal_output():
 
         # intialize parameters
         with tf.variable_scope('seq-causal-res-block-test') as weight_scope:
-            with tf.variable_scope('activation') as _:
-                stf.sg_initializer.constant(
-                    'beta', dims, summary=False
-                )
-                stf.sg_initializer.constant(
-                    'gamma', dims, value=1, summary=False
-                )
-
-            with tf.variable_scope('reduce-dim') as _:
-                stf.sg_initializer.constant(
-                    'beta', dims // 2, summary=False
-                )
-                stf.sg_initializer.constant(
-                    'gamma', dims // 2, value=1, summary=False
-                )
-                stf.sg_initializer.he_uniform(
-                    'W', (1, dims, dims // 2)
-                )
-
-            with tf.variable_scope('conv-dilated') as _:
-                stf.sg_initializer.constant(
-                    'beta', dims // 2, summary=False
-                )
-                stf.sg_initializer.constant(
-                    'gamma', dims // 2, value=1, summary=False
-                )
-                stf.sg_initializer.he_uniform(
-                    'W', (1, size, dims // 2, dims // 2)
-                )
-
-            with tf.variable_scope('recover-dim') as _:
-                stf.sg_initializer.he_uniform(
-                    'W', (1, dims // 2, dims)
-                )
-                stf.sg_initializer.constant(
-                    'b', dims
-                )
-
-        # reference implementation
-        conv1d_output = parallel_decoder_residual_block(
-            tensor,
-            size=size, rate=rate,
-            name=weight_scope, reuse=True
-        )
+            # reference implementation
+            conv1d_output = parallel_decoder_residual_block(
+                tensor,
+                size=size, rate=rate,
+                name=weight_scope
+            )
 
         # apply seq_decoder_residual_block to all time steps
         def scan_op(acc, xt):

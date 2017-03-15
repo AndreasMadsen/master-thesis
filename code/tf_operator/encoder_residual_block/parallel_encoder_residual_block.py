@@ -2,6 +2,8 @@
 import sugartensor as stf  # noqa: F401
 import tensorflow as tf
 
+from code.tf_operator.convolution import aconv1d
+
 
 def parallel_encoder_residual_block(tensor,
                                     size=3, rate=1,
@@ -20,9 +22,10 @@ def parallel_encoder_residual_block(tensor,
                                         name="reduce-dim")
 
         # 1xk conv dilated
-        aconv = pre_aconv.sg_aconv1d(size=size, rate=rate,
-                                     act='relu', bn=True,
-                                     name="conv-dilated")
+        aconv = aconv1d(pre_aconv,
+                        size=size, rate=rate,
+                        act='relu', bn=True,
+                        name="conv-dilated")
 
         # dimension recover and residual connection
         out = aconv.sg_conv1d(size=1, dim=in_dim,

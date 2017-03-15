@@ -35,11 +35,9 @@ def seq_causal_aconv1d(tensor, opt):
     batches = tf.shape(tensor)[0]
 
     # parameter tf.sg_initializer
-    w = stf.sg_initializer.he_uniform('W', (1, opt.size, opt.in_dim, opt.dim))
+    w = stf.sg_initializer.he_uniform('W', (opt.size, opt.in_dim, opt.dim))
+    # w = stf.sg_initializer.he_uniform('W', (1, opt.size, opt.in_dim, opt.dim))
     b = stf.sg_initializer.constant('b', opt.dim) if opt.bias else 0
-
-    # transform parameters
-    w = tf.squeeze(w, axis=0)
 
     # construct "image" for convolution
     image = [
