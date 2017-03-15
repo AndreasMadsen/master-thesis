@@ -71,17 +71,18 @@ class Model:
             with tf.variable_scope('train', reuse=reuse,
                                    values=[loss] + losses_ops + eval_metric):
                 update = self._update_model(losses, lr=lr, **kwargs)
-                self._train_loop(loss, update,
-                                 ep_size=self.dataset.num_batch,
-                                 max_ep=max_ep,
-                                 eval_metric=eval_metric,
-                                 early_stop=False,
-                                 save_dir=self._save_dir,
-                                 sess=sess,
-                                 tqdm=tqdm,
-                                 log_interval=60,
-                                 save_interval=600,
-                                 lr=lr)
+
+            self._train_loop(loss, update,
+                             ep_size=self.dataset.num_batch,
+                             max_ep=max_ep,
+                             eval_metric=eval_metric,
+                             early_stop=False,
+                             save_dir=self._save_dir,
+                             sess=sess,
+                             tqdm=tqdm,
+                             log_interval=60,
+                             save_interval=600,
+                             lr=lr)
 
     def _update_model(self, losses: LossesType, **kwargs) -> List[tf.Tensor]:
         return tower_optim(losses, **kwargs)
