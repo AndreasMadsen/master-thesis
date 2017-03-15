@@ -10,6 +10,7 @@ from contextlib import contextmanager
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.contrib.training import bucket_by_sequence_length
 from tqdm import tqdm as tqdm_bar
 
 from code.dataset.util.length_histogram import LengthHistogram
@@ -37,87 +38,89 @@ class Dataset:
                  external_encoding: str=None,
                  tqdm: bool=True) -> None:
 
-        if external_encoding is not None:
-            self.queue = SequenceQueueExternal(
-                external_encoding,
-                observations=histogram.observations,
-                dtype=dtype,
-                batch_size=batch_size,
-                name=name,
-                shuffle=shuffle, seed=seed,
-                repeat=repeat
-            )
-        else:
-            self.queue = SequenceQueueMemory(
-                observations=histogram.observations,
-                dtype=dtype,
-                batch_size=batch_size,
-                name=name,
-                shuffle=shuffle, seed=seed,
-                repeat=repeat
-            )
+        with tf.device('/cpu:0'):
 
-        # bucket boundaries
-        if self.queue.need_data:
-            for source, target in tqdm_bar(self,
-                                           total=histogram.observations,
-                                           unit='obs', desc='encoding',
-                                           disable=not tqdm):
-                self.queue.write(*self._encode_pair(source, target))
+            if external_encoding is not None:
+                self.queue = SequenceQueueExternal(
+                    external_encoding,
+                    observations=histogram.observations,
+                    dtype=dtype,
+                    batch_size=batch_size,
+                    name=f'dataset/{name}',
+                    shuffle=shuffle, seed=seed,
+                    repeat=repeat
+                )
+            else:
+                self.queue = SequenceQueueMemory(
+                    observations=histogram.observations,
+                    dtype=dtype,
+                    batch_size=batch_size,
+                    name=f'dataset/{name}',
+                    shuffle=shuffle, seed=seed,
+                    repeat=repeat
+                )
 
-        # dequeue dataset
-        length, source, target = self.queue.read()
+            # bucket boundaries
+            if self.queue.need_data:
+                for source, target in tqdm_bar(self,
+                                               total=histogram.observations,
+                                               unit='obs', desc='encoding',
+                                               disable=not tqdm):
+                    self.queue.write(*self._encode_pair(source, target))
 
-        if shuffle:
-            # create bucket boundaries by partitioning the histogram
-            bucket_boundaries = histogram.extend(1).partition(
-                min_size=batch_size * 2,
-                min_width=10
-            )
+            # dequeue dataset
+            length, source, target = self.queue.read()
 
-            # if there are not enogth observation or spread to partition
-            # the dataset, just use a batch queue.
-            if len(bucket_boundaries) == 0:
+            if shuffle:
+                # create bucket boundaries by partitioning the histogram
+                bucket_boundaries = histogram.extend(1).partition(
+                    min_size=batch_size * 2,
+                    min_width=10
+                )
+
+                # if there are not enogth observation or spread to partition
+                # the dataset, just use a batch queue.
+                if len(bucket_boundaries) == 0:
+                    batch_queue = tf.train.batch(
+                        tensors=[source, target],
+                        batch_size=batch_size,
+                        dynamic_pad=True,
+                        name=f'dataset/{name}',
+                        num_threads=32,
+                        capacity=batch_size * 64,
+                        allow_smaller_final_batch=not repeat
+                    )
+                else:
+                    # the first argument is the sequence length specifed in the
+                    # input_length I did not find a use for it.
+                    _, batch_queue = bucket_by_sequence_length(
+                        input_length=length,
+                        tensors=[source, target],
+                        bucket_boundaries=bucket_boundaries,
+                        batch_size=batch_size,
+                        dynamic_pad=True,
+                        name=f'dataset/{name}',
+                        num_threads=32,
+                        capacity=batch_size * 64,
+                        allow_smaller_final_batch=not repeat
+                    )
+            else:
                 batch_queue = tf.train.batch(
                     tensors=[source, target],
                     batch_size=batch_size,
                     dynamic_pad=True,
                     name=f'dataset/{name}',
-                    num_threads=32,
-                    capacity=batch_size * 64,
+                    num_threads=1,
+                    capacity=batch_size,
                     allow_smaller_final_batch=not repeat
                 )
-            else:
-                # the first argument is the sequence length specifed in the
-                # input_length I did not find a use for it.
-                _, batch_queue = tf.contrib.training.bucket_by_sequence_length(
-                    input_length=length,
-                    tensors=[source, target],
-                    bucket_boundaries=bucket_boundaries,
-                    batch_size=batch_size,
-                    dynamic_pad=True,
-                    name=f'dataset/{name}',
-                    num_threads=32,
-                    capacity=batch_size * 64,
-                    allow_smaller_final_batch=not repeat
-                )
-        else:
-            batch_queue = tf.train.batch(
-                tensors=[source, target],
-                batch_size=batch_size,
-                dynamic_pad=True,
-                name=f'dataset/{name}',
-                num_threads=1,
-                capacity=batch_size,
-                allow_smaller_final_batch=not repeat
-            )
 
-        # make data visible
-        self.source, self.target = batch_queue
+            # make data visible
+            self.source, self.target = batch_queue
 
-        # calculate number of batches
-        self.num_observation = histogram.observations
-        self.num_batch = math.ceil(histogram.observations / batch_size)
+            # calculate number of batches
+            self.num_observation = histogram.observations
+            self.num_batch = math.ceil(histogram.observations / batch_size)
 
     def _encode_pair(self, source, target):
         # encode data

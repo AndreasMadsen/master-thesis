@@ -51,7 +51,8 @@ class SequenceQueueExternal(SequenceQueue):
         # create filename queue of one filename. TFRecordReader demands this.
         filename_queue = tf.train.string_input_producer(
             [self.data_file],
-            num_epochs=None if self.repeat else 1
+            num_epochs=None if self.repeat else 1,
+            name=self.name
         )
 
         # read serialized data
@@ -77,7 +78,8 @@ class SequenceQueueExternal(SequenceQueue):
                 (length, source, target),
                 capacity=self.batch_size * 128,
                 min_after_dequeue=self.batch_size * 64,
-                seed=self.seed
+                seed=self.seed,
+                name=self.name
             )
 
         return (length, source, target)

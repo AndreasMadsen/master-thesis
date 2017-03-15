@@ -37,7 +37,7 @@ class SequenceQueueMemory(SequenceQueue):
         # This strategy is idendical to the one used in slice_input_producer.
         data_index = tf.train.range_input_producer(
             self.observations,
-            name=f'dataset/{self.name}',
+            name=self.name,
             shuffle=self.shuffle, seed=self.seed,
             num_epochs=None if self.repeat else 1
         )
@@ -50,7 +50,8 @@ class SequenceQueueMemory(SequenceQueue):
                 capacity=self.batch_size * 128,
                 min_after_dequeue=self.batch_size * 64,
                 dequeue_many=self.batch_size * 32,
-                seed=self.seed
+                seed=self.seed,
+                name=self.name
             )
         else:
             data_index = data_index.dequeue()
