@@ -7,8 +7,9 @@ def seq_logprop(x, mask=None, axis=1, name=None):
 
         if mask is not None:
             # elementwise: x if mask != 0 else 1
-            condition = tf.not_equal(mask, 0)
-            x = tf.where(condition, x=x, y=tf.zeros_like(x))
+            x *= tf.cast(tf.not_equal(
+                mask, tf.zeros_like(x, dtype=mask.dtype)
+            ), x.dtype)
 
         t = tf.reduce_sum(x, axis=axis)
 

@@ -41,17 +41,21 @@ class SemiSupervisedByteNet(Model):
         self.dataset_y_loss_factor = dataset_y_loss_factor
 
     def _build_supervised_model(self,
-                                x: tf.Tensor, y: tf.Tensor,
+                                source: tf.Tensor, target: tf.Tensor,
                                 order: str=None,
                                 reuse: bool=False) -> tf.Tensor:
+        # get source and target tensors
+        source = tf.cast(source, tf.int32)
+        target = tf.cast(target, tf.int32)
+
         name, name_scope = (None, None)
         if order is not None:
             name = f'bytenet-{order}'
-            name_scope = f'loss-supervised-bytenet-{order}'
+            name_scope = f'supervised-bytenet-{order}'
 
-        with tf.name_scope(name_scope, 'loss-supervised', values=[x, y]):
+        with tf.name_scope(name_scope, 'supervised', values=[source, target]):
             logits, lables = bytenet_supervised_translator(
-                x, y,
+                source, target,
                 voca_size=self.dataset.vocabulary_size,
                 latent_dim=self.latent_dim,
                 num_blocks=self.num_blocks,
@@ -61,13 +65,17 @@ class SemiSupervisedByteNet(Model):
                 reuse=reuse
             )
 
-            return logits
+        loss = cross_entropy_direct(logits, target,
+                                    name=f'supervised-{order}',
+                                    reuse=reuse)
 
-    def _build_supervised_sequenal_logprop(self,
-                                           source: tf.Tensor,
-                                           target: tf.Tensor,
-                                           name: str=None,
-                                           reuse: bool=False) -> tf.Tensor:
+        return loss
+
+    def _build_supervised_sequential_logprop(self,
+                                             source: tf.Tensor,
+                                             target: tf.Tensor,
+                                             name: str=None,
+                                             reuse: bool=False) -> tf.Tensor:
         # logits.shape = (batch * beam, times, vocabulary)
         # labels.shape = (batch * beam, times)
         logits, labels = bytenet_supervised_translator(
@@ -87,8 +95,9 @@ class SemiSupervisedByteNet(Model):
         # to convert logits in to logprops over the sequence,
         # first normalize the logits and then select the correct
         # logits dependent on the target. Doing this is actually
-        # just a cross entropy transform.
-        logprops = tf.nn.sparse_softmax_cross_entropy_with_logits(
+        # just a cross entropy transform (except for a sign change
+        # build into the cross entropy function).
+        logprops = -tf.nn.sparse_softmax_cross_entropy_with_logits(
             logits=logits, labels=target
         )
         # reduce logprops over the sequence
@@ -96,16 +105,20 @@ class SemiSupervisedByteNet(Model):
         return seq_logprop(logprops, mask=target, axis=2)
 
     def _build_unsupervised_model(self,
-                                  x: tf.Tensor,
+                                  source: tf.Tensor,
                                   order: str=None,
                                   reuse: bool=False) -> tf.Tensor:
         name_forward, name_backward, name_scope = (None, None, None)
         if order is not None:
+            order_both = f'{order[0]}2{order[2]}'
             name_forward = f'bytenet-{order}'
             name_backward = f'bytenet-{order[::-1]}'
-            name_scope = f'loss-unsupervised-bytenet-{order}-{order[::-1]}'
+            name_scope = f'unsupervised-bytenet-{order_both}'
 
-        with tf.name_scope(name_scope, 'loss-unsupervised', values=[x]):
+        with tf.name_scope(name_scope, 'unsupervised', values=[source]):
+            with tf.device('/cpu:0'):
+                x = tf.cast(source, tf.int32)
+
             # compute labels
             with tf.device('/gpu:0'):
                 # sample_labels.shape = (batch, beam, times)
@@ -123,7 +136,7 @@ class SemiSupervisedByteNet(Model):
 
             with tf.device('/gpu:0'):
                 # logprops_xy.shape = (batch, beam)
-                logprops_xy = self._build_supervised_sequenal_logprop(
+                logprops_xy = self._build_supervised_sequential_logprop(
                     source=batch_repeat(x, repeats=self.beam_size),
                     target=sample_labels,
                     name=name_forward,
@@ -132,126 +145,102 @@ class SemiSupervisedByteNet(Model):
 
             with tf.device('/gpu:1'):
                 # logprops_xy.shape = (batch, beam)
-                logprops_yx = self._build_supervised_sequenal_logprop(
+                logprops_yx = self._build_supervised_sequential_logprop(
                     source=sample_labels,
                     target=batch_repeat(x, repeats=self.beam_size),
                     name=name_backward,
                     reuse=reuse
                 )
 
-            # -- no device specified
+            with tf.device('/cpu:0'):
+                # marginal_logprop.shape (batch, )
+                # marginal = sum(P(y'|x) * P(x|y), axis=1)
+                #          = sum(exp(logprops_yx) * exp(logprops_xy), axis=1)
+                #          = sum(exp(logprops_yx + logprops_xy), axis=1)
+                # marginal_logprop = log(marginal)
+                # numerial statbility: reduce_logsumexp substracts the max from
+                # the input and adds it back in the final output.
+                # ln(sum(exp(x - k))) + k = ln(sum(exp(x) * exp(-k))) + k
+                #                         = ln(exp(-k) * sum(exp(x))) + k
+                #                         = ln(exp(-k)) + ln(sum(exp(x))) + k
+                #                         = -k + ln(sum(exp(x))) + k
+                #                         = ln(sum(exp(x)))
+                marginal_logprop = tf.reduce_logsumexp(
+                    logprops_yx + logprops_xy,
+                    axis=1
+                )
 
-            # marginal_logprop.shape (batch, )
-            # marginal = sum(P(y'|x) * P(x|y), axis=1)
-            #          = sum(exp(logprops_yx) * exp(logprops_xy), axis=1)
-            #          = sum(exp(logprops_yx + logprops_xy), axis=1)
-            # marginal_logprop = log(marginal)
-            # numerial statbility: reduce_logsumexp substracts the max from
-            # the input and adds it back in the final output.
-            # ln(sum(exp(x - k))) + k = ln(sum(exp(x) * exp(-k))) + k
-            #                         = ln(exp(-k) * sum(exp(x))) + k
-            #                         = ln(exp(-k)) + ln(sum(exp(x))) + k
-            #                         = -k + ln(sum(exp(x))) + k
-            #                         = ln(sum(exp(x)))
-            marginal_logprop = tf.reduce_logsumexp(
-                logprops_yx + logprops_xy,
-                axis=1
-            )
+                # cross entropy loss (scalar)
+                # the properbility should be maximised, by convention
+                # a minimization algorithm is used, this the sign is inverted.
+                # batch_loss.shape = (batch, )
+                batch_loss = - marginal_logprop
 
-            # cross entropy loss (scalar)
-            # the properbility should be maximised, by convention
-            # a minimization algorithm is used, this the sign is inverted.
-            loss = - marginal_logprop
-            return loss
+        with tf.device('/cpu:0'):
+            loss = cross_entropy_indirect(batch_loss,
+                                          name=f'unsupervised-{order_both}')
+        return loss
 
     def loss_model(self,
                    source: tf.Tensor, target: tf.Tensor,
                    reuse: bool=False) -> Tuple[tf.Tensor, LossesType]:
         loss = []
 
+        # place x2y model on /gpu:0
         with tf.device('/gpu:0'):
-            # get source and target tensors
-            x_x2y = tf.cast(self.dataset.source, tf.int32)
-            y_x2y = tf.cast(self.dataset.target, tf.int32)
+            loss_x2y = self._build_supervised_model(self.dataset.source,
+                                                    self.dataset.target,
+                                                    order='x2y',
+                                                    reuse=reuse)
+            loss.append(loss_x2y)
 
+        # place y2x model on /gpu:1
         with tf.device('/gpu:1'):
-            # get source and target tensors
-            x_y2x = tf.cast(self.dataset.source, tf.int32)
-            y_y2x = tf.cast(self.dataset.target, tf.int32)
+            loss_y2x = self._build_supervised_model(self.dataset.target,
+                                                    self.dataset.source,
+                                                    order='y2x',
+                                                    reuse=reuse)
+            loss.append(loss_y2x)
 
-        with tf.name_scope(None, "supervised", values=[source, target]):
-            with tf.device('/gpu:0'):
-                logits_x2y = self._build_supervised_model(x_x2y, y_x2y,
-                                                          order='x2y',
-                                                          reuse=reuse)
-            with tf.device('/gpu:1'):
-                logits_y2x = self._build_supervised_model(y_y2x, x_y2x,
-                                                          order='y2x',
-                                                          reuse=reuse)
-
-        with tf.device('/gpu:0'):
-            loss.append(cross_entropy_direct(logits_x2y, y_x2y,
-                                             name='supervised-x2y',
-                                             reuse=reuse))
-        with tf.device('/gpu:1'):
-            loss.append(cross_entropy_direct(logits_y2x, x_y2x,
-                                             name='supervised-y2x',
-                                             reuse=reuse))
-
-        total_loss = tf.add_n(loss)
-
+        # sum loss and distribute
+        loss_sum = tf.add_n(loss)
         return (
-            total_loss,
+            loss_sum,
             {
-                'x2y': (['/gpu:0', '/gpu:1'], total_loss)
+                'bytenet-x2y': [('/gpu:0', loss_sum)],
+                'bytenet-y2x': [('/gpu:1', loss_sum)]
             }
         )
 
     def train_model(self, reuse: bool=False) -> Tuple[tf.Tensor, LossesType]:
         loss = []
 
-        loss.append(
-            self.loss_model(self.dataset.source, self.dataset.target,
-                            reuse=reuse)
+        # compute supervised loss
+        supervised_loss, _ = self.loss_model(
+            self.dataset.source, self.dataset.target,
+            reuse=reuse
         )
+        loss.append(supervised_loss)
 
+        # compute unsupervised loss
         if self.dataset_x is not None:
-            with tf.name_scope(None, "unsupervised-x",
-                               values=[self.dataset_x.source]):
-                with tf.device('/gpu:0'):
-                    x = tf.cast(self.dataset_x.source, tf.int32)
-
-                loss_x2x = self._build_unsupervised_model(
-                    x, order='x2y', reuse=True
-                )
-
-            with tf.device('/gpu:1'):
-                loss.append(
-                    self.dataset_x_loss_factor *
-                    cross_entropy_indirect(loss_x2x, name='unsupervised-x2x')
-                )
+            loss_x2x = self._build_unsupervised_model(self.dataset_x.source,
+                                                      order='x2y', reuse=True)
+            loss.append(self.dataset_x_loss_factor * loss_x2x)
 
         if self.dataset_y is not None:
-            with tf.name_scope(None, "unsupervised-y",
-                               values=[self.dataset_y.source]):
-                y = tf.cast(self.dataset_y.source, tf.int32)
+            loss_y2y = self._build_unsupervised_model(self.dataset_y.source,
+                                                      order='y2x', reuse=True)
+            loss.append(self.dataset_y_loss_factor * loss_y2y)
 
-                loss_y2y = self._build_unsupervised_model(
-                    y, order='y2x', reuse=True
-                )
-
-            loss.append(
-                self.dataset_y_loss_factor *
-                cross_entropy_indirect(loss_y2y, name='unsupervised-y2y')
-            )
-
-        loss_sum = tf.add_n(loss)
-
-        tf.summary.scalar('losses/total', loss_sum)
+        # add up losses
+        total_loss = tf.add_n(loss)
+        tf.summary.scalar('losses/total', total_loss)
         return (
-            loss_sum,
+            total_loss,
             {
-                'x2y': (['/gpu:0', '/gpu:1'], loss_sum)
+                'bytenet-x2y': [('/gpu:0', total_loss)],
+                'bytenet-y2x': [('/gpu:1', total_loss)]
             }
         )
 

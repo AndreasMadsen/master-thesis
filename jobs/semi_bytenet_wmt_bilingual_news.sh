@@ -13,5 +13,4 @@
 export PYTHONPATH=./
 source ~/stdpy3/bin/activate
 
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/appl/cuda/8.0/extras/CUPTI/lib64/
 python3 code/script/semi_bytenet_wmt_bilingual_news_train.py

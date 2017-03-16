@@ -9,7 +9,8 @@ from code.dataset.abstract import Dataset
 from code.tf_operator import \
     EmbeddingContainer, \
     tower_optim, \
-    basic_train
+    basic_train, \
+    flatten_losses
 
 LossesType = Iterator[Any]
 
@@ -44,12 +45,13 @@ class Model:
               allow_soft_placement: bool=True,
               log_device_placement: bool=False,
               log_interval=60, save_interval=600,
+              profile=0,
               tqdm=True,
               lr=0.001,
               **kwargs) -> None:
         # build training model
         loss, losses = self.train_model(reuse=reuse)
-        losses_ops = [loss for device, loss in losses]
+        losses_ops = flatten_losses(losses)
 
         # build eval metrics
         eval_metric = [
@@ -80,6 +82,7 @@ class Model:
                              save_dir=self._save_dir,
                              sess=sess,
                              tqdm=tqdm,
+                             profile=profile,
                              log_interval=60,
                              save_interval=600,
                              lr=lr)
