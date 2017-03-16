@@ -16,5 +16,6 @@ from code.tf_operator.record import *
 from code.tf_operator.select_value import *
 from code.tf_operator.seq_dense import *
 from code.tf_operator.seq_prop import *
+from code.tf_operator.summary import *
 from code.tf_operator.table import *
 from code.tf_operator.train import *

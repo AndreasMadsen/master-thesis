@@ -12,7 +12,8 @@ from code.tf_operator import \
     bytenet_unsupervised_translator, \
     bytenet_sampling_translator, \
     tower_scope, mean_n, \
-    batch_beam_gather
+    batch_beam_gather, \
+    cross_entropy_summary
 
 
 class ByteNet(Model):
@@ -37,8 +38,8 @@ class ByteNet(Model):
         # putting the split and join on the cpu is extreamly important for
         # minimizing the syncronization time.
         with tf.device('/cpu:0'):
-            source_split = tf.split(source_all, self._gpus, 0)
-            target_split = tf.split(target_all, self._gpus, 0)
+            source_split = tf.split(source_all, self._gpus, axis=0)
+            target_split = tf.split(target_all, self._gpus, axis=0)
 
         losses = []
 
@@ -66,6 +67,9 @@ class ByteNet(Model):
         # join the losses
         with tf.device('/cpu:0'):
             total_loss = mean_n([loss for _, loss in losses])
+            total_loss = cross_entropy_summary(total_loss,
+                                               name="supervised-x2y",
+                                               reuse=reuse)
 
         return (total_loss, losses)
 

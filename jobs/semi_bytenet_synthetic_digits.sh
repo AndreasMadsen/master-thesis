@@ -2,8 +2,8 @@
 #BSUB -q gpuqueuetitanx
 #BSUB -J semi-bytenet-synthetic-digits
 #BSUB -n 6
-#BSUB -R "rusage[ngpus_excl_p=2]"
-#BSUB -W 01:00
+#BSUB -R "rusage[ngpus_excl_p=4]"
+#BSUB -W 02:00
 #BSUB -u amwebdk@gmail.com
 #BSUB -B
 #BSUB -N

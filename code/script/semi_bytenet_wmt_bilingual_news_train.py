@@ -21,5 +21,6 @@ dataset_semi = WMTBilingualNews(batch_size=8,
 model = SemiSupervisedByteNet(dataset_train,
                               dataset_x=dataset_semi,
                               num_blocks=3, latent_dim=400,
+                              gpus=4,
                               save_dir='asset/semi_bytenet_wmt_deen')
 model.train(max_ep=5, lr=0.0001)
