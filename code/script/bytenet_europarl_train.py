@@ -20,7 +20,7 @@ dataset_test = WMTBilingualNews(batch_size=128,
                                 vocabulary=dataset_train.vocabulary,
                                 validate=True)
 
-model = ByteNet(dataset_train, save_dir='asset/bytenet_europarl', gpus=4)
+model = ByteNet(dataset_train, save_dir='asset/bytenet_europarl_linearize_lowmem', gpus=4)
 model.add_metric(BleuScore(dataset_train, name='BLEU-score-train'))
 model.add_metric(BleuScore(dataset_test, name='BLEU-score-test'))
 model.add_metric(ModelLoss(dataset_test, name='model-loss-test'))

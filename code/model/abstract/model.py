@@ -10,7 +10,8 @@ from code.tf_operator import \
     EmbeddingContainer, \
     tower_optim, \
     basic_train, \
-    flatten_losses
+    flatten_losses, \
+    linearize
 
 LossesType = Iterator[Any]
 
@@ -58,6 +59,14 @@ class Model:
             metric.build(self) for metric in self._metrics
         ]
 
+        # compute update
+        with tf.variable_scope('train', reuse=reuse,
+                               values=[loss] + losses_ops + eval_metric):
+            update = self._update_model(losses, lr=lr, **kwargs)
+
+        # linearize graph
+        linearize(tf.get_default_graph(), targets=[loss] + update)
+
         # save metadata files for embeddings
         self.embeddings.save_metadata(self._save_dir)
 
@@ -70,10 +79,6 @@ class Model:
         sess_config = tf.ConfigProto(allow_soft_placement=allow_soft_placement,
                                      log_device_placement=log_device_placement)
         with tf.Session(config=sess_config) as sess:
-            with tf.variable_scope('train', reuse=reuse,
-                                   values=[loss] + losses_ops + eval_metric):
-                update = self._update_model(losses, lr=lr, **kwargs)
-
             self._train_loop(loss, update,
                              ep_size=self.dataset.num_batch,
                              max_ep=max_ep,
