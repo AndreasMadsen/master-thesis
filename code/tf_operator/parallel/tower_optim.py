@@ -20,7 +20,7 @@ def tower_optim(losses, **kwargs):
         # exclude batch normal statics
         if 'mean' not in v.name and 'variance' not in v.name \
                 and 'beta' not in v.name and 'gamma' not in v.name:
-            stf.sg_summary_gradient(v, g)
+            stf.sg_summary_gradient(v, gradient=g)
 
     # gradient update op
     with tf.device('/cpu:0'):

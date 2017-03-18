@@ -20,10 +20,13 @@ class Model:
     dataset: Dataset
     _metrics: List['code.metric.abstract.Metric'] = []
     _save_dir: str
+    _deep_summary: bool
 
     def __init__(self, dataset: Dataset,
+                 deep_summary=True,
                  save_dir: str='asset/unnamed') -> None:
         self.dataset = dataset
+        self._deep_summary = deep_summary
         self._save_dir = save_dir
         self.embeddings = EmbeddingContainer()
 
@@ -51,7 +54,8 @@ class Model:
               lr=0.001,
               **kwargs) -> None:
         # build training model
-        loss, losses = self.train_model(reuse=reuse)
+        with stf.sg_context(summary=self._deep_summary):
+            loss, losses = self.train_model(reuse=reuse)
         losses_ops = flatten_losses(losses)
 
         # build eval metrics
@@ -62,7 +66,8 @@ class Model:
         # compute update
         with tf.variable_scope('train', reuse=reuse,
                                values=[loss] + losses_ops + eval_metric):
-            update = self._update_model(losses, lr=lr, **kwargs)
+            with stf.sg_context(summary=self._deep_summary):
+                update = self._update_model(losses, lr=lr, **kwargs)
 
         # linearize graph
         linearize(tf.get_default_graph(), targets=[loss] + update)
