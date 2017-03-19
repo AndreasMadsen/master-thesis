@@ -10,8 +10,7 @@ from code.tf_operator import \
     EmbeddingContainer, \
     tower_optim, \
     basic_train, \
-    flatten_losses, \
-    linearize
+    flatten_losses
 
 LossesType = Iterator[Any]
 
@@ -68,9 +67,6 @@ class Model:
                                values=[loss] + losses_ops + eval_metric):
             with stf.sg_context(summary=self._deep_summary):
                 update = self._update_model(losses, lr=lr, **kwargs)
-
-        # linearize graph
-        linearize(tf.get_default_graph(), targets=[loss] + update)
 
         # save metadata files for embeddings
         self.embeddings.save_metadata(self._save_dir)

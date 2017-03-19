@@ -9,7 +9,6 @@ from code.tf_operator.debug import *
 from code.tf_operator.decoder_residual_block import *
 from code.tf_operator.embedding import *
 from code.tf_operator.encoder_residual_block import *
-from code.tf_operator.linearize import *
 from code.tf_operator.math import *
 from code.tf_operator.parallel import *
 from code.tf_operator.queue import *
