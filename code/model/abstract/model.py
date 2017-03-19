@@ -101,16 +101,30 @@ class Model:
                     **kwargs) -> None:
         basic_train(loss, update_op, **kwargs)
 
-    @abc.abstractmethod
-    def inference_model(self, x: tf.Tensor) -> tf.Tensor:
-        pass
-
     def restore(self, session: tf.Session):
         # init session vars
         stf.sg_init(session)
 
         # restore parameters
         stf.sg_restore(session, self._latest_checkpoint())
+
+    @abc.abstractmethod
+    def greedy_inference_model(self, x: tf.Tensor) -> tf.Tensor:
+        pass
+
+    @abc.abstractmethod
+    def sample_inference_model(self, x: tf.Tensor,
+                               samples: int=1) -> tf.Tensor:
+        pass
+
+    def inference_model(self, x: tf.Tensor, samples: int=1,
+                        **kwargs) -> tf.Tensor:
+        if samples == 1:
+            return self.greedy_inference_model(x, **kwargs)
+        else:
+            # labels.shape = (batch, samples, time)
+            labels = self.sample_inference_model(x, samples=samples, **kwargs)
+            return labels[:, 0]
 
     def predict_from_dataset(self, dataset: Dataset,
                              show_eos: bool=True,
@@ -158,7 +172,8 @@ class Model:
                             **kwargs) -> Iterator[str]:
 
         # build inference_model
-        label = self.sample_model(dataset.source, samples=samples, **kwargs)
+        label = self.sample_inference_model(dataset.source, samples=samples,
+                                            **kwargs)
 
         # run graph for translation
         with tf.Session() as sess:
@@ -186,7 +201,7 @@ class Model:
 
         # build model
         x = stf.placeholder(dtype=tf.int32, shape=sources.shape)
-        label = self.sample_model(x, samples=samples, **kwargs)
+        label = self.sample_inference_model(x, samples=samples, **kwargs)
 
         # run graph for translation
         with tf.Session() as sess:
