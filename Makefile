@@ -26,10 +26,10 @@ lint:
 	flake8 --show-source code/
 
 fetch:
-	rsync --info=progress2 -urltv --delete -e ssh dtu:~/workspace/kandidat/asset/ ./hpc_asset
+	rsync --info=progress2 -urltv --delete -e ssh dtu-data:~/workspace/kandidat/asset/ ./hpc_asset
 
 sync:
-	rsync --info=progress2 -urltv --delete --exclude 'hpc_asset' --exclude 'asset' -e ssh ./ dtu:~/workspace/kandidat
+	rsync --info=progress2 -urltv --delete --exclude 'hpc_asset' --exclude 'asset' -e ssh ./ dtu-data:~/workspace/kandidat
 
 report: report/thesis.tex
 	cd report && latexmk -pdf -pdflatex="$(XELATEX)" -use-make thesis.tex
