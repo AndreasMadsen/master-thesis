@@ -20,6 +20,7 @@ test:
 		code/tf_operator/seq_prop/test/test_*.py \
 		code/dataset/test/test_*.py \
 		code/metric/test/test_*.py \
+		code/moses/test/test_*.py \
 		code/model/test/test_*.py
 
 lint:

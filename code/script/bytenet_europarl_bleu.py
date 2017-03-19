@@ -1,0 +1,53 @@
+
+from tqdm import tqdm
+import sugartensor as stf
+
+from code.dataset import Europarl, WMTBilingualNews
+from code.model import ByteNet
+from code.metric import BleuScore, ModelLoss
+from code.moses import Tokenizer, multi_bleu
+
+# set log level to debug
+stf.sg_verbosity(10)
+
+dataset_train = Europarl(batch_size=64,
+                         source_lang='de', target_lang='en',
+                         min_length=None, max_length=500,
+                         external_encoding='build/europarl-max500.tfrecord')
+
+dataset_test = WMTBilingualNews(batch_size=8,
+                                year=2015,
+                                source_lang='de', target_lang='en',
+                                min_length=None, max_length=None,
+                                vocabulary=dataset_train.vocabulary,
+                                validate=True,
+                                shuffle=False, repeat=False)
+
+model = ByteNet(dataset_train,
+                deep_summary=False,
+                save_dir='hpc_asset/bytenet_europarl_nosummary_max500', gpus=4)
+
+# translate
+result = model.predict_from_dataset(dataset_test, show_eos=False, samples=12)
+# show progress
+iterator = tqdm(enumerate(result),
+                total=dataset_test.num_observation,
+                desc="translating", unit='obs',
+                dynamic_ncols=True)
+
+# tokenize data
+target_tokenizer = Tokenizer('en')
+translation_tokenizer = Tokenizer('en')
+
+with target_tokenizer, translation_tokenizer:
+    for i, (source, target, translation) in iterator:
+        if i < 10:
+            tqdm.write(' %d       source: %s' % (i, source))
+            tqdm.write('         target: %s' % (target, ))
+            tqdm.write('    translation: %s' % (translation, ))
+
+        target_tokenizer.write(target)
+        translation_tokenizer.write(translation)
+
+# calculate BLEU score
+print(multi_bleu(translaton=translation_tokenizer, target=target_tokenizer))
