@@ -10,8 +10,8 @@ stf.sg_verbosity(10)
 
 dataset_train = Europarl(batch_size=64,
                          source_lang='de', target_lang='en',
-                         min_length=None, max_length=None,
-                         external_encoding='build/europarl-full.tfrecord')
+                         min_length=None, max_length=500,
+                         external_encoding='build/europarl-max500.tfrecord')
 
 dataset_test = WMTBilingualNews(batch_size=128,
                                 year=2015,
@@ -20,8 +20,10 @@ dataset_test = WMTBilingualNews(batch_size=128,
                                 vocabulary=dataset_train.vocabulary,
                                 validate=True)
 
-model = ByteNet(dataset_train, save_dir='asset/bytenet_europarl_linearize_lowmem', gpus=4)
+model = ByteNet(dataset_train,
+                deep_summary=False,
+                save_dir='asset/bytenet_europarl_nosummary_max500', gpus=4)
 model.add_metric(BleuScore(dataset_train, name='BLEU-score-train'))
 model.add_metric(BleuScore(dataset_test, name='BLEU-score-test'))
 model.add_metric(ModelLoss(dataset_test, name='model-loss-test'))
-model.train(max_ep=60, lr=0.0001)
+model.train(max_ep=3, lr=0.0001)
