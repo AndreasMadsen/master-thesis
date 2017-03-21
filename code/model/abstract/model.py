@@ -1,6 +1,8 @@
 
-import abc
 from typing import TypeVar, Any, List, Tuple, Iterator
+import abc
+import os
+import os.path as path
 
 import tensorflow as tf
 import sugartensor as stf
@@ -26,7 +28,13 @@ class Model:
                  save_dir: str='asset/unnamed') -> None:
         self.dataset = dataset
         self._deep_summary = deep_summary
-        self._save_dir = save_dir
+
+        if 'BASE_SAVE_DIR' in os.environ:
+            self._save_dir = path.join(os.environ['BASE_SAVE_DIR'], save_dir)
+        else:
+            self._save_dir = save_dir
+        print(f'Save dir: {self._save_dir}')
+
         self.embeddings = EmbeddingContainer()
 
     def _latest_checkpoint(self) -> str:
@@ -131,7 +139,8 @@ class Model:
                              **kwargs) -> Iterator[str]:
 
         # build inference_model
-        label = self.inference_model(dataset.source, **kwargs)
+        with stf.sg_context(summary=self._deep_summary):
+            label = self.inference_model(dataset.source, **kwargs)
 
         # run graph for translation
         with tf.Session() as sess:
@@ -158,7 +167,8 @@ class Model:
 
         # build model
         x = stf.placeholder(dtype=tf.int32, shape=sources.shape)
-        label = self.inference_model(x, **kwargs)
+        with stf.sg_context(summary=self._deep_summary):
+            label = self.inference_model(x, **kwargs)
 
         # run graph for translation
         with tf.Session() as sess:
@@ -172,8 +182,10 @@ class Model:
                             **kwargs) -> Iterator[str]:
 
         # build inference_model
-        label = self.sample_inference_model(dataset.source, samples=samples,
-                                            **kwargs)
+        with stf.sg_context(summary=self._deep_summary):
+            label = self.sample_inference_model(dataset.source,
+                                                samples=samples,
+                                                **kwargs)
 
         # run graph for translation
         with tf.Session() as sess:
@@ -201,7 +213,8 @@ class Model:
 
         # build model
         x = stf.placeholder(dtype=tf.int32, shape=sources.shape)
-        label = self.sample_inference_model(x, samples=samples, **kwargs)
+        with stf.sg_context(summary=self._deep_summary):
+            label = self.sample_inference_model(x, samples=samples, **kwargs)
 
         # run graph for translation
         with tf.Session() as sess:

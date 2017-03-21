@@ -15,7 +15,7 @@ dataset_train = Europarl(batch_size=64,
                          min_length=None, max_length=500,
                          external_encoding='build/europarl-max500.tfrecord')
 
-dataset_test = WMTBilingualNews(batch_size=8,
+dataset_test = WMTBilingualNews(batch_size=1,
                                 year=2015,
                                 source_lang='de', target_lang='en',
                                 min_length=None, max_length=None,
@@ -25,9 +25,10 @@ dataset_test = WMTBilingualNews(batch_size=8,
 
 model = ByteNet(dataset_train,
                 deep_summary=False,
-                save_dir='hpc_asset/bytenet_europarl_nosummary_max500', gpus=4)
+                save_dir='asset/bytenet_europarl_nosummary_max500', gpus=1)
 
 # translate
+print('predict from dataset:')
 result = model.predict_from_dataset(dataset_test, show_eos=False, samples=12)
 # show progress
 iterator = tqdm(enumerate(result),
