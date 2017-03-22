@@ -7,35 +7,35 @@ from code.moses.util.script_path import script_path
 
 class Tokenizer:
     lang: str
-    process: subprocess.Popen
+    source: Optional[List[str]]
     tokenized: Optional[List[str]]
 
     def __init__(self, lang: str) -> None:
         self.lang = lang
+        self.source = None
         self.tokenized = None
 
     def __enter__(self):
-        self.process = subprocess.Popen(
-            [
-                'perl', script_path('scripts/tokenizer/tokenizer.perl'),
-                '-l', self.lang,
-                '-b',  # disable perl buffering, required for streaming
-                '-no-escape'  # no HTML escaping of apostrophy, quotes, etc
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            stdin=subprocess.PIPE,
-            encoding='utf-8'
-        )
-
+        self.source = []
         return self
 
     def write(self, sequence: str) -> None:
-        self.process.stdin.write(sequence + '\n')
+        self.source.append(sequence)
 
     def __exit__(self, type, value, traceback) -> None:
-        self.process.stdin.close()
-        self.tokenized = [line.rstrip() for line in self.process.stdout]
+        result = subprocess.run(
+            [
+                'perl', script_path('scripts/tokenizer/tokenizer.perl'),
+                '-l', self.lang,
+                '-no-escape'
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            input='\n'.join(self.source) + '\n',
+            encoding='utf-8'
+        )
+
+        self.tokenized = [line.rstrip() for line in result.stdout.split('\n')]
 
     def __iter__(self):
         if self.tokenized is None:
