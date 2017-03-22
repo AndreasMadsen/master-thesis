@@ -51,4 +51,4 @@ with target_tokenizer, translation_tokenizer:
         translation_tokenizer.write(translation)
 
 # calculate BLEU score
-print(multi_bleu(translaton=translation_tokenizer, target=target_tokenizer))
+print(multi_bleu(translate=translation_tokenizer, target=target_tokenizer))
