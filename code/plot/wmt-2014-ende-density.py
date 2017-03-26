@@ -20,7 +20,7 @@ p = ggplot(dataframe, aes(x=length, fill=language))
 p = p + geom_density(alpha=0.5)
 p = p + theme(text = element_text(size=10))
 
-ggsave(filepath, p, width=13, height=6, units="cm");
+ggsave(filepath, p, width=page.width, height=6, units="cm");
 """)
 
-gg.run(df, 'theory/wmt-deen-density.pdf')
+gg.run(df, 'theory/wmt-deen-density')

@@ -13,6 +13,9 @@ thisdir = path.dirname(path.realpath(__file__))
 graphicsdir = path.realpath(
     path.join(thisdir, '..', '..', '..', 'report', 'graphics')
 )
+resultdir = path.realpath(
+    path.join(thisdir, '..', '..', '..', 'result', 'plot')
+)
 
 
 class GGPlot:
@@ -22,6 +25,8 @@ class GGPlot:
         self.r_script = textwrap.dedent(f"""\
         #!/usr/bin/env Rscript
         library(ggplot2);
+        library(RColorBrewer);
+        page.width = 12.96703;
 
         args = commandArgs(TRUE);
         dataframe = read.csv(file('stdin'));
@@ -31,10 +36,16 @@ class GGPlot:
         """)
 
     def run(self, dataframe: pd.DataFrame, filepath: str):
-        output_file = path.join(graphicsdir, filepath)
+        # save datafile
+        csv_filepath = path.join(resultdir, filepath + '.csv')
+        os.makedirs(path.dirname(csv_filepath), exist_ok=True)
+        dataframe.to_csv(csv_filepath, index=False)
+
+        # generate PDF file
+        pdf_filepath = path.join(graphicsdir, filepath + '.pdf')
 
         csv_file = io.StringIO()
-        dataframe.to_csv(csv_file)
+        dataframe.to_csv(csv_file, index=False)
 
         with tempfile.NamedTemporaryFile(mode='w') as fd:
             print(self.r_script, file=fd, flush=True)
@@ -44,7 +55,7 @@ class GGPlot:
 
             try:
                 subprocess.run(
-                    ['Rscript', fd.name, output_file],
+                    ['Rscript', fd.name, pdf_filepath],
                     env=env,
                     input=bytes(csv_file.getvalue(), 'utf8'),
                     stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
