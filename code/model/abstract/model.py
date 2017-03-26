@@ -28,14 +28,15 @@ class Model:
                  save_dir: str='asset/unnamed') -> None:
         self.dataset = dataset
         self._deep_summary = deep_summary
+        self.set_save_dir(save_dir)
 
+        self.embeddings = EmbeddingContainer()
+
+    def set_save_dir(self, save_dir):
         if 'BASE_SAVE_DIR' in os.environ:
             self._save_dir = path.join(os.environ['BASE_SAVE_DIR'], save_dir)
         else:
             self._save_dir = save_dir
-        print(f'Save dir: {self._save_dir}')
-
-        self.embeddings = EmbeddingContainer()
 
     def _latest_checkpoint(self) -> str:
         return tf.train.latest_checkpoint(self._save_dir)
