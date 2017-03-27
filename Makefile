@@ -27,7 +27,7 @@ lint:
 	flake8 --show-source code/
 
 fetch:
-	rsync --info=progress2 -urltv --delete -e ssh dtu-data:~/workspace/kandidat/asset/ ./hpc_asset
+	rsync --info=progress2 -urltv --delete -e ssh dtu-data:/work1/s123598/kandidat/asset/ ./hpc_asset
 
 sync:
 	rsync --info=progress2 -urltv --delete --exclude 'hpc_asset' --exclude 'asset' -e ssh ./ dtu-data:~/workspace/kandidat
