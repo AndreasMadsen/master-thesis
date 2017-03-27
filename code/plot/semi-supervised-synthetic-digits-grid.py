@@ -97,4 +97,4 @@ p = p + theme(legend.position="bottom",
 ggsave(filepath, p, width=page.width, height=11, units="cm");
 """)
 
-gg.run(df, 'theory/wmt-deen-density')
+gg.run(df, 'semi-bytenet/synthetic-digits-grid')
