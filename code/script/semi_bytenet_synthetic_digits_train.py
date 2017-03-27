@@ -47,6 +47,7 @@ model = SemiSupervisedByteNet(
     dataset_x=dataset_semi, dataset_x_loss_factor=args.semi_factor,
     num_blocks=3, latent_dim=20, beam_size=5,
     gpus=2,
+    deep_summary=False,
     save_dir=f'asset/semi_bytenet_synthetic_digits_grid/' +
              f'train_{args.train_size}_semi_{args.semi_size}_' +
              f'factor_{args.semi_factor}'
