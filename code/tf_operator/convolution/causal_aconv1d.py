@@ -30,11 +30,15 @@ def _seq_aconv1d_init(tensor,
 @stf.sg_layer_func
 def _fast_causal_aconv1d(tensor, opt):
     # default options
-    opt += stf.sg_opt(size=2, rate=1, pad='SAME')
+    opt += stf.sg_opt(size=2, rate=1, pad='SAME', summary=True)
 
     # parameter tf.sg_initializer
-    w = stf.sg_initializer.he_uniform('W', (opt.size, opt.in_dim, opt.dim))
-    b = stf.sg_initializer.constant('b', opt.dim) if opt.bias else 0
+    w = stf.sg_initializer.he_uniform('W', (opt.size, opt.in_dim, opt.dim),
+                                      summary=opt.summary)
+    if opt.bias:
+        b = stf.sg_initializer.constant('b', opt.dim, summary=opt.summary)
+    else:
+        b = 0
 
     pad_len = (opt.size - 1) * opt.rate  # padding size
     x = tf.pad(tensor, [[0, 0], [pad_len, 0], [0, 0]])

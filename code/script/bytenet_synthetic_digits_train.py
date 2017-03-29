@@ -12,6 +12,7 @@ dataset = SyntheticDigits(batch_size=16, examples=1000, seed=10)
 dataset_test = SyntheticDigits(batch_size=50, examples=50, seed=11)
 
 model = ByteNet(dataset, num_blocks=3, latent_dim=20,
+                deep_summary=False,
                 save_dir='asset/bytenet_synthetic_digits')
 model.add_metric(MisclassificationRate(dataset_test))
 model.add_metric(ModelLoss(dataset_test))

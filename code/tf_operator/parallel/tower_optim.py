@@ -6,25 +6,31 @@ from code.tf_operator.parallel.tower_gradient import tower_gradient
 from code.tf_operator.train.optimizer import optimizer
 
 
-def tower_optim(losses, **kwargs):
-    opt = optimizer(**kwargs)
+def tower_optim(losses, summary=None, **kwargs):
+    # get options
+    opt = stf.sg_opt(summary=summary) + stf.sg_get_context() \
+                                      + stf.sg_opt(summary=True)
+
+    # get optimizer
+    optim = optimizer(**kwargs)
 
     # get trainable variables
     var_list = tf.trainable_variables()
 
     # calc gradients (represented as (grad, var) pairs) like compute_gradients
-    gradient = tower_gradient(opt, losses, var_list)
+    gradient = tower_gradient(optim, losses, var_list)
 
     # add summary
-    for g, v in gradient:
-        # exclude batch normal statics
-        if 'mean' not in v.name and 'variance' not in v.name \
-                and 'beta' not in v.name and 'gamma' not in v.name:
-            stf.sg_summary_gradient(v, gradient=g)
+    if opt.summary:
+        for g, v in gradient:
+            # exclude batch normal statics
+            if 'mean' not in v.name and 'variance' not in v.name \
+                    and 'beta' not in v.name and 'gamma' not in v.name:
+                stf.sg_summary_gradient(v, gradient=g)
 
     # gradient update op
     with tf.device('/cpu:0'):
-        grad_op = opt.apply_gradients(
+        grad_op = optim.apply_gradients(
             gradient, global_step=stf.sg_global_step()
         )
 

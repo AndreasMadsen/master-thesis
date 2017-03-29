@@ -6,7 +6,7 @@ from code.tf_operator.parallel.tower_gradient import tower_gradient
 from code.tf_operator.train.optimizer import optimizer
 
 
-def distributed_tower_optim(losses, **kwargs):
+def distributed_tower_optim(losses, summary=None, **kwargs):
     '''
     losses = {
         cat0: [(gpu0, loss0), (gpu2, loss1)],
@@ -14,8 +14,12 @@ def distributed_tower_optim(losses, **kwargs):
     }
     distribution = [cat0, cat1]
     '''
+    # get options
+    opt = stf.sg_opt(summary=summary) + stf.sg_get_context() \
+                                      + stf.sg_opt(summary=True)
 
-    opt = optimizer(**kwargs)
+    # get optimizer
+    optim = optimizer(**kwargs)
 
     gradient = []
     var_list = tf.trainable_variables()
@@ -27,18 +31,19 @@ def distributed_tower_optim(losses, **kwargs):
 
         # calc gradients (represented as (grad, var) pairs) like
         # compute_gradients
-        gradient += tower_gradient(opt, category_tower_losses, category_vars)
+        gradient += tower_gradient(optim, category_tower_losses, category_vars)
 
     # add summary
-    for g, v in gradient:
-        # exclude batch normal statics
-        if 'mean' not in v.name and 'variance' not in v.name \
-                and 'beta' not in v.name and 'gamma' not in v.name:
-            stf.sg_summary_gradient(v, gradient=g)
+    if opt.summary:
+        for g, v in gradient:
+            # exclude batch normal statics
+            if 'mean' not in v.name and 'variance' not in v.name \
+                    and 'beta' not in v.name and 'gamma' not in v.name:
+                stf.sg_summary_gradient(v, gradient=g)
 
     # gradient update op
     with tf.device('/cpu:0'):
-        grad_op = opt.apply_gradients(
+        grad_op = optim.apply_gradients(
             gradient, global_step=stf.sg_global_step()
         )
 

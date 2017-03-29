@@ -22,7 +22,7 @@ def seq_causal_aconv1d(tensor, opt):
       A `Tensor` with the same type as `tensor`.
     """
     # default options
-    opt += stf.sg_opt(previous=tuple(), size=2, rate=1)
+    opt += stf.sg_opt(previous=tuple(), size=2, rate=1, summary=True)
 
     # check length of previous
     if (len(opt.previous) != (opt.size - 1) * opt.rate):
@@ -35,9 +35,12 @@ def seq_causal_aconv1d(tensor, opt):
     batches = tf.shape(tensor)[0]
 
     # parameter tf.sg_initializer
-    w = stf.sg_initializer.he_uniform('W', (opt.size, opt.in_dim, opt.dim))
-    # w = stf.sg_initializer.he_uniform('W', (1, opt.size, opt.in_dim, opt.dim))
-    b = stf.sg_initializer.constant('b', opt.dim) if opt.bias else 0
+    w = stf.sg_initializer.he_uniform('W', (opt.size, opt.in_dim, opt.dim),
+                                      summary=opt.summary)
+    if opt.bias:
+        b = stf.sg_initializer.constant('b', opt.dim, summary=opt.summary)
+    else:
+        b = 0
 
     # construct "image" for convolution
     image = [
