@@ -35,7 +35,8 @@ class Tokenizer:
             encoding='utf-8'
         )
 
-        self.tokenized = [line.rstrip() for line in result.stdout.split('\n')]
+        self.tokenized = [line.rstrip()
+                          for line in result.stdout.rstrip().split('\n')]
 
     def __iter__(self):
         if self.tokenized is None:
