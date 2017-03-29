@@ -135,15 +135,11 @@ class Model:
             labels = self.sample_inference_model(x, samples=samples, **kwargs)
             return labels[:, 0]
 
-    def predict_from_dataset(self, dataset: Dataset,
-                             show_eos: bool=True,
-                             **kwargs) -> Iterator[str]:
-
+    def _predict_from_dataset_queue(self, dataset, **kwargs):
         # build inference_model
         with stf.sg_context(summary=self._deep_summary):
             label = self.inference_model(dataset.source, **kwargs)
 
-        # run graph for translation
         with tf.Session() as sess:
             self.restore(sess)
             with stf.sg_queue_context():
@@ -152,35 +148,79 @@ class Model:
                         (dataset.source, dataset.target, label)
                     )
 
-                    yield from zip(
-                        self.dataset.decode_as_batch(source,
-                                                     show_eos=show_eos),
-                        self.dataset.decode_as_batch(target,
-                                                     show_eos=show_eos),
-                        self.dataset.decode_as_batch(translation,
-                                                     show_eos=show_eos)
-                    )
+                    yield source, target, translation
+
+    def _predict_from_dataset_feed(self, dataset, **kwargs):
+        observations = dataset.num_observation
+
+        # build inference_model
+        x = stf.placeholder(dtype=tf.int32, shape=(None, None))
+        with stf.sg_context(summary=self._deep_summary):
+            label = self.inference_model(x, **kwargs)
+
+        with tf.Session() as sess:
+            self.restore(sess)
+            with stf.sg_queue_context():
+                for batch in dataset.batch_iterator():
+                    # seperate source and target and encode batch
+                    source, target = zip(*batch)
+                    source = self.dataset.encode_as_batch(source)
+                    target = self.dataset.encode_as_batch(target)
+
+                    # translate batch
+                    translation = sess.run(label, {x: source})
+
+                    # return results
+                    yield source, target, translation
+
+    def predict_from_dataset(self, dataset: Dataset,
+                             show_eos: bool=True,
+                             use_queue: bool=True,
+                             **kwargs) -> Iterator[Tuple[str, str, str]]:
+        if use_queue:
+            evaluator = self._predict_from_dataset_queue(dataset, **kwargs)
+        else:
+            evaluator = self._predict_from_dataset_feed(dataset, **kwargs)
+
+        for source, target, translation in evaluator:
+
+            # unpack and decode result
+            yield from zip(
+                self.dataset.decode_as_batch(source,
+                                             show_eos=show_eos),
+                self.dataset.decode_as_batch(target,
+                                             show_eos=show_eos),
+                self.dataset.decode_as_batch(translation,
+                                             show_eos=show_eos)
+            )
 
     def predict_from_str(self, sources: List[str],
                          show_eos: bool=True,
-                         **kwargs) -> List[str]:
+                         batch_size: int=16,
+                         **kwargs) -> Iterator[str]:
         sources = self.dataset.encode_as_batch(sources)
+        observations = sources.shape[0]
 
         # build model
-        x = stf.placeholder(dtype=tf.int32, shape=sources.shape)
+        x = stf.placeholder(dtype=tf.int32, shape=(None, *sources.shape[1:]))
         with stf.sg_context(summary=self._deep_summary):
             label = self.inference_model(x, **kwargs)
 
         # run graph for translation
         with tf.Session() as sess:
             self.restore(sess)
-            pred = sess.run(label, {x: sources})
+            for start, end in zip(
+                range(0, observations, batch_size),
+                range(batch_size, observations + batch_size, batch_size)
+            ):
+                pred = sess.run(label, {x: sources[start:end]})
 
-        return self.dataset.decode_as_batch(pred, show_eos=show_eos)
+                yield from self.dataset.decode_as_batch(pred,
+                                                        show_eos=show_eos)
 
     def sample_from_dataset(self, dataset: Dataset,
                             show_eos: bool=True, samples: int=1,
-                            **kwargs) -> Iterator[str]:
+                            **kwargs) -> Iterator[Tuple[str, str, str]]:
 
         # build inference_model
         with stf.sg_context(summary=self._deep_summary):
@@ -209,20 +249,25 @@ class Model:
 
     def sample_from_str(self, sources: List[str],
                         show_eos: bool=True, samples: int=1,
-                        **kwargs) -> List[str]:
+                        **kwargs) -> Iterator[List[str]]:
         sources = self.dataset.encode_as_batch(sources)
+        observations = sources.shape[0]
 
         # build model
-        x = stf.placeholder(dtype=tf.int32, shape=sources.shape)
+        x = stf.placeholder(dtype=tf.int32, shape=(None, *sources.shape[1:]))
         with stf.sg_context(summary=self._deep_summary):
-            label = self.sample_inference_model(x, samples=samples, **kwargs)
+            label = self.sample_inference_model(x, **kwargs)
 
         # run graph for translation
         with tf.Session() as sess:
             self.restore(sess)
-            pred = sess.run(label, {x: sources})
+            for start, end in zip(
+                range(0, observations, batch_size),
+                range(batch_size, observations + batch_size, batch_size)
+            ):
+                pred = sess.run(label, {x: sources[start:end]})
 
-        return [
-            self.dataset.decode_as_batch(batch, show_eos=show_eos)
-            for batch in pred
-        ]
+                yield from (
+                    self.dataset.decode_as_batch(batch, show_eos=show_eos)
+                    for batch in pred
+                )

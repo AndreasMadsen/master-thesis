@@ -37,8 +37,8 @@ def test_bytenet_on_digits():
     model.train(max_ep=300, lr=0.05, tqdm=False)
 
     test_greedy_predict = model.predict_from_str(test_source, reuse=True)
-    assert_equal(test_greedy_predict, test_expect)
+    assert_equal(list(test_greedy_predict), test_expect)
 
     test_beam_predict = model.predict_from_str(test_source,
                                                samples=5, reuse=True)
-    assert_equal(test_beam_predict, test_expect)
+    assert_equal(list(test_beam_predict), test_expect)

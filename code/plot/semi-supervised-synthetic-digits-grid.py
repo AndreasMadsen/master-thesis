@@ -11,18 +11,22 @@ import tensorflow as tf
 
 from code.dataset import SyntheticDigits
 from code.model import SemiSupervisedByteNet
+from code.model.util.asset_dir import asset_dir
 from code.plot.util.ggplot import GGPlot
 
 # get saved models
-this_dir = path.dirname(path.realpath(__file__))
-asset_dir = path.realpath(path.join(this_dir, '..', '..', 'hpc_asset'))
-data_dir = path.join(asset_dir, 'semi_bytenet_synthetic_digits_grid')
+data_dir = path.join(asset_dir(), 'semi_bytenet_synthetic_digits_grid')
 
 saved_models = list(filter(lambda filename: filename[0] != '.',
                            os.listdir(data_dir)))
 
 # prepear train dataset (just for setting the vocabulary)
 dataset_train = SyntheticDigits(batch_size=8, examples=1, seed=10, tqdm=False)
+
+# compute misclassification rate
+dataset_test = SyntheticDigits(batch_size=8, examples=1024,
+                               seed=12, repeat=False, shuffle=False,
+                               tqdm=False)
 
 # build graph
 model = SemiSupervisedByteNet(
@@ -37,22 +41,23 @@ saved_models_pbar = tqdm(saved_models, unit='model')
 for saved_model_dirname in saved_models_pbar:
     saved_models_pbar.set_description(f'{saved_model_dirname}')
 
+    # get model parameters
     match = re.search('^train_([0-9]+)_semi_([0-9]+)_factor_(0\.[0-9]+)$',
                       saved_model_dirname)
 
-    # set save dir
+    # set saved model dir
     model.set_save_dir(path.join(data_dir, saved_model_dirname))
 
-    # compute misclassification rate
-    dataset_test = SyntheticDigits(batch_size=8, examples=1024,
-                                   seed=12, repeat=False, shuffle=False)
-
-    miss_rate_list = []
-    predict = model.predict_from_dataset(dataset_test, show_eos=True,
-                                         reuse=True)
+    # compute translation and pair with target
+    predict = model.predict_from_dataset(dataset_test,
+                                         use_queue=False,
+                                         show_eos=True, reuse=True)
     predict_pbar = tqdm(predict,
                         total=dataset_test.num_observation,
                         unit='obs', desc='translating')
+
+    # compute misclassification rate
+    miss_rate_list = []
     for source, target, translation in predict_pbar:
         match_count = sum(target_char == translation_char
                           for target_char, translation_char

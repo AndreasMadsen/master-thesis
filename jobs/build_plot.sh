@@ -3,7 +3,7 @@
 #BSUB -J build-plot
 #BSUB -n 1
 #BSUB -R "rusage[ngpus_excl_p=1]"
-#BSUB -W 10:00
+#BSUB -W 02:00
 #BSUB -u amwebdk@gmail.com
 #BSUB -B
 #BSUB -N
