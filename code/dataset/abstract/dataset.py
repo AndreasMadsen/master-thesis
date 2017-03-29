@@ -1,10 +1,11 @@
 
-from typing import TypeVar, Iterator, Tuple
+from typing import TypeVar, Iterator, List, Tuple
 import os
 import os.path as path
 import math
 import abc
 import tempfile
+import itertools
 import multiprocessing
 from contextlib import contextmanager
 
@@ -25,6 +26,7 @@ class Dataset:
     target: tf.Tensor
     num_observation: int
     num_batch: int
+    batch_size: int
     data_file: str
     queue: SequenceQueue
 
@@ -121,6 +123,7 @@ class Dataset:
             # calculate number of batches
             self.num_observation = histogram.observations
             self.num_batch = math.ceil(histogram.observations / batch_size)
+            self.batch_size = batch_size
 
     def _encode_pair(self, source, target):
         # encode data
@@ -145,3 +148,15 @@ class Dataset:
     @abc.abstractmethod
     def encode_as_array(self, decoded: DecodeType) -> np.ndarray:
         pass
+
+    def batch_iterator(self) -> Iterator[List[Tuple[str, str]]]:
+        args = [iter(self)] * self.batch_size
+        batches = itertools.zip_longest(*args, fillvalue=None)
+
+        for batch in batches:
+            # remove filled elements
+            batch = list(batch)
+            if None in batch:
+                batch = batch[:batch.index(None)]
+
+            yield batch
