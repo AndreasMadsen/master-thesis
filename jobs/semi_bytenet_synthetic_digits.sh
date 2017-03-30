@@ -3,7 +3,7 @@
 #BSUB -J semi-bytenet-synthetic-digits
 #BSUB -n 4
 #BSUB -R "rusage[ngpus_excl_p=2]"
-#BSUB -W 02:00
+#BSUB -W 04:30
 #BSUB -u amwebdk@gmail.com
 #BSUB -B
 #BSUB -N
