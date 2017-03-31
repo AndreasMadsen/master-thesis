@@ -11,6 +11,7 @@
 #BSUB -e log-%J.err
 
 export BASE_SAVE_DIR=/work1/$USER/kandidat
+export ASSET_DIR=$BASE_SAVE_DIR/asset
 export PYTHONPATH=./:./sugartensor/
 source ~/stdpy3/bin/activate
 
