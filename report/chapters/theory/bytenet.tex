@@ -46,6 +46,7 @@ The decoder is very similar to the encoder, the differences exists such that the
 Masking the convolution means that only the part of the convolution kernel that looks at the past is preserved. This is equivalent to fixing the right side (the future side) of the preserved kernel to zero.
 
 \subsection{Hierarchical Dilated Convolution}
+\label{sec:theory:bytenet:hierarchical-dilated-convolution}
 
 Each \textit{ByteNet Residual Block} can conceptually be seen as just a modified dilated convolution. This conceptual model is usefull for understanding the main trick that makes \textit{ByteNet} so powerful, \textit{Hierarchical Dilated Convolution}.
 

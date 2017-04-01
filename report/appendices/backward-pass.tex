@@ -1,5 +1,68 @@
 \chapter{Backward Pass}
 
+\section{Dilated Convolution}
+\label{appendix:backward-pass:dilated-convolution}
+
+\begin{equationbox}[H]
+\begin{equation*}
+\begin{aligned}
+z_{h_\ell}(t) &= (a_{\ell-1} *_r w_{:, h_\ell})(t) = \sum_{h_{\ell-1}}^{H_{\ell-1}} \sum_{i} a_{h_{\ell-1}}(t + r\,i) w_{h_{\ell-1}, h_\ell}(i) \\
+a_{h_\ell}(t) &= \theta(z_{h_\ell}(t))
+\end{aligned}
+\end{equation*}
+\caption{Forward equations for Dilated Convolution.}
+\end{equationbox}
+
+For deriving the backward pass the padding will be ignored, this is not a big issue as the input image $a_{\ell-1}$ can easily be extended. It also turns out that the final derivative makes the generalization quite intuitive.
+
+For the backward pass we just which to derive:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}(i)}
+\end{equation}
+
+The weight $w_{h_{\ell-1},h_\ell}(i)$ affects all time steps, thus the chain rule yields:
+\begin{equation}
+\begin{aligned}
+\frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}(i)} &= \sum_{t} \frac{\partial \mathcal{L}}{\partial z_{h_\ell}(t)} \frac{z_{h_\ell}(t)}{\partial w_{h_{\ell-1},h_\ell}(i)} \\
+&= \sum_{t} \delta_{h_\ell}(t) a_{h_{\ell-1}}(t + r\,i)
+\end{aligned}
+\end{equation}
+
+Here $\delta_{h_\ell}(t)$ is defined as:
+\begin{equation}
+\delta_{h_\ell}(t) \defeq \frac{\partial \mathcal{L}}{\partial z_{h_\ell}}(t)
+\end{equation}
+
+To calculate $\delta_{h_\ell}(t)$ the chain rule is used again, the first step is easy:
+\begin{equation}
+\delta_{h_\ell}(t) = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}(t)} = \frac{\partial \mathcal{L}}{\partial a_{h_\ell}(t)} \frac{\partial a_{h_\ell}(t)}{\partial z_{h_\ell}(t)} = \theta'(z_{h_\ell}(t)) \frac{\partial \mathcal{L}}{\partial a_{h_\ell}(t)}
+\end{equation}
+
+The next steps are more complicated, $a_{h_\ell}(t)$ affects $z_{h_{\ell+1}}(t')$ for all channels in the next layer, and all times $t'$ that are within the kernel width of $t$.
+\begin{equation*}
+\delta_{h_\ell}(t) = \theta'(z_{h_\ell}(t)) \frac{\partial \mathcal{L}}{\partial a_{h_\ell}(t)} = \theta'(z_{h_\ell}(t)) \sum_{h_{\ell+1}=1}^{H_{\ell+1}} \sum_{i} \frac{\partial \mathcal{L}}{\partial z_{h_{\ell+1}}(t + r\, i)} \frac{\partial z_{h_{\ell+1}}(t + r\, i)}{\partial a_{h_\ell}(t)}
+\end{equation*}
+
+To derive $\frac{\partial z_{h_{\ell+1}}(t + r\, i)}{\partial a_{h_\ell}(t)}$ it helps to write out $z_{h_{\ell+1}}(t + r\, i)$.
+\begin{equation}
+z_{h_{\ell+1}}(t + r\, i) = (a_{\ell} * w_{:,h_\ell})(t + r\, i) = \sum_{h_\ell}^{H_\ell} \sum_{i'} a_{h_\ell}(t + r\, i + r\, i') w_{h_\ell, h_{\ell+1}}(i')
+\end{equation}
+From this one can observe that $t + r\, i + r\, i' = t$ only occurs when $i' = -i$, thus the $\delta_{h_\ell}(t)$ derivative becomes:
+\begin{equation}
+\begin{aligned}
+\delta_{h_\ell}(t) &= \theta'(z_{h_\ell}(t)) \sum_{h_{\ell+1}=1}^{H_{\ell+1}} \sum_{i} \frac{\partial \mathcal{L}}{\partial z_{h_{\ell+1}}(t + r\, i)} w_{h_\ell, h_{\ell+1}}(-i) \\
+&= \theta'(z_{h_\ell}(t)) \sum_{h_{\ell+1}=1}^{H_{\ell+1}} \sum_{i} \delta_{h_{\ell+1}}(t + r\, i) w_{h_\ell, h_{\ell+1}}(-i)
+\end{aligned}
+\end{equation}
+
+This is actually a dilated convolution, just where the weight is flipped (rotated).
+\begin{equation}
+\delta_{h_\ell}(t) = \theta'(z_{h_\ell}(t)) (\delta_{\ell + 1} *_r \mathrm{rot}(w_{:, h_{\ell + 1}}))(t)
+\end{equation}
+
+This is the deivative for the dilated convolution. Because the deivative is a convolution itself, it naturally generalizes to any padding implementation. 
+
+\clearpage
 \section{Batch Normalization}
 \label{appendix:backward-pass:batch-norm}
 
@@ -10,7 +73,7 @@ Activation:
 \begin{aligned}
 z_{h_\ell}^{(i)} &= \sum_{h_{\ell-1}}^{H_{\ell-1}} w_{h_{\ell-1},h_\ell} a_{h_\ell-1}^{(i)} \\
 \hat{z}_{h_\ell}^{(i)} &= \gamma_{h_\ell} \frac{z_{h_\ell}^{(i)} - \mu_{h_\ell}^{\mathcal{B}}}{\sqrt{\sigma_{h_\ell}^{2,\mathcal{B}} + \epsilon}} + \beta_{h_\ell} \\
-a_{h_\ell}^{(i)} &= \theta\left(z_{h_\ell}^{(i)}\right)
+a_{h_\ell}^{(i)} &= \theta\left(\hat{z}_{h_\ell}^{(i)}\right)
 \end{aligned}
 \end{equation*}
 Statistics:
@@ -72,15 +135,16 @@ Finally the gradient with respect to $\gamma_{h_\ell}$ and $\beta_{h_\ell}$ can 
 
 These only depend on $\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}}$ which has already been derived.
 
+\clearpage
 \section{Layer Normalization}
 
 Lets repeat the forward pass:
-\begin{equationbox}
+\begin{equationbox}[H]
 \begin{equation*}
 \begin{aligned}
 z_{h_\ell} &= \sum_{h_{\ell-1}}^{H_{\ell-1}} w_{h_{\ell-1},h_\ell} a_{h_\ell-1} \\
 \hat{z}_{h_\ell} &= \gamma_{h_\ell} \frac{z_{h_\ell} - \mu_{\ell}}{\sqrt{\sigma_{\ell}^2 + \epsilon}} + \beta_{h_\ell} \\
-a_{h_\ell} &= \theta\left(z_{h_\ell}\right)
+a_{h_\ell} &= \theta\left(\hat{z}_{h_\ell}\right)
 \end{aligned}
 \end{equation*}
 Statistics:
@@ -120,6 +184,10 @@ From \eqref{eq:appendix:layer-norm:delta} the following derivatives also needs t
 \end{equation}
 
 As with everything else this is done by using the chain rule:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} = \frac{\partial \mathcal{L}}{\partial a_{h_\ell}} \frac{\partial a_{h_\ell}}{\partial \hat{z}_{h_\ell}} = \theta'(\hat{z}_{h_\ell}) \frac{\partial \mathcal{L}}{\partial a_{h_\ell}} = \theta'(\hat{z}_{h_\ell}) \sum_{h_{\ell+1}}^{H_{\ell+1}} \delta_{h_{\ell+1}} w_{h_\ell, h_{\ell+1}}
+\end{equation}
+
 \begin{equation}
 \frac{\partial \mathcal{L}}{\partial \sigma^2_\ell} = \sum_{h_\ell}^{H_\ell} \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \frac{\partial \hat{z}_{h_\ell}}{\partial \sigma_\ell^2} = \sum_{h_\ell}^{H_\ell} \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \gamma_{h_\ell} (z_{h_\ell} - \mu_\ell) \left(- \frac{1}{2}\right) \left(\sigma_\ell^2 + \epsilon\right)^{-\frac{2}{3}}
 \end{equation}
