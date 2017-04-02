@@ -1,7 +1,7 @@
 
 .PHONY: test report report-auto report-spellcheck report-clean
 
-export PYTHONPATH=./
+export PYTHONPATH=./:sugartensor/
 XELATEX=xelatex -file-line-error -interaction=nonstopmode
 
 # --with-process-isolation is a plugin from "nosepipe"
