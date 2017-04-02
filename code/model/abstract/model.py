@@ -41,6 +41,9 @@ class Model:
     def _latest_checkpoint(self) -> str:
         return tf.train.latest_checkpoint(self._save_dir)
 
+    def _options_context(self) -> Any:
+        return stf.sg_context(summary=self._deep_summary, fused=True)
+
     def add_metric(self, metric: 'code.metric.abstract.Metric') -> None:
         self._metrics.append(metric)
 
@@ -62,7 +65,7 @@ class Model:
               lr=0.001,
               **kwargs) -> None:
         # build training model
-        with stf.sg_context(summary=self._deep_summary):
+        with self._options_context():
             loss, losses = self.train_model(reuse=reuse)
         losses_ops = flatten_losses(losses)
 
@@ -74,7 +77,7 @@ class Model:
         # compute update
         with tf.variable_scope('train', reuse=reuse,
                                values=[loss] + losses_ops + eval_metric):
-            with stf.sg_context(summary=self._deep_summary):
+            with self._options_context():
                 update = self._update_model(losses, lr=lr, **kwargs)
 
         # save metadata files for embeddings
@@ -137,7 +140,7 @@ class Model:
 
     def _predict_from_dataset_queue(self, dataset, **kwargs):
         # build inference_model
-        with stf.sg_context(summary=self._deep_summary):
+        with self._options_context():
             label = self.inference_model(dataset.source, **kwargs)
 
         with tf.Session() as sess:
@@ -155,7 +158,7 @@ class Model:
 
         # build inference_model
         x = stf.placeholder(dtype=tf.int32, shape=(None, None))
-        with stf.sg_context(summary=self._deep_summary):
+        with self._options_context():
             label = self.inference_model(x, **kwargs)
 
         with tf.Session() as sess:
@@ -203,7 +206,7 @@ class Model:
 
         # build model
         x = stf.placeholder(dtype=tf.int32, shape=(None, *sources.shape[1:]))
-        with stf.sg_context(summary=self._deep_summary):
+        with self._options_context():
             label = self.inference_model(x, **kwargs)
 
         # run graph for translation
@@ -223,7 +226,7 @@ class Model:
                             **kwargs) -> Iterator[Tuple[str, str, str]]:
 
         # build inference_model
-        with stf.sg_context(summary=self._deep_summary):
+        with self._options_context():
             label = self.sample_inference_model(dataset.source,
                                                 samples=samples,
                                                 **kwargs)
@@ -255,7 +258,7 @@ class Model:
 
         # build model
         x = stf.placeholder(dtype=tf.int32, shape=(None, *sources.shape[1:]))
-        with stf.sg_context(summary=self._deep_summary):
+        with self._options_context():
             label = self.sample_inference_model(x, **kwargs)
 
         # run graph for translation

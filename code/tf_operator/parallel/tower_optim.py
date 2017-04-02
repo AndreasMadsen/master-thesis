@@ -6,6 +6,21 @@ from code.tf_operator.parallel.tower_gradient import tower_gradient
 from code.tf_operator.train.optimizer import optimizer
 
 
+def _find_variable(op):
+    def recursive(nested_op):
+        if nested_op.type == 'VariableV2':
+            yield nested_op
+        else:
+            for inp in nested_op.inputs:
+                yield from recursive(inp.op)
+
+    # By pure change the variable that we want is the first,
+    # this could be quite error prone.
+    variable = next(recursive(op))
+
+    return variable
+
+
 def tower_optim(losses, summary=None, **kwargs):
     # get options
     opt = stf.sg_opt(summary=summary) + stf.sg_get_context() \
@@ -42,11 +57,21 @@ def tower_optim(losses, summary=None, **kwargs):
     # avegers conveges very quickly this does not have a pratical effect.
     unique_update_op = dict()
     for tensor in update_op:
-        if tensor.op.type != 'Assign':
-            raise TypeError('tensor {tensor} is not an assign op')
+        variable = _find_variable(tensor.op)
+        variable_name = variable.name.split('/')[-1]
+
+        # because the variable search is quite hackish, validate that
+        # the update op name is correct.
+        if variable_name not in [
+            'moving_variance', 'moving_mean', 'variance', 'mean'
+        ]:
+            raise TypeError(
+                f'invalid variable {variable.name}' +
+                f' ({variable_name}) found in {tensor.name}'
+            )
 
         # get the name of the variable that the assign op will change
-        unique_update_op[tensor.op.inputs[0].name] = tensor
+        unique_update_op[variable.name] = tensor
     update_op = list(unique_update_op.values())
 
     return [grad_op] + update_op
