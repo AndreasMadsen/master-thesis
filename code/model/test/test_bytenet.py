@@ -4,6 +4,7 @@ from nose.tools import assert_equal
 import shutil
 import os.path as path
 
+import tensorflow as tf
 import sugartensor as stf
 
 from code.dataset import SyntheticDigits
@@ -35,6 +36,9 @@ def test_bytenet_on_digits():
                     gpus=1,
                     save_dir='asset/bytenet_local_quick_test')
     model.train(max_ep=300, lr=0.05, tqdm=False)
+
+    # hack to allow inference after Superviser Session is stoped
+    tf.get_default_graph()._unsafe_unfinalize()
 
     test_greedy_predict = model.predict_from_str(test_source, reuse=True)
     assert_equal(list(test_greedy_predict), test_expect)
