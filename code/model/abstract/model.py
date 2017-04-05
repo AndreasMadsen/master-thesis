@@ -42,7 +42,7 @@ class Model:
         return tf.train.latest_checkpoint(self._save_dir)
 
     def _options_context(self) -> Any:
-        return stf.sg_context(summary=self._deep_summary, fused=True)
+        return stf.sg_context(summary=self._deep_summary, scale=False)
 
     def add_metric(self, metric: 'code.metric.abstract.Metric') -> None:
         self._metrics.append(metric)
@@ -91,6 +91,11 @@ class Model:
         # train
         sess_config = tf.ConfigProto(allow_soft_placement=allow_soft_placement,
                                      log_device_placement=log_device_placement)
+        # XLA will be used on DTU-HPC and will JIT compile GPU kernels
+        if 'TF_USE_XLA' in os.environ:
+            config.graph_options.optimizer_options.global_jit_level = \
+                tf.OptimizerOptions.ON_1
+
         with tf.Session(config=sess_config) as sess:
             self._train_loop(loss, update,
                              ep_size=self.dataset.num_batch,
