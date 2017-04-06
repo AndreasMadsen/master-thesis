@@ -40,16 +40,16 @@ def seq_decoder_residual_block(tensor, previous,
         in_dim = tensor.get_shape().as_list()[-1]
 
         # reduce dimension
-        pre_aconv = tensor.sg_bypass(act='relu', ln=True,
+        pre_aconv = tensor.sg_bypass(act='relu', ln=True, scale=False,
                                      name="activation")
         pre_aconv = seq_dense(pre_aconv, dim=in_dim // 2,
-                              act='relu', ln=True,
+                              act='relu', ln=True, scale=False,
                               name="reduce-dim")
 
         # 1xk conv dilated
         aconv = seq_causal_aconv1d(pre_aconv, previous=previous,
                                    size=size, rate=rate,
-                                   act='relu', ln=True,
+                                   act='relu', ln=True, scale=False,
                                    name="conv-dilated")
 
         # dimension recover and residual connection

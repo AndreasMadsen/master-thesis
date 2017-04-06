@@ -16,15 +16,15 @@ def parallel_decoder_residual_block(tensor,
         in_dim = tensor.get_shape().as_list()[-1]
 
         # reduce dimension
-        pre_aconv = tensor.sg_bypass(act='relu', ln=True,
+        pre_aconv = tensor.sg_bypass(act='relu', ln=True, scale=False,
                                      name="activation")
         pre_aconv = pre_aconv.sg_conv1d(size=1, dim=in_dim // 2,
-                                        act='relu', ln=True,
+                                        act='relu', ln=True, scale=False,
                                         name="reduce-dim")
 
         # 1xk conv dilated
         aconv = causal_aconv1d(pre_aconv, size=size, rate=rate,
-                               act='relu', ln=True,
+                               act='relu', ln=True, scale=False,
                                low_memory=low_memory,
                                name="conv-dilated")
 

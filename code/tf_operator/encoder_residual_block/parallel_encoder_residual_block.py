@@ -15,16 +15,16 @@ def parallel_encoder_residual_block(tensor,
         in_dim = tensor.get_shape().as_list()[-1]
 
         # reduce dimension
-        pre_aconv = tensor.sg_bypass(act='relu', bn=True,
+        pre_aconv = tensor.sg_bypass(act='relu', bn=True, scale=False,
                                      name="activation")
         pre_aconv = pre_aconv.sg_conv1d(size=1, dim=in_dim // 2,
-                                        act='relu', bn=True,
+                                        act='relu', bn=True, scale=False,
                                         name="reduce-dim")
 
         # 1xk conv dilated
         aconv = aconv1d(pre_aconv,
                         size=size, rate=rate,
-                        act='relu', bn=True,
+                        act='relu', bn=True, scale=False,
                         name="conv-dilated")
 
         # dimension recover and residual connection
