@@ -44,7 +44,12 @@ def tower_optim(losses, summary=None, **kwargs):
                 stf.sg_summary_gradient(v, gradient=g)
 
     # gradient update op
-    with tf.device('/cpu:0'):
+    if len(losses) > 1:
+        with tf.device('/cpu:0'):
+            grad_op = optim.apply_gradients(
+                gradient, global_step=stf.sg_global_step()
+            )
+    else:
         grad_op = optim.apply_gradients(
             gradient, global_step=stf.sg_global_step()
         )
