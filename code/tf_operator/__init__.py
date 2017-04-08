@@ -7,6 +7,7 @@ from code.tf_operator.bytenet_translator import *
 from code.tf_operator.cross_entropy import *
 from code.tf_operator.debug import *
 from code.tf_operator.decoder_residual_block import *
+from code.tf_operator.device import *
 from code.tf_operator.embedding import *
 from code.tf_operator.encoder_residual_block import *
 from code.tf_operator.math import *
