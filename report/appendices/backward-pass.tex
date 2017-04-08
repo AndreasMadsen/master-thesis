@@ -27,6 +27,7 @@ The weight $w_{h_{\ell-1},h_\ell}(i)$ affects all time steps, thus the chain rul
 &= \sum_{t} \delta_{h_\ell}(t) a_{h_{\ell-1}}(t + r\,i)
 \end{aligned}
 \end{equation}
+\todo[inline]{somehow this can be rewritten to a convolution: $(\delta_{h_\ell} * rot(a_{h_{\ell-1}}))(i)$, see \url{https://grzegorzgwardys.wordpress.com/2016/04/22/8/}}
 
 Here $\delta_{h_\ell}(t)$ is defined as:
 \begin{equation}

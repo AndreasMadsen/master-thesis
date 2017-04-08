@@ -1,4 +1,5 @@
 \section{ByteNet}
+\label{sec:theory:bytenet}
 
 The ByteNet model is an alternative approach to neural machine translation, it specifically focuses on having linear computational complexity, having a resolution preserving encoding, and be a charecter-level translation model \cite{bytenet}. This is somewhat diffrent from existing popular models such as the Sutskever 2014 model \cite{sutskever-2014-nmt} and the attention based Bahdanau 2015 model \cite{bahdanau-2015-nmt}.
 
@@ -85,7 +86,7 @@ The input to the encoder is the source sequences mapped using an embedding matri
 
 An interresting effect of this network is that all layers are invariant to adding bais term. The encoder embedding and encoder layers are invariant because of Batch-Normalization. The decoder embedding and decoder layers are invariant because of Layer-Normalization. The final dense layer is invariant because of the following softmax.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[scale=1]{theory/bytenet-network.pdf}
     \caption{The training network for the ByteNet Model, where the shifted target sequence is feed into the network. In the inference network the shifted target sequence is replaced by the $\mathrm{argmax}(\cdot)$ of the softmax output. ResBlock$(k, r)$ in the encoder refers to the Encoder-Residual-Block$(k, r)$, in the decoder it refers to Decoder-Residual-Block$(k, r)$.}

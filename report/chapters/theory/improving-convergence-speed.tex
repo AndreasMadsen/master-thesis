@@ -40,11 +40,21 @@ z_{h_\ell} = \sum_{h_{\ell-1}}^{H_{\ell-1}} w_{h_{\ell-1}, h_\ell} a_{h_{\ell-1}
 
 Finally to allow Batch Normalization to become the indendity function, two more parameters ($\gamma, \beta$) are added to the optimzation problem:
 \begin{equation}
-\hat{z}_{h_\ell} = \gamma_{h_\ell} \frac{z_{h_\ell} - \mathbb{E}[z_{h_\ell}]}{\sqrt{\textsc{Var}[z_{h_\ell}]}} + \beta_{h_\ell}, a_{h_\ell} = \sigma(\hat{z}_{h_\ell})
+\hat{z}_{h_\ell} = \gamma_{h_\ell} \frac{z_{h_\ell} - \mathbb{E}[z_{h_\ell}]}{\sqrt{\textsc{Var}[z_{h_\ell}]}} + \beta_{h_\ell}, a_{h_\ell} = \theta(\hat{z}_{h_\ell})
 \label{eq:theory:convergence:batch-norm}
 \end{equation}
 
 The backward pass for learning ($w, \gamma, \beta$) is rather complicated, but computationally completely feasible as long as the mini-batch size is small. See Appendix \ref{appendix:backward-pass:batch-norm} for the backward pass.
+
+In the special case that $\theta(\cdot)$ is multiplicative linear with respect to a scalar (i.e. $\theta(\alpha \hat{z}_{h_\ell}) = \alpha \theta(\hat{z}_{h_\ell})$) and the following layer isn't sensitive to a multplication factor, then $\gamma_{h_\ell}$ can be removed from the optimization. A common case is where $\theta(\cdot)$ is the ReLU function, in this case:
+\begin{equation}
+\begin{aligned}
+\alpha_{h_\ell} = \mathrm{ReLU}(\hat{z}_{h_\ell}) &= \gamma_{h_\ell} \mathrm{ReLU}\left(\frac{z_{h_\ell} - \mathbb{E}[z_{h_\ell}]}{\sqrt{\textsc{Var}[z_{h_\ell}]}} +  \frac{1}{\gamma_{h_\ell}}\beta_{h_\ell}\right)\\
+&= \gamma_{h_\ell} \mathrm{ReLU}\left(\frac{z_{h_\ell} - \mathbb{E}[z_{h_\ell}]}{\sqrt{\textsc{Var}[z_{h_\ell}]}} +  \tilde{\beta}_{h_\ell}\right)
+\end{aligned}
+\end{equation}
+
+In the next layer $\alpha_{h_\ell}$ is then multiplied by some other weight that $\gamma_{h_\ell}$ can be merged into. This simplification can often be applied and can be quite valuable as it removed some computations and futher simplifies the loss curvature.
 
 \subsubsection{Inference}
 
@@ -68,7 +78,6 @@ At inference $\hat{z}_{h_\ell}$ are then calculated using $\sigma^2_{\mathcal{B}
 
 Because it is the weight changes that causes an \textit{internal covariate shift}, the normalization should happen over all $z_{h_\ell}$ values that uses these weights. Thus in RNN the normalization should also be done over time, and in CNN the normalization should also happen over the ``image''. This works well for actual images, however in RNN and CNN that describes a causal relation, the mean and variance at any time step (e.g. $t=0$) will contain information from all time steps, which breaks the causalily of the network. This issue can be practially solves by not normalizing over time, however if the sequences aren't all of the same length then the mean and variance estimation for the last time step will be extremely poor.
 
-\clearpage
 \subsection{Layer Normalization}
 
 Layer normalization attemps to solve the issues that exists when Batch Normalization is applied to causal weight shareing networks. It does this by not normalization over the batch, but normalizing over the $\{z_{h_\ell}\}_{h_\ell=1}^{H_\ell}$ vector. \cite{layer-normalization}
@@ -103,6 +112,10 @@ Note that the bias $b_{h_\ell}$ is excluded here for a different reason than wha
 \end{equation*}
 but $ b_{h_\ell}$ then becomes redudant because of $\beta_{h_\ell}$.
 
+The backward pass for learning ($w, \gamma, \beta$) is like in batch normalization a bit complicated, see Appendix \ref{appendix:backward-pass:batch-norm} for the backward pass.
+
+Like in batch normalization the $\hat{z}_{h_\ell}$ calculation can be simplified if $\theta(\cdot)$ is scalar multiplicative linear (i.e. $\theta(\alpha \hat{z}_{h_\ell}) = \alpha \theta(\hat{z}_{h_\ell})$) and $\gamma_{h_\ell}$ can be merged into a weight in the following layer.
+
 \subsubsection{Properties}
 
 Batch Normalization and Layer Normalization have somewhat similar properties, as shown in Table \ref{table:convergence:layer-norm:properties}. \textit{Weight matrix re-centering invariance} is likely the most important property, as bad weight matrix initialization is often the cause of slow convergence. 
@@ -124,7 +137,6 @@ Another diffrence between Batch and Layer Normalization, is that in Layer Normal
 
 In the orgianal paper \cite{layer-normalization} they showed that Layer Normalization outperforms Batch Normalization in RNNs. Batch Normalization is however the prefered choice in CNN, though Layer Normalization still performs better than the non-normalized baseline. It is theoreically unclear why Layer Normalization performs poorly on CNNs, but a possibol explanation is that there is an underlying assumtion that the hidden units $a_{h_\ell}$ makes similar contributions, in CNN the hidden units typically represents very diffrent things (e.g. ear, mouth, hair) thus some will be very inactive while others will be very active.
 
-\clearpage
 \subsection{Residual Learning}
 
 The most suffisticated neural networks are typically rather deep networks with many layers, thus it is easy to think that ``deeper is better''. However it turns that this is not necessarily true. First of all there is a vanishing/exploding gradient problem, but recently with good normaization and weight initialization this is becoming less significant. It turns out that adding layers to a network networks that already works well can degrade performance. This is not just a matter of overfitting as also the training error degrades \cite{residual-learning}.
