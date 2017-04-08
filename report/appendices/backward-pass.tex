@@ -61,13 +61,13 @@ This is actually a dilated convolution, just where the weight is flipped (rotate
 \delta_{h_\ell}(t) = \theta'(z_{h_\ell}(t)) (\delta_{\ell + 1} *_r \mathrm{rot}(w_{:, h_{\ell + 1}}))(t)
 \end{equation}
 
-This is the deivative for the dilated convolution. Because the deivative is a convolution itself, it naturally generalizes to any padding implementation. 
+This is the derivative for the dilated convolution. Because the derivative is a convolution itself, it naturally generalizes to any padding implementation. 
 
 \clearpage
 \section{Batch Normalization}
 \label{appendix:backward-pass:batch-norm}
 
-To derive the backward pass for batch normalization it helps to setup equations for $\mathbb{E}[z_{h_\ell}]$ and $\textsc{Var}[z_{h_\ell}]$. To do this we need to reintroduce the observation index this time it will be denoted with the superscript $(i)$. Similarly the minibatch will be denoted with $\mathcal{B}$. With these chanhes the the full forward pass can be writen as:
+To derive the backward pass for batch normalization it helps to setup equations for $\mathbb{E}[z_{h_\ell}]$ and $\textsc{Var}[z_{h_\ell}]$. To do this we need to reintroduce the observation index this time it will be denoted with the superscript $(i)$. Similarly the mini-batch will be denoted with $\mathcal{B}$. With these changes the the full forward pass can be written as:
 \begin{equationbox}[H]
 Activation:
 \begin{equation*}
@@ -96,7 +96,7 @@ The gradient with respect to the weight $w_{h_{\ell-1},h_\ell}$ hasn't changed:
 \begin{equation}
 \frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial z_{h_\ell}^{(i)}} \frac{\partial z_{h_\ell}^{(i)}}{\partial w_{h_{\ell-1},h_\ell}} =\sum_{i=1}^n \delta_{h_\ell}^{(i)} a_{h_{\ell-1}}^{(i)}
 \end{equation}
-Note that without batch normalization the sum over the observations does not directly appear in the gradients, but this is only because the observation index $i$ is obmitted. In reaility it sum the gradients for each observation in the mini-batch.
+Note that without batch normalization the sum over the observations does not directly appear in the gradients, but this is only because the observation index $i$ is omitted. In reality it sum the gradients for each observation in the mini-batch.
 
 The $\delta_{h_\ell}$ however has changed quite significantly:
 \begin{equation}
@@ -169,7 +169,7 @@ The gradient with respect to the weight $w_{h_{\ell-1},h_\ell}$ is the same:
 \frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial w_{h_{\ell-1},h_\ell}} = \delta_{h_\ell} a_{h_{\ell-1}}
 \end{equation}
 
-Like in Batch Bormalization $\delta_{h_\ell}$ has changed quite significantly:
+Like in Batch Normalization $\delta_{h_\ell}$ has changed quite significantly:
 
 \begin{equation}
 \begin{aligned}

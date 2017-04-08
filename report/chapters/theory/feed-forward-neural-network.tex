@@ -2,7 +2,7 @@
 \section{Feed forward Neural Network}
 \label{sec:theory:ffnn}
 
-Neural Machine Translation is based on the neural network framework. Modern networks are extreamly complex and uses rather advanced operations such as convolution, others uses complex combinations of simpler operations such as the LSTM block. To give a short introduction to this framework the feed forward neural network (FFNN) is presented. This is the simplest type in the neural network familiy. As such it doesn't have much use for translation, but the more advanced neural networks can be seen as extensions of a feed forward neural network.
+Neural Machine Translation is based on the neural network framework. Modern networks are extremely complex and uses rather advanced operations such as convolution, others uses complex combinations of simpler operations such as the LSTM block. To give a short introduction to this framework the feed forward neural network (FFNN) is presented. This is the simplest type in the neural network family. As such it doesn't have much use for translation, but the more advanced neural networks can be seen as extensions of a feed forward neural network.
 
 \subsection{The neuron}
 
@@ -30,7 +30,7 @@ A feed forward neural network is in its simplest form a \textit{multivariate non
 	\label{fig:theory:ffnn:network}
 \end{figure}
 
-The neural network in Figure \ref{fig:theory:ffnn:network}, have one input layer $x_i, i \in [1, I]$ and one output layer $y_k, k \in [1, K]$. This is the same for any neural network, what varies is the type of network (here a feed forward neural network) and the amount of hidden layers (here two). The hidden layers are typically the layers that contains the non-linear transformation functions. If there are no hidden layers, the neural network is just a multiclass logistic regressor\cite{bishop}.
+The neural network in Figure \ref{fig:theory:ffnn:network}, have one input layer $x_i, i \in [1, I]$ and one output layer $y_k, k \in [1, K]$. This is the same for any neural network, what varies is the type of network (here a feed forward neural network) and the amount of hidden layers (here two). The hidden layers are typically the layers that contains the non-linear transformation functions. If there are no hidden layers, the neural network is just a multi-class logistic regressor\cite{bishop}.
 
 Because there are more than one neuron in each layer and many layers, the neuron index and layer index is denoted by the subscript. For example a neuron output is denoted by $a_{h_{\ell}}$ for $h_{\ell} \in [1, H_{\ell}]$, where $h_{\ell}$ is the neuron index and $H_\ell$ is the amount of neurons in layer $\ell$.
 
@@ -38,7 +38,7 @@ Because there are more than one neuron in each layer and many layers, the neuron
 
 Calculation of the network output ($y_k$) is sometimes called the \textit{forward pass}, while the parameter estimation is sometimes called the \textit{backward pass}.
 
-The \textit{forward pass} is simply calculated by applying the neuron function to all nerons in all layers. By defining $a_{h_0} = x_i$ the \textit{forward pass} can be generalized to any amount of hidden layers ($L$):
+The \textit{forward pass} is simply calculated by applying the neuron function to all neurons in all layers. By defining $a_{h_0} = x_i$ the \textit{forward pass} can be generalized to any amount of hidden layers ($L$):
 \begin{equation}
 \begin{aligned}
 a_{h_\ell} &= \theta(z_{h_\ell}), && \forall h_{\ell} \in [1, H_{\ell}], \ell \in [1, L] \\
@@ -54,7 +54,7 @@ y_k = \frac{\exp(z_k)}{\sum_{k'=1}^K \exp(z_{k'})}, && \forall k \in [1, K] \tex
 \label{eq:theory:ffnn:y}
 \end{equation}
 
-The $z_k$ values there are feed to the softmax function are often called \textit{logits}, because they are unnormalized log properbilities ($\exp(z_k) \propto y_k$). This has some advantages, for example if one wants the most likely label given $\mathbf{x}$ one can just find the largest $z_k$ and thus skip the softmax, which can otherwise be quite expensive to calculate.
+The $z_k$ values there are feed to the softmax function are often called \textit{logits}, because they are unnormalized log probabilities ($\exp(z_k) \propto y_k$). This has some advantages, for example if one wants the most likely label given $\mathbf{x}$ one can just find the largest $z_k$ and thus skip the softmax, which can otherwise be quite expensive to calculate.
 
 \subsection{Loss function}
 
@@ -71,7 +71,7 @@ The logarithm is then used to create linearity and avoid numerical floating poin
 \label{eq:theory:ffnn:long-loss}
 \end{equation}
 
-Because of the linearity in \eqref{eq:theory:ffnn:long-loss} it makes sense to just consider the loss function for one datapoint, thus the $n$ index can be omitted. This gives the final loss function which is denoted by $\mathcal{L}$:
+Because of the linearity in \eqref{eq:theory:ffnn:long-loss} it makes sense to just consider the loss function for one data point, thus the $n$ index can be omitted. This gives the final loss function which is denoted by $\mathcal{L}$:
 \begin{equation}
 \mathcal{L} = - \sum_{k=1}^K t_{k} \ln\left( P(C_{k} | \mathbf{x}, \mathbf{w})\right) =  - \sum_{k=1}^K t_k \ln(y_k)
 \label{eq:theory:ffnn:loss}
@@ -91,12 +91,12 @@ For the neural network there is no closed form solution to optimizing the loss f
 
 For calculating the derivatives the \textit{error backpropagation} algorithm is used, this algorithm results in what is called the \textit{backward pass}.
 
-The main trick in \textit{error backpropagation} is to define the partial derivative $\delta_{h_\ell}$, this is then used for bookkeeping and is what makes it feasiable to calculate the derivatives.
+The main trick in \textit{error backpropagation} is to define the partial derivative $\delta_{h_\ell}$, this is then used for bookkeeping and is what makes it feasible to calculate the derivatives.
 \begin{equation}
 \delta_{h_\ell} \defeq \frac{\partial \mathcal{L}}{\partial z_{h_\ell}}
 \end{equation}
 
-Using this defintion the chain rule can be applied on \eqref{eq:theory:ffnn:bprop-problem}:
+Using this definition the chain rule can be applied on \eqref{eq:theory:ffnn:bprop-problem}:
 \begin{equation}
 \begin{align}
 \frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1}, h_\ell}} &= \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial w_{h_{\ell-1}, h_\ell}} &&= \delta_{h_\ell} a_{h_{\ell-1}},&& \forall \ell \in [1, L+1],\quad a_{h_0} = x_i \\
@@ -115,7 +115,7 @@ Calculating $\delta_{h_\ell}$ is a bit more involved since $z_{h_\ell}$ affects 
 \label{eq:theory:ffnn:bprop}
 \end{equation}
 
-The last delta $\delta_{h_{L+1}}$ is diffrent but can still be calculated by using the chain rule.
+The last delta $\delta_{h_{L+1}}$ is different but can still be calculated by using the chain rule.
 \begin{equation}
 \delta_{h_{L + 1}} = \delta_k = \frac{\partial \mathcal{L}}{\partial z_k} = \sum_{k'=1}^K \frac{\partial \mathcal{L}}{\partial y_{k'}} \frac{\partial y_{k'}}{\partial z_k}
 \label{eq:theory:ffnn:bprop-deltaK}
