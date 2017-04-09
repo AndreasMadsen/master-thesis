@@ -1,5 +1,66 @@
 \chapter{Backward Pass}
 
+\section{Softmax}
+\label{appendix:backward-pass:softmax}
+
+The forward pass for the softmax and the cross entropy loss is given by:
+
+\begin{equationbox}[H]
+\begin{equation*}
+\begin{aligned}
+y_k &= \frac{\exp(z_k)}{\sum_{k'=1}^K \exp(z_{k'})}, && \text{ where: } z_k=z_{h_{L+1}}, K = H_{L + 1} \\
+\mathcal{L} &= - \sum_{k=1}^K t_k \ln(y_k)
+\end{aligned}
+\end{equation*}
+\caption{Forward equations Cross Entropy loss with Softmax input.}
+\end{equationbox}
+
+The last delta ($\delta_{h_{L+1}}$) is what should be derived:
+\begin{equation}
+\delta_{h_{L + 1}} = \delta_k = \frac{\partial \mathcal{L}}{\partial z_k} = \sum_{k'=1}^K \frac{\partial \mathcal{L}}{\partial y_{k'}} \frac{\partial y_{k'}}{\partial z_k} = y_k - t_k
+\label{appendix:backprop:softmax:bprop-delta-last}
+\end{equation}
+
+The first derivative $\frac{\partial \mathcal{L}}{\partial y_{k'}}$ is derived from the cross entropy equation:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial y_{k'}} = \frac{\partial}{\partial y_{k'}} \left(- \sum_{k''=1}^K t_{k''} \ln(y_{k''})\right) = -\frac{t_{k'}}{y_{k'}}
+\label{appendix:backprop:softmax:bprop-Ldy}
+\end{equation}
+
+The other derivative $\frac{\partial y_{k'}}{\partial z_k}$ can be derived from the softmax function:
+\begin{equation}
+\begin{aligned}
+\frac{\partial y_{k'}}{\partial z_k}
+&= \frac{\partial}{\partial z_k} \frac{\exp(z_{k'})}{\sum_{k''=1}^K \exp(z_{k''})} \\
+&= \frac{\frac{\partial}{\partial z_k} \exp(z_{k'})}{\sum_{k''=1}^K \exp(z_{k''})}
+- \frac{\exp(z_{k'}) \frac{\partial}{\partial z_k} \sum_{k''=1}^K \exp(z_{k''})}{\left(\sum_{k''=1}^K \exp(z_{k''})\right)^2} \\
+&= \frac{\frac{\partial}{\partial z_k} \exp(z_{k'})}{\sum_{k''=1}^K \exp(z_{k''})}
+- \frac{\exp(z_{k'})}{\sum_{k''=1}^K \exp(z_{k''})} \frac{\frac{\partial}{\partial z_k} \sum_{k''=1}^K \exp(z_{k''})}{\sum_{k''=1}^K \exp(z_{k''})}
+\end{aligned}
+\end{equation}
+
+Because of the difference in index, the first term is only not zero when $k = k'$, in which case $y_k$ is the derivative. It thus becomes useful to define:
+\begin{equation}
+\delta_{i,j} = \begin{cases}1& \text{when } i = j \\ 0 & \text{otherwise}\end{cases}
+\end{equation}
+
+Similarly in the second term $\frac{\partial}{\partial z_k} \exp(z_{k''})$ is zero except in the case where $k = k''$:
+\begin{equation}
+\frac{\partial y_{k'}}{\partial a_k} = \delta_{k, k'} y_k - y_{k'} y_k
+\label{appendix:backprop:softmax:bprop-yda}
+\end{equation}
+
+The result from \eqref{appendix:backprop:softmax:bprop-Ldy} and \eqref{appendix:backprop:softmax:bprop-yda} is then combined into \eqref{appendix:backprop:softmax:bprop-delta-last}:
+\begin{equation}
+\begin{aligned}
+\delta_{h_{L + 1}} = \delta_k &= \sum_{k'=1}^K -\frac{t_{k'}}{y_{k'}} \left( \delta_{k, k'} y_k - y_{k'} y_k \right) = \sum_{k'=1}^K -\frac{t_{k'}}{y_{k'}} \delta_{k, k'} y_k + \sum_{k'=1}^K \frac{t_{k'}}{y_{k'}} y_{k'} y_k \\
+&= -\frac{t_k}{y_k} y_k + y_k \sum_{k'=1}^K t_{k'} = -t_k + y_k = y_k - t_k
+\end{aligned}
+\label{appendix:backprop:softmax:bprop-deltaKfinal}
+\end{equation}
+
+To get $\sum_{k'=1}^K t_{k'} = 1$ it's used that $\{ t_{k'} \}_{k'=1}^K$ is the target distribution and thus must sum to 1.
+
 \section{Dilated Convolution}
 \label{appendix:backward-pass:dilated-convolution}
 

@@ -2,7 +2,7 @@
 \section{Feed forward Neural Network}
 \label{sec:theory:ffnn}
 
-Neural Machine Translation is based on the neural network framework. Modern networks are extremely complex and use rather advanced operations such as convolution, others use complex combinations of simpler operations such as the LSTM block. To give a short introduction to this framework the feed forward neural network (FFNN) is presented. This is the simplest type of network in the neural network family. As such it doesn't have much use for translation, but the more advanced neural networks can be seen as extensions of a feed forward neural network.
+Neural Machine Translation is based on the neural network framework. Modern networks are extremely complex and use rather advanced operations such as convolution, others use complex combinations of simpler operations such as the LSTM block \cite{deep-learning}. To give a short introduction to this framework the feed forward neural network (FFNN) is presented. This is the simplest type of network in the neural network family. As such it doesn't have much use for translation, but the more advanced neural networks can be seen as extensions of a feed forward neural network.
 
 \subsection{The neuron}
 
@@ -11,7 +11,7 @@ The neuron is the main component of any neural network. Mathematically it is jus
 a = \theta(z),\quad z = \sum_{i=1}^I w_{i} x_i + b
 \end{equation}
 
-The value $a$ is the output of the neuron and is called the \textit{activation}. In the past, the sigmoid function $\sigma(\cdot)$ and the hyperbolic tangent $\tanh(\cdot)$ function have been very popular\cite{bishop}, but recently the rectified linear unit (ReLU) $\theta(z) = \max(0, z)$ has become the norm. If no non-linear function is applied then the identity function $\theta(a) = a$ is used.
+The value $a$ is the output of the neuron and is called the \textit{activation}. In the past, the sigmoid function $\sigma(\cdot)$ and the hyperbolic tangent $\tanh(\cdot)$ function have been very popular \cite{bishop}, but recently the rectified linear unit (ReLU) $\theta(z) = \max(0, z)$ has gained popularity \cite{deep-learning}. If no non-linear function is applied then the identity function $\theta(a) = a$ is used.
 
 \begin{figure}[H]
 	\centering
@@ -34,6 +34,17 @@ The neural network in Figure \ref{fig:theory:ffnn:network}, have one input layer
 
 Because there is more than one neuron in each layer and many layers, the neuron index and layer index is denoted by the subscript. For example, a neuron output is denoted by $a_{h_{\ell}}$ for $h_{\ell} \in [1, H_{\ell}]$, where $h_{\ell}$ is the neuron index and $H_\ell$ is the number of neurons in layer $\ell$.
 
+While diagrams like in figure \ref{fig:theory:ffnn:network} are usefull for feed forward neural networks, they becomes too verbose for more complex networks. Instead each layer is just represented by a single block like in figure \ref{fig:theory:ffnn:network-block}.
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=1]{theory/ffnn-network-block.pdf}
+	\caption{Network block-diagram of the same network as shown in figure \ref{fig:theory:ffnn:network}.}
+	\label{fig:theory:ffnn:network-block}
+\end{figure}
+
+In figure \ref{fig:theory:ffnn:network-block} the dense block represents a dense matrix multiplication, which is essentially just a neural network layer without the activation. This is then followed by an activation block, which in figure \ref{fig:theory:ffnn:network-block} is left unspecified for generality.
+
 \subsection{Forward pass}
 
 Calculation of the network output ($y_k$) is sometimes called the \textit{forward pass}, while the parameter estimation is sometimes called the \textit{backward pass}.
@@ -54,7 +65,7 @@ y_k = \frac{\exp(z_k)}{\sum_{k'=1}^K \exp(z_{k'})}, && \forall k \in [1, K] \tex
 \label{eq:theory:ffnn:y}
 \end{equation}
 
-The $z_k$ values there are feed to the softmax function are often called \textit{logits}, because they are unnormalized log probabilities ($\exp(z_k) \propto y_k$), this has some advantages. For example, if one wants the most likely label given $\mathbf{x}$ one can just find the largest $z_k$ and thus skip the softmax, which can otherwise be quite expensive to calculate.
+The $z_k$ values are feed to the softmax function are often called \textit{logits}, because they are unnormalized log probabilities ($\exp(z_k) \propto y_k$), this has some advantages. For example, if one wants the most likely label given $\mathbf{x}$ one can just find the largest $z_k$ and thus skip the softmax, which can otherwise be quite expensive to calculate.
 
 \subsection{Loss function}
 
@@ -71,13 +82,13 @@ The logarithm is then used to create linearity and avoid numerical floating poin
 \label{eq:theory:ffnn:long-loss}
 \end{equation}
 
-Because of the linearity in \eqref{eq:theory:ffnn:long-loss} it makes sense to just consider the loss function for one data point, thus the $n$ index can be omitted. This gives the final loss function which is denoted by $\mathcal{L}$:
+Because of the linearity in \eqref{eq:theory:ffnn:long-loss}, it makes sense to just consider the loss function for one data point, thus the $n$ index can be omitted. This gives the final loss function which is denoted by $\mathcal{L}$:
 \begin{equation}
 \mathcal{L} = - \sum_{k=1}^K t_{k} \ln\left( P(C_{k} | \mathbf{x}, \mathbf{w})\right) =  - \sum_{k=1}^K t_k \ln(y_k)
 \label{eq:theory:ffnn:loss}
 \end{equation}
 
-The formulation \eqref{eq:theory:ffnn:loss} is particularly useful as it allows for some numerical stability tricks, see Appendix \ref{appendix:numerical-stability:cross-entropy} \todo{\url{https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/sparse_xent_op.h\#L190L219}}.
+The formulation in \eqref{eq:theory:ffnn:loss} is particularly useful as it allows for some numerical stability tricks, see Appendix \ref{appendix:numerical-stability:cross-entropy}
 
 \subsection{Backward pass}
 
@@ -115,50 +126,10 @@ Calculating $\delta_{h_\ell}$ is a bit more involved since $z_{h_\ell}$ affects 
 \label{eq:theory:ffnn:bprop}
 \end{equation}
 
-The last delta $\delta_{h_{L+1}}$ is different but can still be calculated by using the chain rule.
+The last delta ($\delta_{h_{L+1}}$) is different but can still be calculated by using the chain rule (see appendix \ref{appendix:backward-pass:softmax} for how $\delta_{h_{L+1}}$ is derived).
 \begin{equation}
-\delta_{h_{L + 1}} = \delta_k = \frac{\partial \mathcal{L}}{\partial z_k} = \sum_{k'=1}^K \frac{\partial \mathcal{L}}{\partial y_{k'}} \frac{\partial y_{k'}}{\partial z_k}
-\label{eq:theory:ffnn:bprop-deltaK}
+\delta_{h_{L + 1}} = \delta_k = \frac{\partial \mathcal{L}}{\partial z_k} = \sum_{k'=1}^K \frac{\partial \mathcal{L}}{\partial y_{k'}} \frac{\partial y_{k'}}{\partial z_k} = y_k - t_k
+\label{eq:theory:ffnn:bprop-delta-last}
 \end{equation}
 
-The first derivative $\frac{\partial \mathcal{L}}{\partial y_{k'}}$ can be derived from \eqref{eq:theory:ffnn:loss}:
-\begin{equation}
-\frac{\partial \mathcal{L}}{\partial y_{k'}} = \frac{\partial}{\partial y_{k'}} \left(- \sum_{k''=1}^K t_{k''} \ln(y_{k''})\right) = -\frac{t_{k'}}{y_{k'}}
-\label{eq:theory:ffnn:bprop-Ldy}
-\end{equation}
-
-The other derivative $\frac{\partial y_{k'}}{\partial z_k}$ can be derived from \eqref{eq:theory:ffnn:y}:
-\begin{equation}
-\begin{aligned}
-\frac{\partial y_{k'}}{\partial z_k}
-&= \frac{\partial}{\partial z_k} \frac{\exp(z_{k'})}{\sum_{k''=1}^K \exp(z_{k''})} \\
-&= \frac{\frac{\partial}{\partial z_k} \exp(z_{k'})}{\sum_{k''=1}^K \exp(z_{k''})}
-- \frac{\exp(z_{k'}) \frac{\partial}{\partial z_k} \sum_{k''=1}^K \exp(z_{k''})}{\left(\sum_{k''=1}^K \exp(z_{k''})\right)^2} \\
-&= \frac{\frac{\partial}{\partial z_k} \exp(z_{k'})}{\sum_{k''=1}^K \exp(z_{k''})}
-- \frac{\exp(z_{k'})}{\sum_{k''=1}^K \exp(z_{k''})} \frac{\frac{\partial}{\partial z_k} \sum_{k''=1}^K \exp(z_{k''})}{\sum_{k''=1}^K \exp(z_{k''})}
-\end{aligned}
-\end{equation}
-
-Because of the difference in index, the first term is only not zero when $k = k'$, in which case $y_k$ is the derivative. It thus becomes useful to define:
-\begin{equation}
-\delta_{i,j} = \begin{cases}1& \text{when } i = j \\ 0 & \text{otherwise}\end{cases}
-\end{equation}
-
-Similarly in the second term $\frac{\partial}{\partial z_k} \exp(z_{k''})$ is zero except in the case where $k = k''$:
-\begin{equation}
-\frac{\partial y_{k'}}{\partial a_k} = \delta_{k, k'} y_k - y_{k'} y_k
-\label{eq:theory:ffnn:bprop-yda}
-\end{equation}
-
-The result from \eqref{eq:theory:ffnn:bprop-Ldy} and \eqref{eq:theory:ffnn:bprop-yda} is then combined into \eqref{eq:theory:ffnn:bprop-deltaK}:
-\begin{equation}
-\begin{aligned}
-\delta_{h_{L + 1}} = \delta_k &= \sum_{k'=1}^K -\frac{t_{k'}}{y_{k'}} \left( \delta_{k, k'} y_k - y_{k'} y_k \right) = \sum_{k'=1}^K -\frac{t_{k'}}{y_{k'}} \delta_{k, k'} y_k + \sum_{k'=1}^K \frac{t_{k'}}{y_{k'}} y_{k'} y_k \\
-&= -\frac{t_k}{y_k} y_k + y_k \sum_{k'=1}^K t_{k'} = -t_k + y_k = y_k - t_k
-\end{aligned}
-\label{eq:theory:ffnn:bprop-deltaKfinal}
-\end{equation}
-
-To get $\sum_{k'=1}^K t_{k'} = 1$ it's used that $\{ t_{k'} \}_{k'=1}^K$ is the target distribution and thus must sum to 1.
-
-Using \eqref{eq:theory:ffnn:bprop-deltaKfinal} and \eqref{eq:theory:ffnn:bprop} all $\delta_{h_\ell}$ for $\ell \in [1, L+1]$ can be calculated for a feed forward neural network with $L$ hidden layers. Note how \eqref{eq:theory:ffnn:bprop-deltaKfinal} is an error measure and this value is propagated back through the network by the $\delta_{h_\ell}$ equations in \eqref{eq:theory:ffnn:bprop}. This is why the method is called \textit{error backpropagation}.
+Using \eqref{eq:theory:ffnn:bprop-delta-last} and \eqref{eq:theory:ffnn:bprop} all $\delta_{h_\ell}$ for $\ell \in [1, L+1]$ can be calculated for a feed forward neural network with $L$ hidden layers. Note in particular how \eqref{eq:theory:ffnn:bprop-delta-last} is an error measure and this value is propagated back through the network by the $\delta_{h_\ell}$ equations in \eqref{eq:theory:ffnn:bprop}. This is why the method is called \textit{error backpropagation}.
