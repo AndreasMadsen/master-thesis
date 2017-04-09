@@ -2,21 +2,21 @@
 \section{Feed forward Neural Network}
 \label{sec:theory:ffnn}
 
-Neural Machine Translation is based on the neural network framework. Modern networks are extremely complex and uses rather advanced operations such as convolution, others uses complex combinations of simpler operations such as the LSTM block. To give a short introduction to this framework the feed forward neural network (FFNN) is presented. This is the simplest type in the neural network family. As such it doesn't have much use for translation, but the more advanced neural networks can be seen as extensions of a feed forward neural network.
+Neural Machine Translation is based on the neural network framework. Modern networks are extremely complex and use rather advanced operations such as convolution, others use complex combinations of simpler operations such as the LSTM block. To give a short introduction to this framework the feed forward neural network (FFNN) is presented. This is the simplest type of network in the neural network family. As such it doesn't have much use for translation, but the more advanced neural networks can be seen as extensions of a feed forward neural network.
 
 \subsection{The neuron}
 
-The neuron is the main component in any neural network. Mathematically it is just a function which takes a vector and returns a scalar. It does this by a weighted sum of the inputs $\{ x_i \}_{i=1}^I$ and by adding a bias value $b$. The sum is then then typically transformed using a non-linear function $\theta$.
+The neuron is the main component of any neural network. Mathematically it is just a function which takes a vector and returns a scalar. It does this by a weighted sum of the inputs $\{ x_i \}_{i=1}^I$ and by adding a bias value $b$. The sum is then typically transformed using a non-linear function $\theta$.
 \begin{equation}
 a = \theta(z),\quad z = \sum_{i=1}^I w_{i} x_i + b
 \end{equation}
 
-The value $a$ is the output of the neuron and is called the \textit{activation}. In the past the sigmoid function $\sigma(\cdot)$ and the hyperbolic tangent $\tanh(\cdot)$ function have been very popular\cite{bishop}, but recently the rectified linear unit (ReLU) $\theta(z) = \max(0, z)$ has become the norm. If no non-linear function is applied then the identity function $\theta(a) = a$ is used.
+The value $a$ is the output of the neuron and is called the \textit{activation}. In the past, the sigmoid function $\sigma(\cdot)$ and the hyperbolic tangent $\tanh(\cdot)$ function have been very popular\cite{bishop}, but recently the rectified linear unit (ReLU) $\theta(z) = \max(0, z)$ has become the norm. If no non-linear function is applied then the identity function $\theta(a) = a$ is used.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=1]{theory/ffnn-neuron}
-	\caption{Visual representation of a single neuron. The left arrows represents the input elements $\{ x_i \}_{i=1}^I$. The circle represent the function that returns the activation scalar $a$ (right arrow).}
+	\caption{Visual representation of a single neuron. The left arrows represent the input elements $\{ x_i \}_{i=1}^I$. The circle represents the function that returns the activation scalar $a$ (right arrow).}
 \end{figure}
 
 \subsection{The network}
@@ -30,9 +30,9 @@ A feed forward neural network is in its simplest form a \textit{multivariate non
 	\label{fig:theory:ffnn:network}
 \end{figure}
 
-The neural network in Figure \ref{fig:theory:ffnn:network}, have one input layer $x_i, i \in [1, I]$ and one output layer $y_k, k \in [1, K]$. This is the same for any neural network, what varies is the type of network (here a feed forward neural network) and the amount of hidden layers (here two). The hidden layers are typically the layers that contains the non-linear transformation functions. If there are no hidden layers, the neural network is just a multi-class logistic regressor\cite{bishop}.
+The neural network in Figure \ref{fig:theory:ffnn:network}, have one input layer $x_i, i \in [1, I]$ and one output layer $y_k, k \in [1, K]$. This is the same for any neural network, what varies is the type of network (here a feed forward neural network) and the number of hidden layers (here two). The hidden layers are typically the layers that contain the non-linear transformation functions. If there are no hidden layers, the neural network is just a multi-class logistic regressor\cite{bishop}.
 
-Because there are more than one neuron in each layer and many layers, the neuron index and layer index is denoted by the subscript. For example a neuron output is denoted by $a_{h_{\ell}}$ for $h_{\ell} \in [1, H_{\ell}]$, where $h_{\ell}$ is the neuron index and $H_\ell$ is the amount of neurons in layer $\ell$.
+Because there is more than one neuron in each layer and many layers, the neuron index and layer index is denoted by the subscript. For example, a neuron output is denoted by $a_{h_{\ell}}$ for $h_{\ell} \in [1, H_{\ell}]$, where $h_{\ell}$ is the neuron index and $H_\ell$ is the number of neurons in layer $\ell$.
 
 \subsection{Forward pass}
 
@@ -54,11 +54,11 @@ y_k = \frac{\exp(z_k)}{\sum_{k'=1}^K \exp(z_{k'})}, && \forall k \in [1, K] \tex
 \label{eq:theory:ffnn:y}
 \end{equation}
 
-The $z_k$ values there are feed to the softmax function are often called \textit{logits}, because they are unnormalized log probabilities ($\exp(z_k) \propto y_k$). This has some advantages, for example if one wants the most likely label given $\mathbf{x}$ one can just find the largest $z_k$ and thus skip the softmax, which can otherwise be quite expensive to calculate.
+The $z_k$ values there are feed to the softmax function are often called \textit{logits}, because they are unnormalized log probabilities ($\exp(z_k) \propto y_k$), this has some advantages. For example, if one wants the most likely label given $\mathbf{x}$ one can just find the largest $z_k$ and thus skip the softmax, which can otherwise be quite expensive to calculate.
 
 \subsection{Loss function}
 
-Optimization of the parameters $w_{i,j}$ and $b_{j}$ requires definition of a loss function. For classification it makes sense to maximize the joint probability of observing all the observations:
+Optimization of the parameters $w_{i,j}$ and $b_{j}$ requires a definition of a loss function. For classification it makes sense to maximize the joint probability of observing all the observations:
 \begin{equation}
 P(\mathbf{t} | \mathbf{x}, \mathbf{w}, \mathbf{b}) = \prod_{n=1}^N P(\mathbf{t}_n | \mathbf{x}_n, \mathbf{w}, \mathbf{b})  = \prod_{n=1}^N \prod_{k=1}^K P(C_{n, k} | \mathbf{x}_n, \mathbf{w}, \mathbf{b})^{t_{n, k}}
 \end{equation}
@@ -81,7 +81,7 @@ The formulation \eqref{eq:theory:ffnn:loss} is particularly useful as it allows 
 
 \subsection{Backward pass}
 
-For the neural network there is no closed form solution to optimizing the loss function. Instead gradient based optimization algorithms are used. Gradient based optimization uses the derivatives of the loss function with respect to the parameters to iteratively optimize the parameters. This approach will be discussed in Section \ref{sec:theory:optimization}, for now the important part is calculate the derivatives:
+For the neural network, there is no closed form solution to optimizing the loss function. Instead, gradient-based optimization algorithms are used. Gradient-based optimization uses the derivatives of the loss function with respect to the parameters to iteratively optimize the parameters. This approach will be discussed in Section \ref{sec:theory:optimization}, for now the important part is to calculate the derivatives:
 \begin{equation}
 \begin{aligned}
 \frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1}, h_\ell}} \wedge \frac{\partial \mathcal{L}}{\partial b_{h_\ell}}, && \forall \ell \in [1, L + 1]

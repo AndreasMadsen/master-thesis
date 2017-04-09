@@ -67,7 +67,7 @@ This is the derivative for the dilated convolution. Because the derivative is a 
 \section{Batch Normalization}
 \label{appendix:backward-pass:batch-norm}
 
-To derive the backward pass for batch normalization it helps to setup equations for $\mathbb{E}[z_{h_\ell}]$ and $\textsc{Var}[z_{h_\ell}]$. To do this we need to reintroduce the observation index this time it will be denoted with the superscript $(i)$. Similarly the mini-batch will be denoted with $\mathcal{B}$. With these changes the the full forward pass can be written as:
+To derive the backward pass for batch normalization it helps to setup equations for $\mathbb{E}[z_{h_\ell}]$ and $\textsc{Var}[z_{h_\ell}]$. To do this we need to reintroduce the observation index this time it will be denoted with the superscript $(i)$. Similarly, the mini-batch will be denoted with $\mathcal{B}$. With these changes the the full forward pass can be written as:
 \begin{equationbox}[H]
 Activation:
 \begin{equation*}
@@ -96,7 +96,7 @@ The gradient with respect to the weight $w_{h_{\ell-1},h_\ell}$ hasn't changed:
 \begin{equation}
 \frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial z_{h_\ell}^{(i)}} \frac{\partial z_{h_\ell}^{(i)}}{\partial w_{h_{\ell-1},h_\ell}} =\sum_{i=1}^n \delta_{h_\ell}^{(i)} a_{h_{\ell-1}}^{(i)}
 \end{equation}
-Note that without batch normalization the sum over the observations does not directly appear in the gradients, but this is only because the observation index $i$ is omitted. In reality it sum the gradients for each observation in the mini-batch.
+Note that without batch normalization the sum over the observations does not directly appear in the gradients, but this is only because the observation index $i$ is omitted. In reality, it sums the gradients for each observation in the mini-batch.
 
 The $\delta_{h_\ell}$ however has changed quite significantly:
 \begin{equation}
@@ -112,7 +112,7 @@ From \eqref{eq:appendix:batch-norm:delta} the following derivatives also needs t
 \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}}, \quad \frac{\partial \mathcal{L}}{\partial \sigma_{h_\ell}^{2,\mathcal{B}}}, \quad \frac{\partial \mathcal{L}}{\partial \mu_{h_\ell}^{\mathcal{B}}}
 \end{equation}
 
-As with everything else this is done by using the chain rule:
+As with everything else, this is done by using the chain rule:
 \begin{equation}
 \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} = \frac{\partial \mathcal{L}}{\partial a_{h_\ell}^{(i)}} \frac{\partial a_{h_\ell}^{(i)}}{\partial \hat{z}_{h_\ell}^{(i)}} = \theta'(\hat{z}_{h_\ell}^{(i)}) \frac{\partial\mathcal{L}}{\partial a_{h_\ell}^{(i)}} = \theta'(\hat{z}_{h_\ell}^{(i)}) \sum_{h_{\ell+1}}^{H_{\ell+1}} \delta_{h_{\ell+1}}^{(i)} w_{h_\ell, h_{\ell+1}}
 \end{equation}
@@ -126,7 +126,7 @@ As with everything else this is done by using the chain rule:
 \end{aligned}
 \end{equation}
 
-Finally the gradient with respect to $\gamma_{h_\ell}$ and $\beta_{h_\ell}$ can be derived:
+Finally, the gradient with respect to $\gamma_{h_\ell}$ and $\beta_{h_\ell}$ can be derived:
 \begin{equation}
 \frac{\partial \mathcal{L}}{\partial \gamma_{h_\ell}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \frac{\partial \hat{z}_{h_\ell}^{(i)}}{\partial \gamma_{h_\ell}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \left(\frac{z_{h_\ell}^{(i)} - \mu_{h_\ell}^{\mathcal{B}}}{\sqrt{\sigma_{h_\ell}^{2, \mathcal{B}} + \epsilon}} \right)
 \end{equation}
@@ -139,7 +139,7 @@ These only depend on $\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)
 \clearpage
 \section{Layer Normalization}
 
-Lets repeat the forward pass:
+Let's repeat the forward pass:
 \begin{equationbox}[H]
 \begin{equation*}
 \begin{aligned}
@@ -200,7 +200,7 @@ As with everything else this is done by using the chain rule:
 \end{aligned}
 \end{equation}
 
-Finally the gradient with respect to $\gamma_{h_\ell}$ and $\beta_{h_\ell}$ can be derived:
+Finally, the gradient with respect to $\gamma_{h_\ell}$ and $\beta_{h_\ell}$ can be derived:
 
 \begin{equation}
 \frac{\partial \mathcal{L}}{\partial \gamma_{h_\ell}} = \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \frac{\partial \hat{z}_{h_\ell}}{\partial \gamma_{h_\ell}} = \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \left(\frac{z_{h_\ell} - \mu_\ell}{\sqrt{\sigma_\ell^2 + \epsilon}}\right)
