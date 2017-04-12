@@ -96,19 +96,18 @@ class Model:
             sess_config.graph_options.optimizer_options.global_jit_level = \
                 tf.OptimizerOptions.ON_1
 
-        with tf.Session(config=sess_config) as sess:
-            self._train_loop(loss, update,
-                             ep_size=self.dataset.num_batch,
-                             max_ep=max_ep,
-                             eval_metric=eval_metric,
-                             early_stop=False,
-                             save_dir=self._save_dir,
-                             sess=sess,
-                             tqdm=tqdm,
-                             profile=profile,
-                             log_interval=60,
-                             save_interval=600,
-                             lr=lr)
+        self._train_loop(loss, update,
+                         ep_size=self.dataset.num_batch,
+                         max_ep=max_ep,
+                         eval_metric=eval_metric,
+                         early_stop=False,
+                         save_dir=self._save_dir,
+                         config=sess_config,
+                         tqdm=tqdm,
+                         profile=profile,
+                         log_interval=log_interval,
+                         save_interval=save_interval,
+                         lr=lr)
 
     def _update_model(self, losses: LossesType, **kwargs) -> List[tf.Tensor]:
         return tower_optim(losses, **kwargs)
