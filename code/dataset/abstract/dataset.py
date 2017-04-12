@@ -83,8 +83,8 @@ class Dataset:
                 # if there are not enogth observation or spread to partition
                 # the dataset, just use a batch queue.
                 if len(bucket_boundaries) == 0:
-                    batch_queue = tf.train.batch(
-                        tensors=[source, target],
+                    batch = tf.train.batch(
+                        tensors=[length, source, target],
                         batch_size=batch_size,
                         dynamic_pad=True,
                         name=f'dataset/{name}',
@@ -92,10 +92,11 @@ class Dataset:
                         capacity=batch_size * 64,
                         allow_smaller_final_batch=not repeat
                     )
+                    batch_length, batch_queue = batch[0], batch[1:]
                 else:
                     # the first argument is the sequence length specifed in the
                     # input_length I did not find a use for it.
-                    _, batch_queue = bucket_by_sequence_length(
+                    batch_length, batch_queue = bucket_by_sequence_length(
                         input_length=length,
                         tensors=[source, target],
                         bucket_boundaries=bucket_boundaries,
@@ -107,8 +108,8 @@ class Dataset:
                         allow_smaller_final_batch=not repeat
                     )
             else:
-                batch_queue = tf.train.batch(
-                    tensors=[source, target],
+                batch = tf.train.batch(
+                    tensors=[length, source, target],
                     batch_size=batch_size,
                     dynamic_pad=True,
                     name=f'dataset/{name}',
@@ -116,8 +117,10 @@ class Dataset:
                     capacity=batch_size,
                     allow_smaller_final_batch=not repeat
                 )
+                batch_length, batch_queue = batch[0], batch[1:]
 
             # make data visible
+            self.length = batch_length
             self.source, self.target = batch_queue
 
             # calculate number of batches
