@@ -48,11 +48,13 @@ class Model:
         self._metrics.append(metric)
 
     @abc.abstractmethod
-    def loss_model(self, x: tf.Tensor, y: tf.Tensor, **kwargs) -> LossesType:
+    def loss_model(self, x: tf.Tensor, y: tf.Tensor, length: tf.Tensor,
+                   **kwargs) -> LossesType:
         pass
 
     def train_model(self, **kwargs) -> LossesType:
         return self.loss_model(self.dataset.source, self.dataset.target,
+                               self.dataset.length,
                                **kwargs)
 
     def train(self, max_ep: int=20,
@@ -125,27 +127,30 @@ class Model:
         stf.sg_restore(session, self._latest_checkpoint())
 
     @abc.abstractmethod
-    def greedy_inference_model(self, x: tf.Tensor) -> tf.Tensor:
+    def greedy_inference_model(self, x: tf.Tensor,
+                               length: tf.Tensor) -> tf.Tensor:
         pass
 
     @abc.abstractmethod
-    def sample_inference_model(self, x: tf.Tensor,
+    def sample_inference_model(self, x: tf.Tensor, length: tf.Tensor,
                                samples: int=1) -> tf.Tensor:
         pass
 
-    def inference_model(self, x: tf.Tensor, samples: int=1,
-                        **kwargs) -> tf.Tensor:
+    def inference_model(self, x: tf.Tensor, length: tf.Tensor,
+                        samples: int=1, **kwargs) -> tf.Tensor:
         if samples == 1:
-            return self.greedy_inference_model(x, **kwargs)
+            return self.greedy_inference_model(x, length, **kwargs)
         else:
             # labels.shape = (batch, samples, time)
-            labels = self.sample_inference_model(x, samples=samples, **kwargs)
+            labels = self.sample_inference_model(x, length,
+                                                 samples=samples, **kwargs)
             return labels[:, 0]
 
     def _predict_from_dataset_queue(self, dataset, **kwargs):
         # build inference_model
         with self._options_context():
-            label = self.inference_model(dataset.source, **kwargs)
+            label = self.inference_model(dataset.source, dataset.length,
+                                         **kwargs)
 
         with tf.Session() as sess:
             self.restore(sess)
@@ -162,8 +167,9 @@ class Model:
 
         # build inference_model
         x = stf.placeholder(dtype=tf.int32, shape=(None, None))
+        length = stf.placeholder(dtype=tf.int32, shape=(None))
         with self._options_context():
-            label = self.inference_model(x, **kwargs)
+            label = self.inference_model(x, length, **kwargs)
 
         with tf.Session() as sess:
             self.restore(sess)
@@ -171,11 +177,14 @@ class Model:
                 for batch in dataset.batch_iterator():
                     # seperate source and target and encode batch
                     source, target = zip(*batch)
-                    source = self.dataset.encode_as_batch(source)
-                    target = self.dataset.encode_as_batch(target)
+                    source, source_len = self.dataset.encode_as_batch(source)
+                    target, target_len = self.dataset.encode_as_batch(target)
 
                     # translate batch
-                    translation = sess.run(label, {x: source})
+                    translation = sess.run(label, {
+                        x: source,
+                        length: np.maximum(source_len, target_len)
+                    })
 
                     # return results
                     yield source, target, translation
@@ -205,13 +214,14 @@ class Model:
                          show_eos: bool=True,
                          batch_size: int=16,
                          **kwargs) -> Iterator[str]:
-        sources = self.dataset.encode_as_batch(sources)
-        observations = sources.shape[0]
+        source, source_len = self.dataset.encode_as_batch(sources)
+        observations = source.shape[0]
 
         # build model
-        x = stf.placeholder(dtype=tf.int32, shape=(None, *sources.shape[1:]))
+        x = stf.placeholder(dtype=tf.int32, shape=(None, *source.shape[1:]))
+        length = stf.placeholder(dtype=tf.int32, shape=(None, ))
         with self._options_context():
-            label = self.inference_model(x, **kwargs)
+            label = self.inference_model(x, length, **kwargs)
 
         # run graph for translation
         with tf.Session() as sess:
@@ -220,7 +230,10 @@ class Model:
                 range(0, observations, batch_size),
                 range(batch_size, observations + batch_size, batch_size)
             ):
-                pred = sess.run(label, {x: sources[start:end]})
+                pred = sess.run(label, {
+                    x: source[start:end],
+                    length: source_len[start:end]
+                })
 
                 yield from self.dataset.decode_as_batch(pred,
                                                         show_eos=show_eos)
@@ -257,13 +270,14 @@ class Model:
     def sample_from_str(self, sources: List[str],
                         show_eos: bool=True, samples: int=1,
                         **kwargs) -> Iterator[List[str]]:
-        sources = self.dataset.encode_as_batch(sources)
-        observations = sources.shape[0]
+        source, source_len = self.dataset.encode_as_batch(sources)
+        observations = source.shape[0]
 
         # build model
-        x = stf.placeholder(dtype=tf.int32, shape=(None, *sources.shape[1:]))
+        x = stf.placeholder(dtype=tf.int32, shape=(None, *source.shape[1:]))
+        length = stf.placeholder(dtype=tf.int32, shape=(None, ))
         with self._options_context():
-            label = self.sample_inference_model(x, **kwargs)
+            label = self.sample_inference_model(x, length, **kwargs)
 
         # run graph for translation
         with tf.Session() as sess:
@@ -272,7 +286,10 @@ class Model:
                 range(0, observations, batch_size),
                 range(batch_size, observations + batch_size, batch_size)
             ):
-                pred = sess.run(label, {x: sources[start:end]})
+                pred = sess.run(label, {
+                    x: source[start:end],
+                    length: source_len[start:end]
+                })
 
                 yield from (
                     self.dataset.decode_as_batch(batch, show_eos=show_eos)

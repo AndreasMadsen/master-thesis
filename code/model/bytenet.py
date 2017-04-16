@@ -34,6 +34,7 @@ class ByteNet(Model):
 
     def loss_model(self,
                    source_all: tf.Tensor, target_all: tf.Tensor,
+                   length_all: tf.Tensor,
                    reuse: bool=False) -> Tuple[tf.Tensor, LossesType]:
         # putting the split and join on the cpu is extreamly important for
         # minimizing the syncronization time.
@@ -84,7 +85,7 @@ class ByteNet(Model):
         return (total_loss, losses)
 
     def sample_inference_model(self,
-                               source: tf.Tensor,
+                               source: tf.Tensor, length: tf.Tensor,
                                samples=1,
                                reuse: bool=False) -> tf.Tensor:
         x = tf.cast(source, tf.int32)
@@ -116,7 +117,7 @@ class ByteNet(Model):
         return tf.cast(labels, source.dtype)
 
     def greedy_inference_model(self,
-                               source: tf.Tensor,
+                               source: tf.Tensor, length: tf.Tensor,
                                reuse: bool=False) -> tf.Tensor:
         x = tf.cast(source, tf.int32)
 

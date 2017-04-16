@@ -192,7 +192,8 @@ class TextDataset(Dataset):
         # auto detect appropiate encoding type
         self._encode_dtype = size_to_signed_type(self.vocabulary_size)
 
-    def encode_as_batch(self, corpus: Iterator[str]) -> np.ndarray:
+    def encode_as_batch(self, corpus: Iterator[str]
+                        ) -> Tuple[np.ndarray, np.ndarray]:
         max_length = 0
         observations = 0
 
@@ -201,16 +202,22 @@ class TextDataset(Dataset):
             max_length = max(max_length, len(text) + 1)
             observations += 1
 
-        batch = np.empty(
+        encoding = np.empty(
             (observations, max_length),
             self._encode_dtype
+        )
+        length = np.empty(
+            (observations, ),
+            np.int32
         )
 
         for i, text in enumerate(corpus):
             datum = self.encode_as_array(text)
-            batch[i] = np.pad(datum, (0, max_length - len(datum)), 'constant')
+            encoding[i] = np.pad(datum, (0, max_length - len(datum)),
+                                 'constant')
+            length[i] = len(datum)
 
-        return batch
+        return encoding, length
 
     def encode_as_iter(self, decoded: str) -> Iterator[int]:
         length = 0

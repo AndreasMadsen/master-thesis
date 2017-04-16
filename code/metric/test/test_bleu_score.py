@@ -32,7 +32,7 @@ def test_blue_score_on_google():
     )
 
     # encode translated text
-    translated = dataset.encode_as_batch(_load_fixture('trans.google.ru'))
+    translated, _ = dataset.encode_as_batch(_load_fixture('trans.google.ru'))
 
     # setup model
     model = DummyModel(dataset, translated)
@@ -65,7 +65,7 @@ def test_blue_score_on_poorly():
     )
 
     # encode translated text
-    translated = dataset.encode_as_batch(_load_fixture('trans.poor.en'))
+    translated, _ = dataset.encode_as_batch(_load_fixture('trans.poor.en'))
 
     # setup model
     model = DummyModel(dataset, translated)
@@ -89,7 +89,7 @@ def test_blue_score_on_poorly():
     )
 
     # encode translated text
-    translated = dataset.encode_as_batch([''] * 128)
+    translated, _ = dataset.encode_as_batch([''] * 128)
 
     # setup model
     model = DummyModel(dataset, translated)
@@ -113,7 +113,7 @@ def test_blue_score_on_empty_string():
     )
 
     # encode translated text
-    translated = dataset.encode_as_batch(_load_fixture('trans.poor.en'))
+    translated, _ = dataset.encode_as_batch(_load_fixture('trans.poor.en'))
 
     # setup model
     model = DummyModel(dataset, translated)

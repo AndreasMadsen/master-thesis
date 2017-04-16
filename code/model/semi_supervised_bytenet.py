@@ -267,7 +267,7 @@ class SemiSupervisedByteNet(Model):
         return loss_total, loss_split
 
     def loss_model(self,
-                   source: tf.Tensor, target: tf.Tensor,
+                   source: tf.Tensor, target: tf.Tensor, length: tf.Tensor,
                    reuse: bool=False) -> Tuple[tf.Tensor, LossesType]:
         # place x2y model on even GPUs
         loss_x2y, losses_x2y = self._build_supervised_model(
@@ -313,7 +313,7 @@ class SemiSupervisedByteNet(Model):
         # compute supervised loss
         #
         supervised_loss, supervised_losses = self.loss_model(
-            self.dataset.source, self.dataset.target,
+            self.dataset.source, self.dataset.target, self.dataset.length,
             reuse=reuse
         )
 
@@ -408,7 +408,7 @@ class SemiSupervisedByteNet(Model):
         return distributed_tower_optim(losses, **kwargs)
 
     def inference_model(self,
-                        source: tf.Tensor,
+                        source: tf.Tensor, length: tf.Tensor,
                         order='x2y',
                         reuse: bool=False) -> tf.Tensor:
         x = tf.cast(source, tf.int32)
