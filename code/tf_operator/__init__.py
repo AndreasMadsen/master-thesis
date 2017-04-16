@@ -1,5 +1,6 @@
 # flake8: noqa
 
+from code.tf_operator.attention_translator import *
 from code.tf_operator.batch_repeat import *
 from code.tf_operator.bytenet_decoder import *
 from code.tf_operator.bytenet_encoder import *
