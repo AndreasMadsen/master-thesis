@@ -8,7 +8,8 @@ from code.model.abstract.model import Model, LossesType
 from code.dataset.abstract.text_dataset import TextDataset
 from code.tf_operator import \
     cross_entropy_direct, cross_entropy_summary, \
-    attention_supervised_translator, attention_unsupervised_translator
+    attention_supervised_translator, attention_unsupervised_translator, \
+    tower_scope, mean_n
 
 
 class Attention(Model):
@@ -19,43 +20,75 @@ class Attention(Model):
                  **kwargs) -> None:
         super().__init__(dataset, save_dir=save_dir, **kwargs)
 
+        self._gpus = gpus
         self.dataset = dataset
         self.num_blocks = num_blocks
         self.latent_dim = latent_dim
 
     def loss_model(self,
                    source_all: tf.Tensor, target_all: tf.Tensor,
-                   length: tf.Tensor,
+                   length_all: tf.Tensor,
                    reuse: bool=False) -> Tuple[tf.Tensor, LossesType]:
-        source = tf.cast(source_all, tf.int32)
-        target = tf.cast(target_all, tf.int32)
-        max_length = tf.shape(source)[1]
+        # putting the split and join on the cpu is extreamly important for
+        # minimizing the syncronization time.
+        if self._gpus > 1:
+            with tf.device('/cpu:0'):
+                source_split = tf.split(source_all, self._gpus, axis=0)
+                target_split = tf.split(target_all, self._gpus, axis=0)
+                length_split = tf.split(length_all, self._gpus, axis=0)
+        else:
+            source_split = [source_all]
+            target_split = [target_all]
+            length_split = [length_all]
 
-        logits, _ = attention_supervised_translator(
-            source, target, length,
-            latent_dim=self.latent_dim,
-            voca_size=self.dataset.vocabulary_size,
-            num_blocks=self.num_blocks,
-            max_length=max_length,
-            container=self.embeddings,
-            labels=self.dataset.labels,
-            name="attention-model",
-            reuse=reuse
-        )
+        losses = []
 
-        loss = cross_entropy_direct(logits, target, name='supervised-x2y')
-        loss = cross_entropy_summary(loss, name="supervised-x2y")
+        for (index, device), source, target, length in zip(
+                tower_scope(range(self._gpus), reuse=reuse),
+                source_split, target_split, length_split
+        ):
+            x = tf.cast(source, tf.int32)
+            y = tf.cast(target, tf.int32)
 
-        return (loss, [('/cpu:0', loss)])
+            logits, _ = attention_supervised_translator(
+                x, y, length,
+                latent_dim=self.latent_dim,
+                voca_size=self.dataset.vocabulary_size,
+                num_blocks=self.num_blocks,
+                max_length=tf.shape(source)[1],
+                container=self.embeddings,
+                labels=self.dataset.labels,
+                name="attention-model",
+                reuse=reuse
+            )
+
+            losses.append(
+                (device, cross_entropy_direct(logits, y, "supervised-x2y"))
+            )
+
+        # join the losses
+        if self._gpus > 1:
+            with tf.device('/cpu:0'):
+                total_loss = mean_n([loss for _, loss in losses])
+                total_loss = cross_entropy_summary(total_loss,
+                                                   name="supervised-x2y",
+                                                   reuse=reuse)
+        else:
+            _, total_loss = losses[0]
+            total_loss = cross_entropy_summary(total_loss,
+                                               name="supervised-x2y",
+                                               reuse=reuse)
+
+        return (total_loss, losses)
 
     def greedy_inference_model(self,
                                source: tf.Tensor, length: tf.Tensor,
                                reuse: bool=False) -> tf.Tensor:
-        source = tf.cast(source, tf.int32)
+        x = tf.cast(source, tf.int32)
         max_length = tf.shape(source)[1]
 
         _, labels = attention_unsupervised_translator(
-            source, length,
+            x, length,
             latent_dim=self.latent_dim,
             voca_size=self.dataset.vocabulary_size,
             num_blocks=self.num_blocks,
@@ -66,4 +99,4 @@ class Attention(Model):
             reuse=reuse
         )
 
-        return labels
+        return tf.cast(labels, source.dtype)
