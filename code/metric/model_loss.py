@@ -13,7 +13,7 @@ class ModelLoss(Metric):
         with tf.name_scope(None, self.metric_name,
                            values=[self.dataset.source, self.dataset.target]):
             loss, losses = model.loss_model(
-                self.dataset.source, self.dataset.target,
+                self.dataset.source, self.dataset.target, self.dataset.length,
                 reuse=True
             )
             return loss

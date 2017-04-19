@@ -39,8 +39,11 @@ class BleuScore(Metric):
             nltk_env.download('nonbreaking_prefixes')
 
         with tf.name_scope(None, self.metric_name,
-                           values=[self.dataset.source, self.dataset.target]):
-            predicted = model.inference_model(self.dataset.source, reuse=True)
+                           values=[self.dataset.source,
+                                   self.dataset.target, self.dataset.length]):
+            predicted = model.inference_model(
+                self.dataset.source, self.dataset.length, reuse=True
+            )
 
             bleu = tf.py_func(self._py_implementaton,
                               [predicted, self.dataset.target],

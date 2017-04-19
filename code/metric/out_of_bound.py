@@ -13,9 +13,10 @@ class OutOfBound(Metric):
         with tf.name_scope(None, self.metric_name,
                            values=[self.dataset.source]):
             x = self.dataset.source
+            length = self.dataset.length
 
             # create masked error tensor
-            predict = model.inference_model(x, reuse=True)
+            predict = model.inference_model(x, length, reuse=True)
             out_of_bound = tf.greater_equal(
                 predict,
                 tf.cast(model.dataset.vocabulary_size, dtype=predict.dtype)

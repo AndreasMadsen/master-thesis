@@ -11,7 +11,7 @@ class DummyModel(Model):
         self._translated = translated
         super().__init__(dataset, save_dir=save_dir, **kwargs)
 
-    def inference_model(self, x, reuse=False):
+    def inference_model(self, x, length, reuse=False):
         observations = int(self.dataset.target.get_shape()[0])
 
         translated = tf.convert_to_tensor(self._translated)

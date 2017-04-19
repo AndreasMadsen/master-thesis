@@ -14,12 +14,15 @@ class MisclassificationRate(Metric):
                            values=[self.dataset.source, self.dataset.target]):
             x = self.dataset.source
             y = self.dataset.target
+            length = self.dataset.length
 
             # build mask
             mask = tf.cast(tf.not_equal(y, tf.zeros_like(y)), tf.float32)
 
             # create masked error tensor
-            errors = tf.not_equal(model.inference_model(x, reuse=True), y)
+            errors = tf.not_equal(
+                model.inference_model(x, length, reuse=True), y
+            )
             errors = tf.cast(errors, tf.float32) * mask  # mask errors
 
             # tf.sum(mask) is the number of unmasked elements
