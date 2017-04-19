@@ -7,7 +7,7 @@ def attention_encoder(x, length,
                       num_blocks=3,
                       name=None, reuse=None):
     with tf.variable_scope(name, "attention-encoder", values=[x, length],
-                           reuse=reuse):
+                           reuse=reuse) as scope:
         # get shapes
         batch_size = x.get_shape().as_list()[0]
         if batch_size is None:
@@ -17,10 +17,10 @@ def attention_encoder(x, length,
 
         # encode data
         fw_cell = rnn.MultiRNNCell([
-            rnn.BasicRNNCell(dims) for i in range(num_blocks)
+            rnn.BasicRNNCell(dims, reuse=scope.reuse) for i in range(num_blocks)
         ], state_is_tuple=True)
         bw_cell = rnn.MultiRNNCell([
-            rnn.BasicRNNCell(dims) for i in range(num_blocks)
+            rnn.BasicRNNCell(dims, reuse=scope.reuse) for i in range(num_blocks)
         ], state_is_tuple=True)
 
         enc_out, _ = tf.nn.bidirectional_dynamic_rnn(
