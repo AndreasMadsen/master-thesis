@@ -34,10 +34,10 @@ model = Attention(
     num_blocks=3, latent_dim=20,
     gpus=1,
     deep_summary=False,
-    save_dir=f'asset/attention_synthetic_digits_grid/' +
+    save_dir=f'asset/attention_synthetic_digits_baseline/' +
              f'train_{args.train_size}'
 )
 model.add_metric(MisclassificationRate(dataset_test))
 model.add_metric(ModelLoss(dataset_test))
-model.train(max_ep=2000, optim='Adam', lr=1e-4,
+model.train(max_ep=1000, optim='Adam', lr=1e-4,
             log_interval=20, save_interval=60)

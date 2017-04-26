@@ -58,7 +58,7 @@ def attention_decoder(enc, length, state_transfer_helper,
         dec_outputs, _ = seq2seq.dynamic_decode(
             decoder,
             maximum_iterations=max_length,
-            impute_finished=True
+            impute_finished=False
         )
 
         logits = dec_outputs.rnn_output

@@ -12,7 +12,7 @@ import tensorflow as tf
 from code.dataset import SyntheticDigits
 from code.model import SemiSupervisedByteNet
 from code.model.util.asset_dir import asset_dir
-from code.plot.util.ggplot import GGPlot
+from code.plot.util.result import save_result
 
 # get saved models
 data_dir = path.join(asset_dir(), 'semi_bytenet_synthetic_digits_grid')
@@ -81,25 +81,4 @@ df = pd.DataFrame(results, columns=(
     )
 )
 
-
-gg = GGPlot("""
-# reorder factors in dataframe
-dataframe$unlabled.size = factor(dataframe$unlabled.size,
-                                 levels=c("0", "512", "1024"), ordered=TRUE)
-
-p = ggplot(dataframe, aes(x=labeled.size))
-p = p + geom_point(aes(y = misclassification.rate, colour=unlabled.size),
-                   position=position_dodge(width=0.1))
-p = p + facet_grid(semi.supervised.factor ~ .)
-p = p + scale_x_continuous(trans="log2")
-p = p + scale_colour_manual(values=brewer.pal(7, "PuBu")[c(4, 6, 7)])
-p = p + labs(x="labled observations",
-             y="misclassification rate",
-             colour="unlabled observations")
-p = p + theme(legend.position="bottom",
-              text=element_text(size=10))
-
-ggsave(filepath, p, width=page.width, height=11, units="cm");
-""")
-
-gg.run(df, 'semi-bytenet/synthetic-digits-grid')
+save_result(df, 'semi-supervised-synthetic-digits-grid')

@@ -13,9 +13,6 @@ thisdir = path.dirname(path.realpath(__file__))
 graphicsdir = path.realpath(
     path.join(thisdir, '..', '..', '..', 'report', 'graphics')
 )
-resultdir = path.realpath(
-    path.join(thisdir, '..', '..', '..', 'result', 'plot')
-)
 
 
 class GGPlot:
@@ -36,11 +33,6 @@ class GGPlot:
         """)
 
     def run(self, dataframe: pd.DataFrame, filepath: str):
-        # save datafile
-        csv_filepath = path.join(resultdir, filepath + '.csv')
-        os.makedirs(path.dirname(csv_filepath), exist_ok=True)
-        dataframe.to_csv(csv_filepath, index=False)
-
         # generate PDF file
         pdf_filepath = path.join(graphicsdir, filepath + '.pdf')
 

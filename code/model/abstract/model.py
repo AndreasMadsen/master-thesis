@@ -4,6 +4,7 @@ import abc
 import os
 import os.path as path
 
+import numpy as np
 import tensorflow as tf
 import sugartensor as stf
 
@@ -167,7 +168,7 @@ class Model:
 
         # build inference_model
         x = stf.placeholder(dtype=tf.int32, shape=(None, None))
-        length = stf.placeholder(dtype=tf.int32, shape=(None))
+        length = stf.placeholder(dtype=tf.int32, shape=(None, ))
         with self._options_context():
             label = self.inference_model(x, length, **kwargs)
 
