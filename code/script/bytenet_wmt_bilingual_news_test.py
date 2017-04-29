@@ -19,7 +19,7 @@ dataset_test = WMTBilingualNews(batch_size=10,
                                 shuffle=False, repeat=False)
 model = ByteNet(dataset_train,
                 num_blocks=3, latent_dim=400,
-                save_dir='hpc_asset/bytenet_wmt_2014_full')
+                save_dir='asset/bytenet_wmt_2014')
 
 translation_tuple = model.predict_from_dataset(dataset_test, samples=10)
 

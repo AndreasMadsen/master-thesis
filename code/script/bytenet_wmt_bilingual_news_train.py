@@ -25,4 +25,4 @@ model = ByteNet(dataset_train, save_dir='asset/bytenet_wmt_2014',
 model.add_metric(BleuScore(dataset_train, name='BLEU-score-train'))
 model.add_metric(BleuScore(dataset_test, name='BLEU-score-test'))
 model.add_metric(ModelLoss(dataset_test, name='model-loss-test'))
-model.train(max_ep=30, lr=0.0001)
+model.train(max_ep=120, lr=0.0001)
