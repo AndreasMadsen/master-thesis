@@ -32,9 +32,9 @@ class GGPlot:
         {r_script}
         """)
 
-    def run(self, dataframe: pd.DataFrame, filepath: str):
+    def run(self, dataframe: pd.DataFrame, filepath: str, file_format='pdf'):
         # generate PDF file
-        pdf_filepath = path.join(graphicsdir, filepath + '.pdf')
+        pdf_filepath = path.join(graphicsdir, filepath + '.' + file_format)
 
         csv_file = io.StringIO()
         dataframe.to_csv(csv_file, index=False)
