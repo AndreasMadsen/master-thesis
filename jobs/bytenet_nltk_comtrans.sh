@@ -10,7 +10,6 @@
 #BSUB -o log-%J.out
 #BSUB -e log-%J.err
 
-export TF_USE_XLA=1
 export PYTHONPATH=./
 source ~/stdpy3/bin/activate
 

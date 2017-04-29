@@ -10,7 +10,6 @@
 #BSUB -o log-%J.out
 #BSUB -e log-%J.err
 
-export TF_USE_XLA=1
 export BASE_SAVE_DIR=/work1/$USER/kandidat
 export PYTHONPATH=./:./sugartensor/
 source ~/stdpy3/bin/activate
