@@ -5,7 +5,8 @@ from code.plot.util.ggplot import GGPlot
 import pandas as pd
 
 summary = TFSummary(
-    'hpc_asset/bytenet_europarl_nosummary_max500'
+    'hpc_asset/bytenet_europarl_nosummary_max500',
+    alpha=0.05
 )
 
 entropy = pd.concat(
@@ -26,19 +27,11 @@ bleu = pd.concat(
     names=['dataset']
 )
 
-raw = pd.concat(
+data = pd.concat(
   [bleu, entropy],
   keys=['BLEU score', 'cross entropy'],
   names=['loss type']
 )
-
-data = pd.merge(
-    raw,
-    raw.ewm(alpha=0.1).mean(),
-    left_index=True, right_index=True,
-    suffixes=(' raw', ' smooth')
-)
-
 data = data.reset_index(level=['loss type', 'dataset', 'sec'])
 
 gg = GGPlot("""

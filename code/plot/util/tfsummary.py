@@ -7,7 +7,7 @@ import pandas as pd
 
 
 class TFSummary:
-    def __init__(self, logdir):
+    def __init__(self, logdir, alpha=0.25):
         rundirs = [
             dirname for dirname in os.listdir(logdir)
             if dirname[0] != '.' and path.isdir(path.join(logdir, dirname))
@@ -23,6 +23,7 @@ class TFSummary:
             raise IOError(f'too many event files, {tfevent_files}')
 
         self.tfevent_filepath = path.join(logdir, rundirs[0], tfevent_files[0])
+        self.alpha = alpha
 
     def tags(self):
         tags = set()
@@ -40,12 +41,17 @@ class TFSummary:
                     data.append({
                         'step': e.step,
                         'wall time': e.wall_time,
-                        'value': v.simple_value
+                        'value raw': v.simple_value
                     })
 
-        df = pd.DataFrame(data, columns=('step', 'wall time', 'value'))
-        df['sec'] = df['wall time'] - df['wall time'][0]
+        # construct dataframe
+        df = pd.DataFrame(data, columns=('step', 'wall time', 'value raw'))
 
+        # set index
+        df['sec'] = df['wall time'] - df['wall time'][0]
         df.set_index(['step', 'sec', 'wall time'], inplace=True)
+
+        # smooth values
+        df['value smooth'] = df['value raw'].ewm(alpha=self.alpha).mean()
 
         return df

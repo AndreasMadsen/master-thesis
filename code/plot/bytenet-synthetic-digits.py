@@ -5,8 +5,11 @@ from code.plot.util.ggplot import GGPlot
 import pandas as pd
 
 summary = TFSummary(
-    'hpc_asset/bytenet_synthetic_digits'
+    'hpc_asset/bytenet_synthetic_digits',
+    alpha=0.4
 )
+
+print(summary.read_summary('metrics/model-loss-test_1'))
 
 entropy = pd.concat(
     [
@@ -26,19 +29,11 @@ missrate = pd.concat(
     names=['dataset']
 )
 
-raw = pd.concat(
+data = pd.concat(
   [missrate, entropy],
   keys=['misclassification rate', 'cross entropy'],
   names=['loss type']
 )
-
-data = pd.merge(
-    raw,
-    raw.ewm(alpha=0.25).mean(),
-    left_index=True, right_index=True,
-    suffixes=(' raw', ' smooth')
-)
-
 data = data.reset_index(level=['loss type', 'dataset', 'sec'])
 
 gg = GGPlot("""

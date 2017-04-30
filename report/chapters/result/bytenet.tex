@@ -7,17 +7,18 @@ Before using the model on the Europarl v7 dataset for solving the WMT Translatio
 
 \subsubsection{Learning Synthetic Digits Problem}
 
-The Synthetic Digits dataset is used for validating the generalization properties of the ByteNet implementation. The internal dimensionality is set to 20, this is 20 units in the encoder and 40 units in the decoder, the latter is because the encoding is concatenated with the target embedding. The ByteNet model is optimized using the MaxProp optimizer with a learning rate of 0.01.
+The Synthetic Digits dataset is used for validating the generalization properties of the ByteNet implementation. The internal dimensionality is set to 20, this is 20 units in the encoder and 40 units in the decoder, the latter is because the encoding is concatenated with the target embedding. The ByteNet model is optimized using the MaxProp optimizer with a learning rate of 0.001. The training size is set to 128 observations, likewise for the test dataset.
 
 Because the BLEU score is not meaningful for the Synthetic Digits problem, where no words exists in the target, the misclassification rate is calculated instead.
 
 \begin{figure}[H]
     \centering
     \includegraphics[scale=1]{bytenet/validation-synthetic-digits.pdf}
-    \caption{Shows misclassification rate and the cross entropy loss. The training size is set to 128 observations, likewise for the test dataset. For comparison a the attention model has misclassification rate at 0.51.}
+    \caption{Shows misclassification rate and the cross entropy loss. For comparison a the attention model has misclassification rate at 0.51.}
+    \label{fig:result:bytenet:digits}
 \end{figure}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \begin{tabular}{r|p{3.3cm} p{3.3cm} p{3.3cm}}
 	obs. & source & target & predict\\ \hline
@@ -28,23 +29,31 @@ Because the BLEU score is not meaningful for the Synthetic Digits problem, where
   4 & two three four & 234 & 212 \\
   5 & five three & 53 & 53
 \end{tabular}
-\caption{Source, target and prediction on the test dataset.}
+\caption{Source, target, and prediction on examples from the test dataset.}
+\label{table:result:bytenet:digits}
 \end{table}
 
-\clearpage
+Figure \ref{fig:result:bytenet:digits} shows reasonable convergence, only the test error shows jitter during training. The jitter likely doesn't show because of poor optimization, but rather because the errors are only calculated on a randomly sampled subset of the test dataset. For the diffrent samples the test error is diffrent.
+
+What is more interesting is that the test cross entropy error shows little or no improvement   
+
+
+the ByteNet model completely learns the training dataset
+
+
 \subsubsection{Memorizing WMT NewsTest}
 
 Sometimes a model works well when it has few weights, but breaks for higher dimensionality because of vanishing or exploding gradient issues. A good test is to see if the model can memorize a small dataset but where the model complexity is kept high. For memorization one just expects the training loss to become very small, the test error is not important.
 
 The WMT 2014 NewsTest dataset for German to English translation was used for training, this contains 3003 observations. The WMT 2015 NewsTest dataset was used for testing, this contains 1596 observations. Both contains 3000 observations and and the model ran 120 epochs over these observations. The internal dimensionality is set to 400, (800 in the decoder because of concatenation). The ByteNet model is optimized using the MaxProp optimizer with a learning rate of 0.0001.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[scale=1]{bytenet/validation-memorize-wmt.pdf}
     \caption{Shows BLEU score and cross entropy loss for the German to English WMT NewsTest dataset. Both training and test measures are calculated on a randomly sampled mini-batch from each dataset.}
 \end{figure}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \begin{tabular}{r|p{3.3cm} p{3.3cm} p{3.3cm}}
 	obs. & source & target & predict\\ \hline
@@ -54,7 +63,7 @@ The WMT 2014 NewsTest dataset for German to English translation was used for tra
 \caption{Source, target and prediction on the training dataset.}
 \end{table}
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \begin{tabular}{r|p{3.3cm} p{3.3cm} p{3.3cm}}
 	obs. & source & target & predict\\ \hline
@@ -64,7 +73,6 @@ The WMT 2014 NewsTest dataset for German to English translation was used for tra
 \caption{Source, target and prediction on the test dataset.}
 \end{table}
 
-\clearpage
 \subsection{WMT Translation Task}
 
 \begin{figure}[H]
