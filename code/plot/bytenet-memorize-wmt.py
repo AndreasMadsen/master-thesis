@@ -5,7 +5,7 @@ from code.plot.util.ggplot import GGPlot
 import pandas as pd
 
 summary = TFSummary(
-    'hpc_asset/bytenet_wmt_2014_full_120'
+    'hpc_asset/bytenet_wmt_2014_300ep'
 )
 
 entropy = pd.concat(
@@ -39,14 +39,17 @@ data = pd.merge(
     suffixes=(' raw', ' smooth')
 )
 
-data = data.reset_index(level=['loss type', 'dataset', 'step'])
+data = data.reset_index(level=['loss type', 'dataset', 'sec'])
 
 gg = GGPlot("""
-p = ggplot(dataframe, aes(x=step))
+dataframe$time = as.POSIXct(dataframe$sec, origin = "1970-01-01", tz = "UTC")
+
+p = ggplot(dataframe, aes(x=time))
 p = p + geom_line(aes(y = value.raw, colour=dataset), alpha=0.2)
 p = p + geom_line(aes(y = value.smooth, colour=dataset))
 p = p + facet_wrap(~loss.type, ncol=1, scales="free_y")
-p = p + labs(x="global step", y="")
+p = p + labs(x="duration", y="")
+p = p + scale_x_datetime(date_labels="%Hh")
 p = p + theme(legend.position="bottom",
               text=element_text(size=10))
 

@@ -8,8 +8,6 @@ summary = TFSummary(
     'hpc_asset/bytenet_europarl_nosummary_max500'
 )
 
-print(summary.read_summary('metrics/model-loss-test_1'))
-
 entropy = pd.concat(
     [
         summary.read_summary('metrics/model-loss-test_1'),
@@ -44,8 +42,7 @@ data = pd.merge(
 data = data.reset_index(level=['loss type', 'dataset', 'sec'])
 
 gg = GGPlot("""
-library(hms)
-#dataframe$time = as.hms(dataframe$sec)
+library(lubridate);
 dataframe$time = as.POSIXct(dataframe$sec, origin = "1970-01-01", tz = "UTC")
 
 p = ggplot(dataframe, aes(x=time))
@@ -53,7 +50,9 @@ p = p + geom_line(aes(y = value.raw, colour=dataset), alpha=0.2)
 p = p + geom_line(aes(y = value.smooth, colour=dataset))
 p = p + facet_wrap(~loss.type, ncol=1, scales="free_y")
 p = p + labs(x="duration", y="")
-p = p + scale_x_datetime(date_labels="%dd %Hh")
+p = p + scale_x_datetime(labels=function (time) {
+          return(sprintf("%.0fd %.0fh", yday(time) - 1, hour(time)));
+        })
 p = p + theme(legend.position="bottom",
               text=element_text(size=10))
 

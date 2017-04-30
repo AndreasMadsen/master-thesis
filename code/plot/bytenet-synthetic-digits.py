@@ -5,12 +5,12 @@ from code.plot.util.ggplot import GGPlot
 import pandas as pd
 
 summary = TFSummary(
-    'hpc_asset/semi_bytenet_synthetic_digits_grid/train_128_semi_0_factor_0.1'
+    'hpc_asset/bytenet_synthetic_digits'
 )
 
 entropy = pd.concat(
     [
-        summary.read_summary('metrics/model-loss_1'),
+        summary.read_summary('metrics/model-loss-test_1'),
         summary.read_summary('losses/cross_entropy/supervised-x2y')
     ],
     keys=['test', 'train'],
@@ -19,9 +19,10 @@ entropy = pd.concat(
 
 missrate = pd.concat(
     [
-        summary.read_summary('metrics/misclassification-rate_1')
+        summary.read_summary('metrics/missrate-test_1'),
+        summary.read_summary('metrics/missrate-train_1')
     ],
-    keys=['test'],
+    keys=['test', 'train'],
     names=['dataset']
 )
 
@@ -38,14 +39,17 @@ data = pd.merge(
     suffixes=(' raw', ' smooth')
 )
 
-data = data.reset_index(level=['loss type', 'dataset', 'step'])
+data = data.reset_index(level=['loss type', 'dataset', 'sec'])
 
 gg = GGPlot("""
-p = ggplot(dataframe, aes(x=step))
+dataframe$time = as.POSIXct(dataframe$sec, origin = "1970-01-01", tz = "UTC")
+
+p = ggplot(dataframe, aes(x=time))
 p = p + geom_line(aes(y = value.raw, colour=dataset), alpha=0.2)
 p = p + geom_line(aes(y = value.smooth, colour=dataset))
 p = p + facet_wrap(~loss.type, ncol=1, scales="free_y")
-p = p + labs(x="global step", y="")
+p = p + scale_x_datetime(date_labels="%M min.")
+p = p + labs(x="duration", y="")
 p = p + theme(legend.position="bottom",
               text=element_text(size=10))
 

@@ -17,9 +17,19 @@ Because the BLEU score is not meaningful for the Synthetic Digits problem, where
     \caption{Shows misclassification rate and the cross entropy loss. The training size is set to 128 observations, likewise for the test dataset. For comparison a the attention model has misclassification rate at 0.51.}
 \end{figure}
 
-\todo[inline]{include training misrate for completeness.}
-
-\todo[inline]{show test prediction examples.}
+\begin{table}[h]
+\centering
+\begin{tabular}{r|p{3.3cm} p{3.3cm} p{3.3cm}}
+	obs. & source & target & predict\\ \hline
+  0 & one zero four & 104 & 104 \\
+  1 & one five six & 156 & 15 \\
+  2 & five five nine & 559 & 559 \\
+  3 & one six & 16 & 10 \\
+  4 & two three four & 234 & 212 \\
+  5 & five three & 53 & 53
+\end{tabular}
+\caption{Source, target and prediction on the test dataset.}
+\end{table}
 
 \clearpage
 \subsubsection{Memorizing WMT NewsTest}
@@ -48,8 +58,8 @@ The WMT 2014 NewsTest dataset for German to English translation was used for tra
 \centering
 \begin{tabular}{r|p{3.3cm} p{3.3cm} p{3.3cm}}
 	obs. & source & target & predict\\ \hline
-  0  & Polizei von Karratha verhaftet 20-Jährigen nach schneller Motorradjagd & Karratha police arrest 20-year-old after high speed motorcycle chase & Cold gronks tlestend ast Des inlesa he bnetion. \\
-  1  & Das Motorrad sowie eine Person, die der Beschreibung des Fahrers entsprach wurden später bei einem Haus im Walcott Way in Bulgarra gesehen. & The motorcycle and a person matching the description of the rider was then spotted at a house on Walcott Way in Bulgarra. & The sctre Acdore on whes tre sigered harcun eijuconn fon is the swantime hes cof the giant Whe somitt s icand bline pe Eaties.
+  0  & Zwei Anlagen so nah beieinander: Absicht oder Schildbürgerstreich? & Two sets of lights so close to one another: intentional or just a silly error? & Two sets of Gights so closento ond anotrero forentiog ther Gperbe ties wron the pllis buching thats and and ane. \\
+  1 & Diese Frage hat Gutachs Bürgermeister gestern klar beantwortet. & Yesterday, Gutacht's Mayor gave a clear answer to this question. & Yesterday, Guthaltha Meyor gage in ther assuer to the ricesteon deromen to now, aing warr pepe hevern wer a sevembytich.
 \end{tabular}
 \caption{Source, target and prediction on the test dataset.}
 \end{table}

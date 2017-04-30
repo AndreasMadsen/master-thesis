@@ -16,8 +16,8 @@ model = ByteNet(dataset_train,
                 deep_summary=False,
                 save_dir='asset/bytenet_synthetic_digits')
 
-model.add_metric(MisclassificationRate(dataset_train))
-model.add_metric(MisclassificationRate(dataset_test))
-model.add_metric(ModelLoss(dataset_test))
+model.add_metric(MisclassificationRate(dataset_train, name='missrate-train'))
+model.add_metric(MisclassificationRate(dataset_test, name='missrate-test'))
+model.add_metric(ModelLoss(dataset_test, name='model-loss-test'))
 
-model.train(max_ep=300, lr=0.01, log_interval=10, save_interval=30)
+model.train(max_ep=300, lr=0.001, log_interval=10, save_interval=30)
