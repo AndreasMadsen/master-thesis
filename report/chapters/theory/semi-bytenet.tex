@@ -1,4 +1,7 @@
 \section{Semi-Supervised Learning for NMT}
+\label{sec:theory:semi-supervised}
+\todo[inline]{Still missing a lot.}
+
 \subsection{Semi-Supervised loss}
 
 \subsection{Beam Search}
@@ -9,6 +12,6 @@ BeamSearch is a heuristic for getting the $k$ most likely sequences. On a theore
 
 BeamSearch has a parameter called the \textit{beam size} (denoted $b$), this size determins the number of sequences that is keept track of. It limits the number of sequences (called \textit{paths}) by assigning each new path in the next iteration a score, the top $b$ new sequences are then keeped and used in the next iteration. To initialize the paths the top $b$ outputs from $P(y_1| \{x_1, \dots, x_{|S|}\})$ are used. After either a maximum number of iterations or when the top $k$ sequences in the the set of memorized paths (called the \textit{beam}) have ended with an \texttt{<EOS>} symbol, the BeamSearch algorithm can stop.
 
-\todo[inline]{BeamSearch psudo code}
+\todo[inline]{BeamSearch pseudo code}
 
 For $b = 1$ the BeamSearch algorithm becomes a completely greedy search that just takes the most likely symbol in each iteration. For $b = \infty$ BeamSearch becomes the complete search above that runs in exponential time. 

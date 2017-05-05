@@ -1,20 +1,16 @@
 %!TEX root = ../Thesis.tex
 \chapter{Results}
 
-\input{chapters/result/problems}
+\input{chapters/result/result-problems}
+% \clearpage
+
+\input{chapters/result/result-setup}
 \clearpage
 
-\input{chapters/result/bytenet}
+\input{chapters/result/result-bytenet}
 \clearpage
 
-\section{Semi-Supervised ByteNet}
-
-\subsection{Validating Implementation}
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=1]{semi-bytenet/synthetic-digits-grid.pdf}
-    \caption{Shows the Semi-Supervised ByteNet model test performance depending on \textit{labeled dataset size}, \textit{unlabled dataset size}, and \textit{unlabeled learning factor}. The dashed line is a baseline that uses attention based RNN for translation on the same dataset.}
-\end{figure}
-
+\input{chapters/result/result-semi-supervised-bytenet}
 \clearpage
+
 \section{Simplified ByteNet}

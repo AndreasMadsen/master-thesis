@@ -40,11 +40,24 @@ The dilated convolution block depends on two parameters (or 3 if dimension size 
 
 For the \textit{residual layer} to make sense, the output dimension must be equal to the input dimension, thus the final sub-block is just a dense layer that transforms from $\frac{1}{2}d$ dimensions to $d$ dimensions. This sub-block does not contain either a batch normalization, or a ReLU activation. Though these are implicitly performed if another \textit{residual block} follows.
 
+\todo[inline]{add parameter calculations}
+\begin{equation}
+\frac{k}{4} d_{enc}^2 + \frac{1}{2} d_{enc}^2 + \frac{1}{2} d_{enc}^2 = \left(\frac{k}{4} + 1\right) d_{enc}^2
+\end{equation}
+
+
 \subsubsection{Decoder Residual Block}
 
 The decoder is very similar to the encoder, the differences exist such that the decoder can't look into the future of the target sequence. If the decoder was allowed to look into the future it would be impossible to perform inference, when the target sequence is unknown. To prevent future inspection two changes are made‚ the dilated convolution is masked, and batch normalization is replaced with layer normalization.
 
 Masking the convolution means that only the part of the convolution kernel that looks at the past is preserved. This is equivalent to fixing the right side (the future side) of the preserved kernel to zero.
+
+\todo[inline]{add parameter calculations, remember $d_{dec} = 2 d_{enc}$.}
+
+\begin{equation}
+\frac{\frac{k-1}{2} + 1}{4} d_{dec}^2 + \frac{1}{2} d_{dec}^2 + \frac{1}{2} d_{dec}^2 = \left(\frac{k + 1}{8} + 1\right) d_{dec}^2
+\end{equation}
+
 
 \subsection{Hierarchical Dilated Convolution}
 \label{sec:theory:bytenet:hierarchical-dilated-convolution}
@@ -86,7 +99,7 @@ The input to the encoder is the source sequences mapped using an embedding matri
 
 An interesting effect of this network is that all layers are invariant to adding a bias term, as well as the $\gamma$ term in the normalization. The encoder embedding and encoder layers are invariant because of batch normalization. The decoder embedding and decoder layers are invariant because of layer normalization. The final dense layer is invariant because of the following softmax.
 
-\begin{figure}[H]
+\begin{figure}[h]
     \centering
     \includegraphics[scale=1]{theory/bytenet-network.pdf}
     \caption{The training network for the ByteNet Model, where the shifted target sequence is feed into the network. In the inference network, the shifted target sequence is replaced by the $\mathrm{argmax}(\cdot)$ of the softmax output. ResBlock$(k, r)$ in the encoder refers to the Encoder-Residual-Block$(k, r)$, in the decoder it refers to Decoder-Residual-Block$(k, r)$.}

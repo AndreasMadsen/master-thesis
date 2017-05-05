@@ -5,7 +5,7 @@ from code.plot.util.ggplot import GGPlot
 import pandas as pd
 
 summary = TFSummary(
-    'hpc_asset/bytenet_europarl_nosummary_max500',
+    'hpc_asset/bytenet_europarl_nosummary_max500_adam',
     alpha=0.05
 )
 
@@ -18,18 +18,25 @@ entropy = pd.concat(
     names=['dataset']
 )
 
-bleu = pd.concat(
+bleu_test = pd.concat(
     [
-        summary.read_summary('metrics/BLEU-score-test_1'),
+        summary.read_summary('metrics/BLEU-score-test_1')
+    ],
+    keys=['test'],
+    names=['dataset']
+)
+
+bleu_train = pd.concat(
+    [
         summary.read_summary('metrics/BLEU-score-train_1')
     ],
-    keys=['test', 'train'],
+    keys=['train'],
     names=['dataset']
 )
 
 data = pd.concat(
-  [bleu, entropy],
-  keys=['BLEU score', 'cross entropy'],
+  [bleu_test, bleu_train, entropy],
+  keys=['BLEU\u00A0score', 'BLEU score', 'cross entropy'],
   names=['loss type']
 )
 data = data.reset_index(level=['loss type', 'dataset', 'sec'])
@@ -49,7 +56,7 @@ p = p + scale_x_datetime(labels=function (time) {
 p = p + theme(legend.position="bottom",
               text=element_text(size=10))
 
-ggsave(filepath, p, width=page.width, height=9, units="cm");
+ggsave(filepath, p, width=page.width, height=12, units="cm");
 """)
 
 gg.run(data, 'bytenet/europarl')

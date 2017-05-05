@@ -66,6 +66,13 @@ class Device:
                 '^/job:localhost/replica:0/task:0/(cpu|gpu):([0-9]+) ',
                 event['args']['name']
             )
+
+            if match is None:
+                match = re.search(
+                    '^/(cpu|gpu):([0-9]+)/',
+                    event['args']['name']
+                )
+
             self.type = match.group(1)
             self.index = int(match.group(2))
             self.name = f'{self.type}:{self.index}'

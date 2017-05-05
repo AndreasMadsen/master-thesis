@@ -32,6 +32,18 @@ class TFSummary:
                 tags.add(v.tag)
         return frozenset(tags)
 
+    def wall_time(self):
+        start_time = float('inf')
+        end_time = -float('inf')
+
+        for e in tf.train.summary_iterator(self.tfevent_filepath):
+            for v in e.summary.value:
+                if v.tag == 'global_step/sec':
+                    start_time = min(start_time, e.wall_time)
+                    end_time = max(end_time, e.wall_time)
+
+        return end_time - start_time
+
     def read_summary(self, tag):
         data = []
 
