@@ -4,7 +4,7 @@
 \subsubsection{Continues evaluation}
 The model evaluations such as misclassification rate and BLEU score calculations that are continuously calculated during training, are done on a randomly sampled mini-batch from the test dataset. The predictions are the output calculated using a typical greedy algorithm, this corresponds to having a beam size of 1.
 
-The evaluations are smoothed using an exponential moving average, this removes most of the noise associated with training neural networks. Because the moving average is done over diffrent samples from the test and training dataset, the moving average will likely also be closer to the true average. However this is not statically guaranteed as the model differes in each iteration and this stationarity is not guaranteed.
+The evaluations are smoothed using an exponential moving average, this removes most of the noise associated with training neural networks. Because the moving average is done over different samples from the test and training dataset, the moving average will likely also be closer to the true average. However this is not statically guaranteed as the model differ es in each iteration and this stationary is not guaranteed.
 
 \subsubsection{Example predictions}
 The predictions on examples from the test dataset are done using a beam search algorithm with a beam size of 10. The prediction shown is the most likely sequence found in the beam search that contains an \texttt{<eos>} symbol.

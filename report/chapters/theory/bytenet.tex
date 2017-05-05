@@ -3,7 +3,7 @@
 
 The ByteNet model is an alternative approach to neural machine translation, it specifically focuses on having linear computational complexity, having a resolution preserving encoding, and be a character-level translation model \cite{bytenet}. This is somewhat different from existing popular models such as the Sutskever 2014 model \cite{sutskever-2014-nmt} and the attention based Bahdanau 2015 model \cite{bahdanau-2015-nmt}.
 
-Note that the model presented here is a simplified version of the original ByteNet model \cite{bytenet}. First, there are no bags of characters, only individual characters are used as the sentence representation. Secondly, the sub-batch normalization in the decoder is replaced by layer normalization, besides being a simpler solution than sub-batch normalization this could also improve the model performance \cite{layer-normalization}. At last, the network has less weights a fewer layers thain in the original ByteNet model.
+Note that the model presented here is a simplified version of the original ByteNet model \cite{bytenet}. First, there are no bags of characters, only individual characters are used as the sentence representation. Secondly, the sub-batch normalization in the decoder is replaced by layer normalization, besides being a simpler solution than sub-batch normalization this could also improve the model performance \cite{layer-normalization}. At last, the network has less weights a fewer layers than in the original ByteNet model.
 
 \subsection{ByteNet Residual Block}
 
