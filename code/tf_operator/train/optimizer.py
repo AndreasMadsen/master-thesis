@@ -22,9 +22,11 @@ def optimizer(optim='MaxProp',
         opt = tf.train.RMSPropOptimizer(
             learning_rate=lr, decay=beta1, momentum=momentum
         )
-    else:
+    elif optim == 'GradDescent':
         opt = tf.train.GradientDescentOptimizer(
             learning_rate=lr
         )
+    else:
+        raise NotImplemented(f'optimizer {optim} is not implemented')
 
     return opt
