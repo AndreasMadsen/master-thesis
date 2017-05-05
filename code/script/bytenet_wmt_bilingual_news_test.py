@@ -13,7 +13,7 @@ dataset_train = WMTBilingualNews(batch_size=64,
                                  min_length=None, max_length=None)
 
 dataset_test = WMTBilingualNews(batch_size=10,
-                                year=2014, source_lang='de', target_lang='en',
+                                year=2015, source_lang='de', target_lang='en',
                                 vocabulary=dataset_train.vocabulary,
                                 validate=True,
                                 shuffle=False, repeat=False)

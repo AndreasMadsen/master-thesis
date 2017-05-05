@@ -15,7 +15,7 @@ dataset_test = WMTBilingualNews(batch_size=128,
                                 shuffle=False, repeat=False)
 model = ByteNet(dataset_train,
                 num_blocks=3, latent_dim=400,
-                save_dir='hpc_asset/bytenet_nltk_comtrans')
+                save_dir='asset/bytenet_nltk_comtrans')
 
 translation_tuple = model.predict_from_dataset(dataset_test)
 
