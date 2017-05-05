@@ -12,47 +12,67 @@ class TFSummary:
             dirname for dirname in os.listdir(logdir)
             if dirname[0] != '.' and path.isdir(path.join(logdir, dirname))
         ]
-        if len(rundirs) != 1:
-            raise IOError(f'too many run dirs, {rundirs}')
+        if len(rundirs) < 1:
+            raise IOError(f'too few run dirs, {rundirs}')
 
-        tfevent_files = [
-            filename for filename in os.listdir(path.join(logdir, rundirs[0]))
-            if filename[0] != '.'
-        ]
-        if len(tfevent_files) != 1:
-            raise IOError(f'too many event files, {tfevent_files}')
+        self.tfevent_filepaths = []
+        for rundir in sorted(rundirs):
+            tf_file = [
+                filename for filename in os.listdir(path.join(logdir, rundir))
+                if filename[0] != '.'
+            ]
 
-        self.tfevent_filepath = path.join(logdir, rundirs[0], tfevent_files[0])
+            if len(tf_file) < 1:
+                raise IOError(f'too many event files, {tf_file}')
+
+            self.tfevent_filepaths.append(
+                path.join(logdir, rundir, tf_file[0])
+            )
+
         self.alpha = alpha
+
+    def summary_iterator(self):
+        prev_wall_time = 0
+        file_wall_time_offset = 0
+
+        for eventfile in self.tfevent_filepaths:
+            first_event_in_file = True
+
+            for e in tf.train.summary_iterator(eventfile):
+                if first_event_in_file:
+                    file_wall_time_offset = prev_wall_time - e.wall_time
+                    first_event_in_file = False
+
+                yield (e.wall_time + file_wall_time_offset, e)
+
+            prev_wall_time = e.wall_time + file_wall_time_offset
 
     def tags(self):
         tags = set()
-        for e in tf.train.summary_iterator(self.tfevent_filepath):
+        for wall_time, e in self.summary_iterator():
             for v in e.summary.value:
                 tags.add(v.tag)
         return frozenset(tags)
 
     def wall_time(self):
-        start_time = float('inf')
         end_time = -float('inf')
 
-        for e in tf.train.summary_iterator(self.tfevent_filepath):
+        for wall_time, e in self.summary_iterator():
             for v in e.summary.value:
                 if v.tag == 'global_step/sec':
-                    start_time = min(start_time, e.wall_time)
-                    end_time = max(end_time, e.wall_time)
+                    end_time = max(end_time, wall_time)
 
-        return end_time - start_time
+        return end_time
 
     def read_summary(self, tag):
         data = []
 
-        for e in tf.train.summary_iterator(self.tfevent_filepath):
+        for wall_time, e in self.summary_iterator():
             for v in e.summary.value:
                 if v.tag == tag:
                     data.append({
                         'step': e.step,
-                        'wall time': e.wall_time,
+                        'wall time': wall_time,
                         'value raw': v.simple_value
                     })
 
