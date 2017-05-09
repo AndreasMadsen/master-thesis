@@ -32,17 +32,17 @@ The \textit{ByteNet residual block} is at its core a dilated convolution, but ad
 
 The normalization block consists of batch normalization and a ReLU activation. For this to make sense there must be some parameters before the activation such that the network can control the ReLU. This will either be an embedding lookup or another \textit{residual block}.
 
-The dimensional reduction block reduces the dimensionality of the dataset from $d$ dimensions to $\frac{1}{2}d$ dimensions. This is done through the usual dense layer, batch normalization, and ReLU activation block sequence. Note that the input is a sequence of vectors, a vector for each character, thus the dense matrix multiplication is performed on each vector in the sequence. This can also be described as a normal convolution with a kernel width of 1.
+The dimensional reduction block reduces the dimensionality of the dataset from $d_{enc}$ dimensions to $\frac{1}{2}d_{enc}$ dimensions. This is done through the usual dense layer, batch normalization, and ReLU activation block sequence. Note that the input is a sequence of vectors, a vector for each character, thus the dense matrix multiplication is performed on each vector in the sequence. This can also be described as a normal convolution with a kernel width of 1.
 
 \afterpage{\clearpage}
 
-The dilated convolution block depends on two parameters (or 3 if dimension size $d$ is included), the kernel width $k$ and the dilation rate $r$. ByteNet specifies a specific structure for these parameters, but these choices only make sense from the full network perspective, thus they will be discussed later. Besides being a dilated convolution the sub-block is quite normal, as it also performs a batch normalization and ReLU activation. The convolution also maintains the dimensionality, which at this point is $\frac{1}{2}d$.
+The dilated convolution block depends on two parameters (3 if dimension size $d_{enc}$ is included), the kernel width $k$ and the dilation rate $r$. ByteNet specifies a specific structure for these parameters, but these choices only make sense from the full network perspective, thus they will be discussed later. Besides being a dilated convolution the sub-block is quite normal, as it also performs a batch normalization and ReLU activation. The convolution also maintains the dimensionality, which at this point is $\frac{1}{2}d_{enc}$.
 
-For the \textit{residual layer} to make sense, the output dimension must be equal to the input dimension, thus the final sub-block is just a dense layer that transforms from $\frac{1}{2}d$ dimensions to $d$ dimensions. This sub-block does not contain either a batch normalization, or a ReLU activation. Though these are implicitly performed if another \textit{residual block} follows.
+For the \textit{residual layer} to make sense, the output dimension must be equal to the input dimension, thus the final sub-block is just a dense layer that transforms from $\frac{1}{2}d_{enc}$ dimensions to $d_{enc}$ dimensions. This sub-block does not contain either a batch normalization, or a ReLU activation. Though these are implicitly performed if another \textit{residual block} follows.
 
-\todo[inline]{add parameter calculations}
+The number of weights from all these sub-layers in the \textit{encoder residual block} excluding the bias and normalization terms:
 \begin{equation}
-\frac{k}{4} d_{enc}^2 + \frac{1}{2} d_{enc}^2 + \frac{1}{2} d_{enc}^2 = \left(\frac{k}{4} + 1\right) d_{enc}^2
+k \left(\frac{d_{enc}}{2}\right)^2 + \frac{1}{2} d_{enc}^2 + \frac{1}{2} d_{enc}^2 = \left(\frac{k}{4} + 1\right) d_{enc}^2
 \end{equation}
 
 
@@ -50,12 +50,10 @@ For the \textit{residual layer} to make sense, the output dimension must be equa
 
 The decoder is very similar to the encoder, the differences exist such that the decoder can't look into the future of the target sequence. If the decoder was allowed to look into the future it would be impossible to perform inference, when the target sequence is unknown. To prevent future inspection two changes are made‚ the dilated convolution is masked, and batch normalization is replaced with layer normalization.
 
-Masking the convolution means that only the part of the convolution kernel that looks at the past is preserved. This is equivalent to fixing the right side (the future side) of the preserved kernel to zero.
-
-\todo[inline]{add parameter calculations, remember $d_{dec} = 2 d_{enc}$.}
+Masking the convolution means that only the part of the convolution kernel that looks at the past is preserved. This is equivalent to fixing the right side (the future side) of the preserved kernel to zero. Masking the kernel reduces the number of weights a bit, but otherwise there is no difference. The number of weights are:
 
 \begin{equation}
-\frac{\frac{k-1}{2} + 1}{4} d_{dec}^2 + \frac{1}{2} d_{dec}^2 + \frac{1}{2} d_{dec}^2 = \left(\frac{k + 1}{8} + 1\right) d_{dec}^2
+\left(\frac{k-1}{2} + 1\right) \left(\frac{d_{dec}}{2}\right)^2 + \frac{1}{2} d_{dec}^2 + \frac{1}{2} d_{dec}^2 = \left(\frac{k + 1}{8} + 1\right) d_{dec}^2
 \end{equation}
 
 
@@ -82,7 +80,7 @@ The kernel size is however $k \times d$ for all layers, thus the total amount of
 \sum_{\ell = 1}^{L_{enc}} k d = L_{enc} k d
 \end{equation}
 
-In the original ByteNet model they use 5 dilated convolution layers, each with a kernel width of $5$, this results in an effective kernel width of 125 characters (actually it is 373 character wide because they repeat the pattern 6 times) \todo{redo calculations}. Having a wide but computationally cheap kernel is extremely important for a character-based translation model such as ByteNet. In an attention-based translation model, such as the Bahdanau model \cite{bahdanau-2015-nmt} the width is in theory arbitrarily wide (though in practice very wide attention mechanisms works poorly), however as discussed previously this approach causes a quadratic computational complexity (section \ref{sec:theory:sequential:bahdanau}). By \textit{hierarchical dilated convolution} ByteNet manages to keep the complexity linear, while still having a very wide kernel. In practice sentences have a limited length and thus a hierarchical dilated convolution approach can be comparable to an attention approach. In the WMT 2014 en-de dataset, the longest sentences are 400 characters wide (Figure \ref{fig:bytenet:wmt-deen-density}).
+In the original ByteNet model they use 5 dilated convolution layers, each with a kernel width of $5$, this results in an effective kernel width of 125 characters (actually it is 373 character wide because they repeat the pattern 3 times). Having a wide but computationally cheap kernel is extremely important for a character-based translation model such as ByteNet. In an attention-based translation model, such as the Bahdanau model \cite{bahdanau-2015-nmt} the width is in theory arbitrarily wide (though in practice very wide attention mechanisms works poorly), however as discussed previously this approach causes a quadratic computational complexity (section \ref{sec:theory:sequential:bahdanau}). By \textit{hierarchical dilated convolution} ByteNet manages to keep the complexity linear, while still having a very wide kernel. In practice sentences have a limited length and thus a hierarchical dilated convolution approach can be comparable to an attention approach. In the WMT 2014 en-de dataset, the longest sentences are 400 characters wide (Figure \ref{fig:bytenet:wmt-deen-density}).
 
 \begin{figure}[h]
     \centering
