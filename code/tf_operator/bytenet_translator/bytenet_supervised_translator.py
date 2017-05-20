@@ -11,6 +11,8 @@ def bytenet_supervised_translator(x, y,
                                   shift=True,
                                   latent_dim=20, voca_size=20, num_blocks=3,
                                   rate=[1, 2, 4, 8, 16],
+                                  encoder_size=5,
+                                  encoder_normalization='bn',
                                   low_memory=False,
                                   labels=None, container=None,
                                   name=None, reuse=None):
@@ -45,6 +47,8 @@ def bytenet_supervised_translator(x, y,
         # encode graph ( atrous convolution )
         enc = x.sg_lookup(emb=emb_x)
         enc = parallel_bytenet_encoder(enc, num_blocks=num_blocks, rate=rate,
+                                       size=encoder_size,
+                                       normalization=encoder_normalization,
                                        name="encoder")
 
         # decode graph ( causal convolution )

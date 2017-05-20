@@ -15,22 +15,41 @@ from code.tf_operator import \
     batch_beam_gather, \
     cross_entropy_summary
 
+default_parameters = {
+    1: {
+        'encoder_size': 5,
+        'encoder_normalization': 'bn',
+        'num_blocks': 3,
+        'latent_dim': 400
+    },
+    2: {
+        'encoder_size': 3,
+        'encoder_normalization': 'ln',
+        'num_blocks': 6,
+        'latent_dim': 800
+    }
+}
+
 
 class ByteNet(Model):
-    latent_dim: int
-    num_blocks: int
     _gpus: int
 
     def __init__(self, dataset: TextDataset,
-                 latent_dim: int=400, num_blocks: int=3,
+                 latent_dim: int=None, num_blocks: int=None,
                  save_dir: str='asset/bytenet',
+                 version=1,
                  gpus=1,
                  **kwargs) -> None:
         super().__init__(dataset, save_dir=save_dir, **kwargs)
 
         self._gpus = gpus
-        self.latent_dim = latent_dim
-        self.num_blocks = num_blocks
+
+        self._parameters = default_parameters[version].copy()
+        self._parameters['voca_size'] = self.dataset.vocabulary_size
+        if latent_dim is not None:
+            self._parameters['latent_dim'] = latent_dim
+        if num_blocks is not None:
+            self._parameters['num_blocks'] = num_blocks
 
     def loss_model(self,
                    source_all: tf.Tensor, target_all: tf.Tensor,
@@ -57,9 +76,7 @@ class ByteNet(Model):
 
             logits, _ = bytenet_supervised_translator(
                 x, y,
-                voca_size=self.dataset.vocabulary_size,
-                latent_dim=self.latent_dim,
-                num_blocks=self.num_blocks,
+                **self._parameters,
                 container=self.embeddings,
                 labels=self.dataset.labels,
                 name="bytenet-model"
@@ -93,9 +110,7 @@ class ByteNet(Model):
         logprops, labels = bytenet_sampling_translator(
             x,
             beam_size=samples,
-            voca_size=self.dataset.vocabulary_size,
-            latent_dim=self.latent_dim,
-            num_blocks=self.num_blocks,
+            **self._parameters,
             name="bytenet-model",
             reuse=reuse
         )
@@ -123,9 +138,7 @@ class ByteNet(Model):
 
         _, labels = bytenet_unsupervised_translator(
             x,
-            voca_size=self.dataset.vocabulary_size,
-            latent_dim=self.latent_dim,
-            num_blocks=self.num_blocks,
+            **self._parameters,
             name="bytenet-model",
             reuse=reuse
         )
