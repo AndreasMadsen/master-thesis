@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>It is alive :o</title>
+<script src="/script.js"></script>
+<style>
+  html, body {
+    background: #073642;
+    color: #93a1a1;
+    font-size: 16pt;
+  }
+
+
+  body {
+    width: 80%;
+    margin: 40px auto;
+  }
+
+  div.text-container {
+    overflow: hidden;
+  }
+
+  div.text-container span {
+    float: left;
+    display: block;
+    line-height: 22pt;
+  }
+
+  div.text-container span.text.clear {
+    opacity: 0.2;
+  }
+
+  div.text-container span.prefix {
+    width: 70px;
+    color: #839496;
+    font-size: 12pt;
+  }
+
+  div.text-container span.text {
+    width: calc(100% - 70px);
+    box-sizing: border-box;
+    padding: 0 10px;
+  }
+
+  #source {
+    border-bottom: 1px solid #839496;
+  }
+
+  #target {
+    margin-bottom: 10px;
+  }
+
+  #bleu {
+    border-top: 1px solid #839496;
+    border-bottom: 3px double #839496;
+  }
+
+</style>
+</head>
+<body>
+<h2>
+AI Translation from German to English
+</h2>
+<div class="text-container" id="source">
+  <span class="prefix">Source</span>
+  <span class="text"></span>
+</div>
+<div class="text-container" id="target">
+  <span class="prefix">Human</span>
+  <span class="text"></span>
+</div>
+<div class="text-container" id="translation">
+  <span class="prefix">AI</span>
+  <span class="text"></span>
+</div>
+<div class="text-container" id="bleu">
+  <span class="prefix">BLEU</span>
+  <span class="text"></span>
+</div>
+</body>
+</html>
