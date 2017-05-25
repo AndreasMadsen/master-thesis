@@ -14,6 +14,7 @@ def bytenet_sampling_translator(x,
                                 rate=[1, 2, 4, 8, 16],
                                 encoder_size=5,
                                 encoder_normalization='bn',
+                                block_type='bytenet',
                                 labels=None, container=None,
                                 beam_size=2, back_prop=True,
                                 name=None, reuse=False):
@@ -39,6 +40,7 @@ def bytenet_sampling_translator(x,
                                        num_blocks=num_blocks, rate=rate,
                                        size=encoder_size,
                                        normalization=encoder_normalization,
+                                       block_type=block_type,
                                        name="encoder")
 
         #
@@ -46,7 +48,8 @@ def bytenet_sampling_translator(x,
         #
         # initalize scan state
         init_state = seq_bytenet_decoder_init(enc,
-                                              num_blocks=num_blocks, rate=rate)
+                                              num_blocks=num_blocks, rate=rate,
+                                              block_type=block_type)
 
         # apply seq_decoder_residual_block to all time steps
         def scan_op(acc, enc_t):
@@ -58,6 +61,7 @@ def bytenet_sampling_translator(x,
             state_t, dec = seq_bytenet_decoder(
                 state_tm1, dec,
                 num_blocks=num_blocks, rate=rate,
+                block_type=block_type,
                 name="decoder"
             )
 

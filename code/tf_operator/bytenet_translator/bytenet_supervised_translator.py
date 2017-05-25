@@ -14,6 +14,7 @@ def bytenet_supervised_translator(x, y,
                                   encoder_size=5,
                                   encoder_normalization='bn',
                                   low_memory=False,
+                                  block_type='bytenet',
                                   labels=None, container=None,
                                   name=None, reuse=None):
     with tf.variable_scope(name, "bytenet-supervised-translator",
@@ -49,12 +50,14 @@ def bytenet_supervised_translator(x, y,
         enc = parallel_bytenet_encoder(enc, num_blocks=num_blocks, rate=rate,
                                        size=encoder_size,
                                        normalization=encoder_normalization,
+                                       block_type=block_type,
                                        name="encoder")
 
         # decode graph ( causal convolution )
         dec = enc.sg_concat(target=y_src.sg_lookup(emb=emb_y))
         dec = parallel_bytenet_decoder(dec, num_blocks=num_blocks, rate=rate,
                                        low_memory=low_memory,
+                                       block_type=block_type,
                                        name="decoder")
 
         # final fully convolution layer for softmax

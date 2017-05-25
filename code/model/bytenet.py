@@ -16,17 +16,26 @@ from code.tf_operator import \
     cross_entropy_summary
 
 default_parameters = {
-    1: {
+    'v1': {
         'encoder_size': 5,
         'encoder_normalization': 'bn',
         'num_blocks': 3,
-        'latent_dim': 400
+        'latent_dim': 400,
+        'block_type': 'bytenet'
     },
-    2: {
+    'v1-small': {
+        'encoder_size': 5,
+        'encoder_normalization': 'bn',
+        'num_blocks': 3,
+        'latent_dim': 400,
+        'block_type': 'small'
+    },
+    'v2': {
         'encoder_size': 3,
         'encoder_normalization': 'ln',
         'num_blocks': 6,
-        'latent_dim': 800
+        'latent_dim': 800,
+        'block_type': 'bytenet'
     }
 }
 
@@ -37,7 +46,7 @@ class ByteNet(Model):
     def __init__(self, dataset: TextDataset,
                  latent_dim: int=None, num_blocks: int=None,
                  save_dir: str='asset/bytenet',
-                 version=1,
+                 version='v1',
                  gpus=1,
                  **kwargs) -> None:
         super().__init__(dataset, save_dir=save_dir, **kwargs)

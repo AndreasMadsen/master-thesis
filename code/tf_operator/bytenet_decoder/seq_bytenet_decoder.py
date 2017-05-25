@@ -7,13 +7,15 @@ from code.tf_operator.decoder_residual_block \
 
 def seq_bytenet_decoder_init(enc, name=None,
                              num_blocks=3, size=3,
-                             rate=[1, 2, 4, 8, 16]):
+                             rate=[1, 2, 4, 8, 16],
+                             block_type='bytenet'):
     with tf.name_scope(name, "decoder-scan-init", values=[enc]):
         latent_dim = int(enc.get_shape()[-1])
 
         init_state = [tuple(
             seq_decoder_residual_block_init(
-                enc, size=size, rate=rate_i, in_dim=latent_dim * 2
+                enc, size=size, rate=rate_i, in_dim=latent_dim * 2,
+                block_type=block_type
             )
             for rate_i in rate
         ) for i in range(num_blocks)]
@@ -24,6 +26,7 @@ def seq_bytenet_decoder_init(enc, name=None,
 def seq_bytenet_decoder(state_tm1, dec,
                         num_blocks=3, size=3,
                         rate=[1, 2, 4, 8, 16],
+                        block_type='bytenet',
                         name=None, reuse=None):
     assert len(state_tm1) == num_blocks
 
@@ -39,6 +42,7 @@ def seq_bytenet_decoder(state_tm1, dec,
                 for rate_i, state_li_tm1_di in zip(rate, state_li_tm1):
                     state_li_t_di, dec = seq_decoder_residual_block(
                         dec, state_li_tm1_di, size=size, rate=rate_i,
+                        block_type=block_type,
                         name=f'decoder-res-block.{i}.{size}.{rate_i}'
                     )
                     state_li_t.append(state_li_t_di)

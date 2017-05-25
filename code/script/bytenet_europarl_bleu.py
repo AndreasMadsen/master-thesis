@@ -1,4 +1,6 @@
 
+import json
+
 from tqdm import tqdm
 import sugartensor as stf
 
@@ -25,7 +27,7 @@ dataset_test = WMTBilingualNews(batch_size=1,
 
 model = ByteNet(dataset_train,
                 deep_summary=False,
-                save_dir='asset/bytenet_europarl_nosummary_max500', gpus=1)
+                save_dir='asset/bytenet_europarl_nosummary_max500_adam', gpus=1)
 
 # translate
 print('predict from dataset:')
@@ -40,15 +42,22 @@ iterator = tqdm(enumerate(result),
 target_tokenizer = Tokenizer('en')
 translation_tokenizer = Tokenizer('en')
 
-with target_tokenizer, translation_tokenizer:
-    for i, (source, target, translation) in iterator:
-        if i < 10:
-            tqdm.write(' %d       source: %s' % (i, source))
-            tqdm.write('         target: %s' % (target, ))
-            tqdm.write('    translation: %s' % (translation, ))
+with open('translation-dump.json', 'w') as translation_dump:
+    with target_tokenizer, translation_tokenizer:
+        for i, (source, target, translation) in iterator:
+            if i < 10:
+                tqdm.write(' %d       source: %s' % (i, source))
+                tqdm.write('         target: %s' % (target, ))
+                tqdm.write('    translation: %s' % (translation, ))
 
-        target_tokenizer.write(target)
-        translation_tokenizer.write(translation)
+            print(json.dumps({
+                "source": source,
+                "target": target,
+                "translation": translation
+            }), file=translation_dump)
+
+            target_tokenizer.write(target)
+            translation_tokenizer.write(translation)
 
 # calculate BLEU score
 print(multi_bleu(translate=translation_tokenizer, target=target_tokenizer))

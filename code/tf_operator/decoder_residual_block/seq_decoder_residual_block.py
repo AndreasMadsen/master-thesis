@@ -8,6 +8,7 @@ from code.tf_operator.convolution import seq_causal_aconv1d
 
 def seq_decoder_residual_block_init(tensor,
                                     in_dim=None,
+                                    block_type='bytenet',
                                     size=3, rate=1):
     default_name = f"seq-decoder-res-block-{size}-{rate}-init"
 
@@ -17,10 +18,19 @@ def seq_decoder_residual_block_init(tensor,
         if in_dim is None:
             in_dim = tensor.get_shape().as_list()[-1]
 
+        if block_type == 'bytenet':
+            aconv_dim = in_dim // 2
+        elif block_type == 'small':
+            aconv_dim = in_dim
+        else:
+            raise NotImplementedError(
+                f'Block type {block_type} is not implemented'
+            )
+
         # create zero array
         previous_size = (size - 1) * rate
         init = tf.zeros(
-            (batches, in_dim // 2),
+            (batches, aconv_dim),
             dtype=tensor.dtype,
             name="seq-decoder-residual-block-init-zero"
         )
@@ -31,6 +41,7 @@ def seq_decoder_residual_block_init(tensor,
 
 def seq_decoder_residual_block(tensor, previous,
                                size=3, rate=1,
+                               block_type='bytenet',
                                name=None, reuse=None):
     default_name = f"seq-decoder-res-block-{size}-{rate}"
 
@@ -40,22 +51,37 @@ def seq_decoder_residual_block(tensor, previous,
         in_dim = tensor.get_shape().as_list()[-1]
 
         # reduce dimension
-        pre_aconv = tensor.sg_bypass(act='relu', ln=True, scale=False,
-                                     name="activation")
-        pre_aconv = seq_dense(pre_aconv, dim=in_dim // 2,
-                              act='relu', ln=True, scale=False,
-                              name="reduce-dim")
+        if block_type == 'bytenet':
+            pre_aconv = tensor.sg_bypass(act='relu', ln=True, scale=False,
+                                         name="activation")
+            pre_aconv = seq_dense(pre_aconv, dim=in_dim // 2,
+                                  act='relu', ln=True, scale=False,
+                                  name="reduce-dim")
 
-        # 1xk conv dilated
-        aconv = seq_causal_aconv1d(pre_aconv, previous=previous,
-                                   size=size, rate=rate,
-                                   act='relu', ln=True, scale=False,
-                                   name="conv-dilated")
+            # 1xk conv dilated
+            aconv = seq_causal_aconv1d(pre_aconv, previous=previous,
+                                       size=size, rate=rate,
+                                       act='relu', ln=True, scale=False,
+                                       name="conv-dilated")
 
-        # dimension recover and residual connection
-        out = seq_dense(aconv,
-                        dim=in_dim,
-                        name="recover-dim") + tensor
+            # dimension recover and residual connection
+            out = seq_dense(aconv,
+                            dim=in_dim,
+                            name="recover-dim") + tensor
+        elif block_type == 'small':
+            pre_aconv = tensor.sg_bypass(act='relu', ln=True, scale=False,
+                                         name="activation")
+
+            # 1xk conv dilated
+            aconv = seq_causal_aconv1d(pre_aconv, previous=previous,
+                                       size=size, rate=rate,
+                                       name="conv-dilated")
+            # residual connection
+            out = aconv + tensor
+        else:
+            raise NotImplementedError(
+                f'Block type {block_type} is not implemented'
+            )
 
         # return (
         #  the input for the same layer in next iteration
