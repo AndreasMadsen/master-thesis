@@ -27,7 +27,7 @@ default_parameters = {
         'encoder_size': 5,
         'encoder_normalization': 'bn',
         'num_blocks': 3,
-        'latent_dim': 400,
+        'latent_dim': 200,
         'block_type': 'small'
     },
     'v2': {
