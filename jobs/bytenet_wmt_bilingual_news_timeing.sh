@@ -1,9 +1,9 @@
 #!/bin/sh
 #BSUB -q gpuqueuetitanx
-#BSUB -J bytenet-wmt-bilingual-news-profile
+#BSUB -J bytenet-wmt-bilingual-news-timeing
 #BSUB -n 6
 #BSUB -R "rusage[ngpus_excl_p=1]"
-#BSUB -W 06:00
+#BSUB -W 24:00
 #BSUB -u amwebdk@gmail.com
 #BSUB -B
 #BSUB -N
@@ -11,9 +11,8 @@
 #BSUB -e log-%J.err
 
 # export TF_USE_XLA=1
-export LD_LIBRARY_PATH=/appl/cuda/8.0/extras/CUPTI/lib64/:$LD_LIBRARY_PATH
 export BASE_SAVE_DIR=/work1/$USER/kandidat
 export PYTHONPATH=./:./sugartensor/
 source ~/stdpy3/bin/activate
 
-python3 code/script/bytenet_wmt_bilingual_news_profile.py
+python3 code/script/bytenet_wmt_bilingual_news_timeing.py

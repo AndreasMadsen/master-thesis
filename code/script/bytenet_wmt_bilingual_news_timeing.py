@@ -8,7 +8,7 @@ from code.metric import BleuScore, ModelLoss
 # set log level to debug
 stf.sg_verbosity(10)
 
-dataset_train = WMTBilingualNews(batch_size=16,
+dataset_train = WMTBilingualNews(batch_size=64,
                                  year=2014,
                                  source_lang='de', target_lang='en',
                                  min_length=None, max_length=None)
@@ -21,10 +21,9 @@ dataset_test = WMTBilingualNews(batch_size=128,
                                 validate=True)
 
 model = ByteNet(dataset_train,
-                version='v1-small',
-                save_dir='asset/bytenet_small_wmt_2014_profile/bytenet_wmt_2014_gpu1_profile',
-                deep_summary=False, gpus=1)
+                save_dir='asset/bytenet_small_wmt_2014_timeing/bytenet_wmt_2014_gpu4_timeing',
+                deep_summary=False, gpus=4)
 model.add_metric(BleuScore(dataset_train, name='BLEU-score-train'))
 model.add_metric(BleuScore(dataset_test, name='BLEU-score-test'))
 model.add_metric(ModelLoss(dataset_test, name='model-loss-test'))
-model.train(max_ep=10, profile=100, lr=0.0001)
+model.train(max_ep=300, lr=0.0001)
