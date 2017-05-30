@@ -1,17 +1,132 @@
 \section{Semi-Supervised Learning for NMT}
 \label{sec:theory:semi-supervised}
-\todo[inline]{Still missing a lot.}
+
+An often limiting factor of Neural Machine Translation is the size and quality of the bilingual dataset. Monolingual dataset are on the other hand abundant and be used to create powerful language models \cite{word2vec}. While language models can be used argument translation models it requires non-trivial modifications to the neural translation architecture. Recent efforts within Generative Adversarial Networks (GAN) \cite{gan-image-translation} have also shown GAN to be a powerful concept for training with unlabeled data. However GANs are still very difficult to get working and even harder for classification problems like translation \cite{citation-needed}.
+
+The strategy presented here is much more pragmatic than GAN and does not require major alteration to the translation models. The strategy uses two ideas, translating from for example German to English and back to German should result in the same German sentence as the original. Secondly there may be more than one valid translation from German to English, thus the training should find the $k$ most likely translations and ensure that they are all translated back to the original German sentence. This strategy has been shown to work well in practice \cite{semi-nmt}. The advantage of this approach is that it doesn't depend on a specific translation model but should in theory work for any translation model. In the original article by Cheng et. al. \cite{semi-nmt} they uses The Bahdanau et. al. \cite{bahdanau-2015-nmt} word-based translation model, in this thesis the ByteNet \cite{bytenet} character-based translation model will be used instead.
 
 \subsection{Semi-Supervised loss}
 
+Given a translation model $P(\mathbf{y}|\mathbf{x};\overrightarrow{\boldsymbol\theta})$, where $\mathbf{y}$ is the target sequence. The arrow on ${\boldsymbol\theta}$ represent the translation direction, an additional translation model $P(\mathbf{x}|\mathbf{y};\overleftarrow{\boldsymbol\theta})$ is also required.
+
+When just considering the bilingual dataset these two models can be trained independently, as they don't share any parameters. However when the monolingual dataset is added this will no longer be the case. Thus the cross entropy loss is combined to:
+\begin{equation}
+\mathcal{L} = -\left(
+    \log(P(\mathbf{y}|\mathbf{x};\overrightarrow{\boldsymbol\theta})) +
+    \log(P(\mathbf{x}|\mathbf{y};\overleftarrow{\boldsymbol\theta}))
+\right)
+\label{eq:theory:semi-bytenet:bilingural}
+\end{equation}
+
+Note that training wise this loss is equivalent to training the model independently, because:
+\begin{equation}
+\frac{\partial \mathcal{L}}{\partial \overrightarrow{\boldsymbol\theta}} = -\frac{\partial \log(P(\mathbf{y}|\mathbf{x};\overrightarrow{\boldsymbol\theta}))}{\partial \overrightarrow{\boldsymbol\theta}}, \qquad \frac{\partial \mathcal{L}}{\partial \overleftarrow{\boldsymbol\theta}} = -\frac{\partial \log(P(\mathbf{x}|\mathbf{y};\overleftarrow{\boldsymbol\theta}))}{\partial \overleftarrow{\boldsymbol\theta}}
+\end{equation}
+
+To add a loss for the monolingual datasets to \eqref{eq:theory:semi-bytenet:bilingural} two additional translation models are used, these are represented as $P(\mathbf{y'}|\mathbf{y};\overrightarrow{\boldsymbol\theta},\overleftarrow{\boldsymbol\theta})$ and $P(\mathbf{x'}|\mathbf{x};\overrightarrow{\boldsymbol\theta},\overleftarrow{\boldsymbol\theta})$.
+
+The ``monolingual'' translation models are created using the two bilingual model:
+\begin{equation}
+\begin{aligned}
+P(\mathbf{y'}|\mathbf{y};\overrightarrow{\boldsymbol\theta},\overleftarrow{\boldsymbol\theta}) = \sum_\mathbf{x} P(\mathbf{y'}|\mathbf{x};\overrightarrow{\boldsymbol\theta}) P(\mathbf{x}|\mathbf{y};\overleftarrow{\boldsymbol\theta}) \\
+P(\mathbf{x'}|\mathbf{x};\overrightarrow{\boldsymbol\theta},\overleftarrow{\boldsymbol\theta}) = \sum_\mathbf{y} P(\mathbf{x'}|\mathbf{y};\overleftarrow{\boldsymbol\theta}) P(\mathbf{y}|\mathbf{x};\overrightarrow{\boldsymbol\theta})
+\end{aligned}
+\label{eq:theory:semi-bytenet:monolingural-models}
+\end{equation}
+
+The mathematics behind \eqref{eq:theory:semi-bytenet:monolingural-models} is a trivial marginalization over all possible translations from $\mathbf{y}$ to $\mathbf{x}$, and all possible translations from $\mathbf{x}$ to $\mathbf{y}$, respectively. From a training perspective $\mathbf{x'}$ is the same as $\mathbf{x}$, and vise vise versa for $\mathbf{y}$, the added notation is to clarify that the translation model is far from trivial, because it is heavily constrained though the other language.
+
+Calculating the sum over all possible sequences $\mathbf{x}$ and $\mathbf{y}$ is not a feasible task, since this the number of combinations is exponentially increasing. The practical approach is to instead approximate the sum by only summing over the $k$ most likely sequences. Finding the $k$ most likely sequences is in itself an NP-problem, but it can be reasonably approximated by using a heuristic called BeamSearch. This heuristic will be discussed in details later.
+
+Using these ``monolingual'' translation model the loss function can extended:
+\begin{equation}
+\begin{aligned}
+\mathcal{L} = -\big(&\log(P(\mathbf{y}|\mathbf{x};\overrightarrow{\boldsymbol\theta})) \\
+    &+ \log(P(\mathbf{x}|\mathbf{y};\overleftarrow{\boldsymbol\theta})) \\
+    &+ \lambda_1 \log(P(\mathbf{y'}|\mathbf{y};\overrightarrow{\boldsymbol\theta},\overleftarrow{\boldsymbol\theta})) \\
+    &+ \lambda_2 \log(P(\mathbf{x'}|\mathbf{x};\overrightarrow{\boldsymbol\theta},\overleftarrow{\boldsymbol\theta})) \big)
+\end{aligned}
+\end{equation}
+
+$\lambda_1$ and $\lambda_2$ are hyper-parameters for balancing the bilingual and monolingual loss. By this logic $\lambda_1$ should equal $\lambda_2$, however the original paper \cite{semi-nmt} showed that in practice there little difference between using both monolingual losses and only using one of them. Since it much more performant to use just one monolingual model either $\lambda_1$ or $\lambda_2$ can be set to zero.
+
+In terms of practical computation $\log(P(\mathbf{y'}|\mathbf{y};\overrightarrow{\boldsymbol\theta},\overleftarrow{\boldsymbol\theta}))$ and $\log(P(\mathbf{x'}|\mathbf{x};\overrightarrow{\boldsymbol\theta},\overleftarrow{\boldsymbol\theta}))$ can be calculated numerical stability using a trick that is explained in Appendix \ref{appendix:numerical-stability:log-sum-exp}. The gradient of $\log(P(\mathbf{y'}|\mathbf{y};\overrightarrow{\boldsymbol\theta},\overleftarrow{\boldsymbol\theta}))$ and $\log(P(\mathbf{x'}|\mathbf{x};\overrightarrow{\boldsymbol\theta},\overleftarrow{\boldsymbol\theta}))$ can also be calculated directly from $\log(P(\mathbf{y'}|\mathbf{x};\overrightarrow{\boldsymbol\theta}))$ and $\log(P(\mathbf{x}|\mathbf{y};\overleftarrow{\boldsymbol\theta}))$ respectively without any exponential conversion, see Appendix \ref{appendix:backward-pass:semi-sum}. Although the latter is not done directly as TensorFlow automatically calculates the gradients.
+
 \subsection{Beam Search}
 
-Getting the $k$ most likely sequences when given a translation model $P(y_t | \{y_1, \dots, y_{t-1}\}, \{x_1, \dots, x_{|S|}\})$ is not a trivial task. By encoding $\{x_1, \dots, x_{|S|}\}$ one can calculate $P(y_1| \{x_1, \dots, x_{|S|}\})$ for each possible symbol that $y_1$ can attain. For each $y_1$ symbol, $P(y_2| \{y_1\}, \{x_1, \dots, x_{|S|}\})$ can be calculated for each possible symbol that $y_2$ can attain. This recursion can be repeated until one has $k$ sequences that all ended with an \texttt{<EOS>} symbol and are more likely than all other sequences. This procedure works in theory but the running time and memory is exponential with the sequence length, thus this is not a very practical approach.
+Getting the $k$ most likely sequences given a translation model $P(\mathbf{y}|\mathbf{x})$ is not a trivial task. By encoding $\{x_1, \dots, x_{|S|}\}$ one can calculate $P(y_1| \{x_1, \dots, x_{|S|}\})$ for each possible symbol that $y_1$ can attain. For each $y_1$ symbol, $P(y_2| \{y_1\}, \{x_1, \dots, x_{|S|}\})$ can be calculated for each possible symbol that $y_2$ can attain. This recursion can be repeated until one has $k$ sequences that all ended with an \texttt{<EOS>} symbol and are more likely than all other sequences. This procedure works in theory but the running time and memory is exponential with the sequence length, thus this is not a very practical approach.
 
 BeamSearch is a heuristic for getting the $k$ most likely sequences. On a theoretical level BeamSearch is contrary to its fancy name fairly intuitive, the complexity lies in how it is implemented.
 
-BeamSearch has a parameter called the \textit{beam size} (denoted $b$), this size determines the number of sequences that is kept track of. It limits the number of sequences (called \textit{paths}) by assigning each new path in the next iteration a score, the top $b$ new sequences are then kept and used in the next iteration. To initialize the paths the top $b$ outputs from $P(y_1| \{x_1, \dots, x_{|S|}\})$ are used. After either a maximum number of iterations or when the top $k$ sequences in the the set of memorized paths (called the \textit{beam}) have ended with an \texttt{<EOS>} symbol, the BeamSearch algorithm can stop.
+BeamSearch has a parameter called the \textit{beam size} (denoted $b$), this size determines the number of sequences that is kept track of. It limits the number of sequences (called \textit{paths}) by assigning each new path in the next iteration a score, where the $b$ best new sequences are kept and used in the next iteration. To initialize the \textit{paths} the top $b$ outputs from $P(y_1| \{x_1, \dots, x_{|S|}\})$ are used. After either a maximum number of iterations, or when the top $k$ sequences in the set of memorized paths (called the \textit{beam}) have ended with an \texttt{<EOS>} symbol, the BeamSearch algorithm can stop.
 
-\todo[inline]{BeamSearch pseudo code}
+\begin{algorithm}[H]
+  \caption{BeamSearch algorithm, specialized for scoring by sequence probability.}
+  \begin{algorithmic}[1]
+    \Function{BeamSearch}{$P(\mathbf{y}|\mathbf{x}), \mathbf{x}, b$}
+      \Implicit{Initialize \texttt{paths} from top $b$ selection from $P(y_1| \{x_1, \dots, x_{|S|}\})$}
+      \Let{$i$}{$2$}
+      \Repeat
+        \For{$\{y_1, \dots, y_{i-1}\}$ in \texttt{paths}}
+          \Implicit{Compute probabilities of new paths $\{y_1, \dots, y_{i}\}$ conditioned on the old}
+          \Implicit{path $\{y_1, \dots, y_{i-1}\}$.}
+        \EndFor
+        \Implicit{Update \texttt{paths} by selecting the top $b$ new paths by the joint probability}
+        \Implicit{$P(\{y_1, \dots, y_{i}\} | \{x_1, \dots, x_{|S|}\})$.}
+        \Let{$i$}{$i + 1$}
+      \Until{$\texttt{<EOS>} \in \texttt{paths}$ }
+      \State \Return{\texttt{paths}}
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
 
-For $b = 1$ the BeamSearch algorithm becomes a completely greedy search that just takes the most likely symbol in each iteration. For $b = \infty$ BeamSearch becomes the complete search above that runs in exponential time. 
+For $b = 1$ the BeamSearch algorithm becomes a completely greedy search that just takes the most likely symbol in each iteration. For $b = \infty$ BeamSearch becomes the complete search that runs in exponential time.
+
+\subsubsection{BeamSearch in practice}
+
+When using BeamSearch in practice there quiet a few things one needs to take into account. These issues centers around 3 issues:
+\begin{enumerate}
+\item How do deal with log probabilities instead of probabilities for numerical stability.
+\item How to operate on a mini-batch of sequences.
+\item How to deal with output sequences of different length.
+\end{enumerate}
+
+Beyond these issues there is also a big challenge in implementing BeamSearch using tensor operations as BeamSearch is highly state and sequence dependent. These details will not be discussed as it is implementation specific.
+
+\begin{algorithm}[H]
+  \caption{BeamSearch algorithm, specialized for NTM.}
+  \begin{algorithmic}[1]
+    \Function{BeamSearch}{$P(\mathbf{y}|\mathbf{x}), \mathbf{x}, state_0, b$}
+      \Let{$logpropsum_0$}{\Call{Zero}{$n, b$}}
+      \Let{$ended_0$}{\Call{False}{$n, b$}}
+      \Implicit{Duplicate $state_0$ $b$ times.}
+      \Let{$i$}{$1$}
+      \Repeat
+        \Implicit{pack state ($\mathbf{s}_{i-1}$) so it looks like $(n \cdot b)$ observations.}
+        \Let{$state_i, logits_i$}{\Call{Model}{$\mathbf{s}_{i-1}, \mathbf{x}$}} \Comment{2}
+        \Implicit{unpack $state_i$ and $logits_i$ to it original shape of $n$ observations.}
+        \State
+        \Let{$logprop_i$}{\Call{LogSoftmax}{$logits_i$}} \Comment{1}
+        \Implicit{Mask $logprop_i$ to be $0$ for sequences that has already ended ($ended_i$).} \Comment{3}
+        \State
+        \Let{$logpropsum_i, beam_i, labels_i$}{\Call{TopK}{$logpropsum_{i-1} + logprop_i$}} \Comment{1}
+        \Implicit{Select and duplicate $logpropsum_i$ and $ended_{i-1}$ using the indices $beam_i$.}
+        \Let{$ended_i$}{$ended_{i-1} \vee labels_i = \texttt{<EOS>}$} \Comment{3}
+        \State
+        \Let{$i$}{$i + 1$}
+      \Until{\Call{All}{$ended_i$}}
+      \State \Return{\Call{ExtractPath}{$state_i$}}
+    \EndFunction
+  \end{algorithmic}
+  \label{alg:theory:semi-supervised:nmt}
+\end{algorithm}
+
+Algorithm \ref{alg:theory:semi-supervised:nmt} shows a BeamSearch algorithm specialized for neural machine translation. The challenges listed earlier are solved in the following way:
+
+\begin{enumerate}
+\item Using log probabilities instead of probabilities is generally not a huge challenge. The logits (unnormalized log probabilities) that the model returns needs to be normalized without loss of precision, this can be done using a log-softmax function (appendix \ref{appendix:numerical-stability:log-softmax}). Once the logits are normalized the joint log probability for the sequence can be calculated by additively accumulating the log probabilities.
+
+\item To ensure high performance multiple sequences are processed in parallel. On the surface this is fairly trivial to do, simply restructure the state such that the different path in each beam looks like observations. Then run the model and restructure back to the original state shapes. The complexity lies in how to deal with for example batch normalization. By restructuring the model input the observations are no longer independent because they originate from the same source observations. There is no good solution to this, the solution used in this thesis is to not update the batch normalization when beam searching. The batch normalization should simply be treated like when performing inference.
+
+\item Because the loss is masked using the target sequence the model has no way of knowing $P(y_i = \texttt{<NULL>} | y_{i-1} = \texttt{<EOS>}) = 1$. Ensuring this relation is essential, otherwise sequences that are initially very likely and have ended can become very unlikely for no good reason. The \texttt{ended} flag is updated by looking at the latest labels for each path in each beam.
+\end{enumerate}

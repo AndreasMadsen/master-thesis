@@ -11,6 +11,18 @@
 \usepackage{csquotes}
 \usepackage{afterpage}
 \usepackage{placeins}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+
+
+% algorithm environment
+%http://tex.stackexchange.com/questions/1375/what-is-a-good-package-for-displaying-algorithms
+\algnewcommand{\Let}[2]{\State #1 $\gets$ #2}
+\algnewcommand{\Not}[0]{\textbf{not }}
+\newcommand{\Implicit}[1]{\State \textit{#1}}
+\algnewcommand{\LineComment}[1]{\State \(\triangleright\) #1}
+\algrenewcommand\Call[2]{\textproc{#1}(#2)}
+\algrenewcommand\alglinenumber[1]{{\footnotesize\color{gray}\ttfamily#1}}
 
 %listing settings, æøå support, font config, line number, left lines
 \lstset{

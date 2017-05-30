@@ -6,7 +6,69 @@
 \todo[inline]{\url{https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/sparse_xent_op.h\#L190L219}}
 
 \section{The log-softmax function}
+\label{appendix:numerical-stability:log-softmax}
+% https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/kernels/softmax_op_functor.h#L73L83
 
-\section{Addition of log-probabilities}
+\begin{equationbox}[H]
+\begin{equation*}
+\mathcal{S}(\mathbf{x})_i = \frac{\mathrm{exp}(x_i)}{\sum_j \mathrm{exp}(x_j)}
+\end{equation*}
+\caption{The softmax function on input vector $\mathbf{x}$.}
+\end{equationbox}
 
-\todo[inline]{Trick used in beam search}
+To make the softmax function numerically stable the maximal value of the input vector $\mathbf{x}$ is subtracted, this is denotes as the alternative softmax function $\tilde{\mathcal{S}}(\mathbf{x}) = \mathcal{S}(\mathbf{x} - \mathrm{max}(\mathbf{x}))$.
+
+The alternative softmax function $\tilde{\mathcal{S}}(\mathbf{x})$ is then simplified:
+\begin{equation}
+\begin{aligned}
+\tilde{\mathcal{S}}(\mathbf{x})_i
+&= \frac{\mathrm{exp}(x_i - \mathrm{max}(\mathbf{x})))}{\sum_j \mathrm{exp}(x_j - \mathrm{max}(\mathbf{x})))} \\
+&= \frac{\mathrm{exp}(x_i)\mathrm{exp}(- \mathrm{max}(\mathbf{x})))}{\sum_j \mathrm{exp}(x_j)\mathrm{exp}(- \mathrm{max}(\mathbf{x})))} \\
+&= \frac{\mathrm{exp}(x_i)\mathrm{exp}(- \mathrm{max}(\mathbf{x})))}{\mathrm{exp}(- \mathrm{max}(\mathbf{x}))) \sum_j \mathrm{exp}(x_j)} \\
+&= \frac{\mathrm{exp}(x_i)}{\sum_j \mathrm{exp}(x_j)} \\
+&= \mathcal{S}(\mathbf{x})_i
+\end{aligned}
+\label{eq:appendix:numerical:log-softmax:softmax-mmax}
+\end{equation}
+
+As seen from \eqref{eq:appendix:numerical:log-softmax:softmax-mmax} the alternative softmax function $\tilde{\mathcal{S}}(\mathbf{x})$ is the same as $\mathcal{S}(\mathbf{x})$, however subtracting the maximal value ($\mathrm{max}(\mathbf{x})$) from the input will typically yield a more numerically stable result. 
+
+To create a numerically stable log softmax function the log softmax ($\log(\mathcal{S}(\mathbf{x})_i) = \log(\tilde{\mathcal{S}}(\mathbf{x})_i)$) is simply used:
+\begin{equation}
+\begin{aligned}
+\log(\mathcal{S}(\mathbf{x})_i) 
+&= \log\left(\frac{\mathrm{exp}(x_i - \mathrm{max}(\mathbf{x})))}{\sum_j \mathrm{exp}(x_j - \mathrm{max}(\mathbf{x})))}\right) \\
+&= (x_i - \mathrm{max}(\mathbf{x})) - \log\left(\sum_j \mathrm{exp}(x_j - \mathrm{max}(\mathbf{x}))\right)
+\end{aligned}
+\end{equation}
+
+\section{Marginalization on log-probabilities}
+\label{appendix:numerical-stability:log-sum-exp}
+% https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/ops/math_ops.py#L1607L1622
+
+\begin{equationbox}[H]
+\begin{equation*}
+\mathcal{P}(\mathbf{x}) = \log\left(\sum_i \mathrm{exp}(x_i)\right)
+\end{equation*}
+\caption{Calculates a marginalization from log-probabilities $\mathbf{x}$ to log-probability $\mathcal{P}(\mathbf{x})$.}
+\end{equationbox}
+
+To make $\mathcal{P}(\mathbf{x})$ numerically stable the maximal value of the input vector $\mathbf{x}$ is subtracted, this is denotes as the alternative function $\tilde{\mathcal{P}}(\mathbf{x}) = \mathcal{P}(\mathbf{x} - \mathrm{max}(\mathbf{x}))$.
+
+\begin{equation}
+\begin{aligned}
+\tilde{\mathcal{P}}(\mathbf{x}) &= \log\left(\sum_i \mathrm{exp}(x_i - \mathrm{max}(\mathbf{x}))\right) \\
+&= \log\left(\sum_i \mathrm{exp}(x_i)\mathrm{exp}(- \mathrm{max}(\mathbf{x}))\right) \\
+&= \log\left(\mathrm{exp}(- \mathrm{max}(\mathbf{x})) \sum_i \mathrm{exp}(x_i)\right) \\
+&= \log(\mathrm{exp}(- \mathrm{max}(\mathbf{x}))) + \log\left(\sum_i \mathrm{exp}(x_i)\right) \\
+&= - \mathrm{max}(\mathbf{x}) + \log\left(\sum_i \mathrm{exp}(x_i)\right)
+\end{aligned}
+\label{eq:appendix:numerical:log-sum-exp:lsx-mmax}
+\end{equation}
+
+As seen from \eqref{eq:appendix:numerical:log-sum-exp:lsx-mmax} there is a $\mathrm{max}(\mathbf{x})$ difference between $\tilde{\mathcal{P}}(\mathbf{x})$ and $\mathcal{P}(\mathbf{x})$. The numerical stable version of $\tilde{\mathcal{P}}(\mathbf{x})$ is thus to subtract $(\mathbf{x}$ from the input and re-add it to the output.
+
+\begin{equation}
+\mathcal{P}(\mathbf{x}) = \log\left(\sum_i \mathrm{exp}(x_i - \mathrm{max}(\mathbf{x}))\right) + \mathrm{max}(\mathbf{x})
+\end{equation}
+

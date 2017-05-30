@@ -272,3 +272,38 @@ Finally, the gradient with respect to $\gamma_{h_\ell}$ and $\beta_{h_\ell}$ can
 \end{equation}
 
 These only depend on $\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}}$ which has already been derived.
+
+\section{Semi-Supervised Marginalization}
+\label{appendix:backward-pass:semi-sum}
+
+\begin{equationbox}[H]
+\begin{equation*}
+\mathcal{L} = -\log(P(\mathbf{y}'|\mathbf{y}, \overrightarrow{\boldsymbol\theta}, \overleftarrow{\boldsymbol\theta}))
+\end{equation*}
+Monolingural translation model:
+\begin{equation*}
+P(\mathbf{y}'|\mathbf{y}, \overrightarrow{\boldsymbol\theta}, \overleftarrow{\boldsymbol\theta}) = \sum_{\mathbf{x}} P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta}) P(\mathbf{x}|\mathbf{y}, \overleftarrow{\boldsymbol\theta})
+\end{equation*}
+\caption{Loss function for the semi-supervised model.}
+\end{equationbox}
+
+To optimize the loss the gradient with respect to $\overrightarrow{\boldsymbol\theta}$ is calculated. The gradient with respect to $\overleftarrow{\boldsymbol\theta}$ is also needed, but that is symmetrically similar to the $\overrightarrow{\boldsymbol\theta}$ gradient.
+\begin{equation}
+\frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} \mathcal{L} = \frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} -\log(P(\mathbf{y}'|\mathbf{y}, \overrightarrow{\boldsymbol\theta}, \overleftarrow{\boldsymbol\theta}))
+\end{equation}
+
+Start out by differentiating the $\log(\cdot)$ function and insert the expression for $P(\mathbf{y}'|\mathbf{y}, \overrightarrow{\boldsymbol\theta}, \overleftarrow{\boldsymbol\theta})$:
+\begin{equation}
+\begin{aligned}
+\frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} -\log(P(\mathbf{y}'|\mathbf{y}, \overrightarrow{\boldsymbol\theta}, \overleftarrow{\boldsymbol\theta}))
+&= - \frac{\frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} P(\mathbf{y}'|\mathbf{y}, \overrightarrow{\boldsymbol\theta}, \overleftarrow{\boldsymbol\theta})}{P(\mathbf{y}'|\mathbf{y}, \overrightarrow{\boldsymbol\theta}, \overleftarrow{\boldsymbol\theta})} \\
+&= - \frac{\sum_{\mathbf{x}} \frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta}) P(\mathbf{x}|\mathbf{y}, \overleftarrow{\boldsymbol\theta})}{\sum_{\mathbf{x}} P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta}) P(\mathbf{x}|\mathbf{y}, \overleftarrow{\boldsymbol\theta})}
+\end{aligned}
+\end{equation}
+
+The identity $\frac{\partial f({\boldsymbol\theta})}{\partial {\boldsymbol\theta}} = f({\boldsymbol\theta}) \frac{\partial \log(f({\boldsymbol\theta}))}{\partial {\boldsymbol\theta}}$ is then applied.
+\begin{equation}
+\frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} -\log(P(\mathbf{y}'|\mathbf{y}, \overrightarrow{\boldsymbol\theta}, \overleftarrow{\boldsymbol\theta})) = - \frac{\sum_{\mathbf{x}} P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta}) P(\mathbf{x}|\mathbf{y}, \overleftarrow{\boldsymbol\theta}) \frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} \log(P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta})) }{\sum_{\mathbf{x}} P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta}) P(\mathbf{x}|\mathbf{y}, \overleftarrow{\boldsymbol\theta})}
+\end{equation}
+
+Calculating $\frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} \log(P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta}))$ is more numerically stable than calculating $\frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta})$ directly. Furthermore, since $P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta})$ already has to be calculated there is also no loss in performance.
