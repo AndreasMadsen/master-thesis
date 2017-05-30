@@ -68,7 +68,8 @@ def tower_optim(losses, summary=None, **kwargs):
         # because the variable search is quite hackish, validate that
         # the update op name is correct.
         if variable_name not in [
-            'moving_variance', 'moving_mean', 'variance', 'mean'
+            'moving_variance', 'moving_mean', 'variance', 'mean',
+            'length_sum'
         ]:
             raise TypeError(
                 f'invalid variable {variable.name}' +

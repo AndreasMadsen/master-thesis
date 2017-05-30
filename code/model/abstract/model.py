@@ -39,6 +39,9 @@ class Model:
         else:
             self._save_dir = save_dir
 
+    def get_save_dir(self):
+        return self._save_dir
+
     def _latest_checkpoint(self) -> str:
         return tf.train.latest_checkpoint(self._save_dir)
 
