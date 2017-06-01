@@ -107,11 +107,66 @@ With the ByteNet model reasonably validated in terms of generalization on the sy
     \label{fig:result:bytenet:europarl}
 \end{figure}
 
-The ByteNet model has an internal dimensionality of 400, just like the model used for training on the WMT NewsTest dataset. The Adam optimizer with a learning rate of 0.0003 is used for training. This used a training mini-batch size of $4 \cdot 16 = 64$ observations and the model was trained on 4 GPUs in parallel with synchronized updates. The Europarl v7 dataset is used for training and model ran 9 epochs over the Europarl v7 dataset. The WMT NewsTest 2015 dataset is used for testing, the continues testing was done on randomly sampled mini-batches with 128 observations.
+The ByteNet model has an internal dimensionality of 400, just like the model used for training on the WMT NewsTest dataset. The Adam optimizer with a learning rate of 0.0003 is used for training. This used a training mini-batch size of $4 \cdot 16 = 64$ observations and the model was trained on 4 GPUs in parallel with synchronized updates. The Europarl v7 dataset is used for training and model ran 13 epochs over the Europarl v7 dataset. The WMT NewsTest 2015 dataset is used for testing, the continues testing was done on randomly sampled mini-batches with 128 observations.
 
-From figure \ref{fig:result:bytenet:europarl} its seen that the BLEU on the test dataset just reaches 5. This is not enough to provide reasonable meaning full translations.
+From figure \ref{fig:result:bytenet:europarl} its seen that the BLEU on the test dataset is approximately 5. However, because that BLEU score is calculated on a random subset of the dataset it is not completely accurate, the actual BLEU score calculated on the entirety of the WMT NewsTest dataset is $7.44$. The translations are shown in table \ref{table:result:bytenet:high-belu} and table \ref{table:result:bytenet:zero-belu}.
 
-\todo[inline]{Will finish section with test and training examples once the training is complete. The new results are actually somewhat encouraging and suggest a BLEU score of 15 could be reached within a week.}
+\begin{table}[h]
+\centering
+\begin{tabular}{l|r|p{10cm}}
+0 & source & Die formelle Anerkennung der Arbeitsrechte als Menschenrechte - und die Erweiterung des Schutzes der Bürgerrechte als Schutz gegen Diskriminierung bei der Schaffung von Arbeitnehmervertretungen - ist längst überfällig. \\[0.1cm]
+& target & The formal recognition of labor rights as human rights - and the extension of civil rights protections to prevent discrimination against labor organizing - is long overdue. \\[0.1cm]
+& translation & The formal recognition of human rights as human rights - and the extension of the protection of civil liberties as a protection against discrimination against employment organizations - is long overdue. \\[0.1cm]
+& BLEU & 45.97 \\[0.1cm] \hline
+
+1 & source & Aber es ist mit Sicherheit keine radikale Initiative - jedenfalls nicht nach amerikanischen Standards. \\[0.1cm]
+& target & But it in certainly not a radical initiative - at least by American standards. \\[0.1cm]
+& translation & But it is certainly not a radical initiative, at least for American standards. \\[0.1cm]
+& BLEU & 39.13 \\[0.1cm] \hline
+
+2 & source & Das Militär spielt in Pakistan eine wichtige Rolle und hat bereits häufiger geputscht. \\[0.1cm]
+& target & The military plays an important role in Pakistan and has taken power by force several times in the past. \\[0.1cm]
+& translation & Military players play an important role in Pakistan and has already been developing more and more. \\[0.1cm]
+& BLEU & 30.18
+\end{tabular}
+\caption{Cherry-picked translations from WMT NewsTest with high BLEU score.}
+\label{table:result:bytenet:high-belu}
+\end{table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{l|r|p{10cm}}
+0 & source & Die Premierminister Indiens und Japans trafen sich in Tokio. \\[0.1cm]
+& target & India and Japan prime ministers meet in Tokyo \\[0.1cm]
+& translation & The Prime Minister of India and Japan worked in Tokyo. \\[0.1cm]
+& BLEU & 0.00 \\[0.1cm] \hline
+
+1 & source & Er wird beschuldigt, am 7. Juni 2013 eine Frau im Scotland's Hotel in Pitlochry in Perthshire vergewaltigt zu haben. \\[0.1cm]
+& target & He is alleged to have raped a woman at the Scotland's Hotel in Pitlochry in Perthshire on June 7, 2013. \\[0.1cm]
+& translation & He is accused of being a Member of the European Parliament in Scotland in Petersberg in Peru. \\[0.1cm]
+& BLEU & 0.00 \\[0.1cm] \hline
+
+2 & source & Angelina Jolie und ihr Bruder James haben eine Videohommage für ihre Mutter online gestellt, die 2007 an Eierstockkrebs verstarb. \\[0.1cm]
+& target & Angelina Jolie and her brother James have posted a video tribute to their late mother who died of Ovarian cancer in 2007. \\[0.1cm]
+& translation & Angela John and her village of James have created violence for their mother-tongue, which involves emergency catastrophe. \\[0.1cm]
+& BLEU & 0.00 \\[0.1cm] \hline
+
+3 & source & "Diese Krankheit wird am besten von gynäkologischen Onkologen behandelt, und diese sind meistens in größeren Städten zu finden," sagte sie. \\[0.1cm]
+& target & "This disease is best treated by gynaecological oncology surgeons and they're mostly based in major cities," she said. \\[0.1cm]
+& translation & 'This disease is best achieved by organic chocolate industries, and these are indeed more than "more cities'. \\[0.1cm]
+& BLEU & 0.00
+\end{tabular}
+\caption{Cherry-picked translations from WMT NewsTest with zero in BLEU score.}
+\label{table:result:bytenet:zero-belu}
+\end{table}
+
+As expected in the translations with high BLEU score in table \ref{table:result:bytenet:high-belu} are quite good. Much more interesting is to look at the bad translations in table \ref{table:result:bytenet:zero-belu}.
+
+Translation \texttt{0} is actually a very good translation, but the different word ordering means that it gets a BLEU score of zero. This is an example of the BLEU score not always being a very good measurement of text equality.
+
+Translation \texttt{1} is on the other hand quite bad, except for the ``He is accused'' part it is very wrong. It is apparent that the translation model detects places by its initial capital letter and attempts to translate these, however the translation is rarely correct. This is quite interesting, since translation of names should often be easy since it is just the identity function. However such a mapping requires the model to switch between a semantic understanding and the identity function. This behavior may be difficult for the model to learn as it will initially either learn semantic understanding or the identity function. Once that is partially learned the model will use its entire parameter space for that purpose. Compressing this parameter space and allowing for a new mode of operation is perhaps not a likely gradient direction in the optimization, as more would initially be lost by the compression than what is gained by extra mode. That being said character-based models have been able to learn this behavior \cite{citation-needed}.
+
+Translation \texttt{1}, \texttt{2}, and \texttt{3} are all interesting because while the translations may be bad the grammatical part is mostly fine. This indicates that the model understands basic language constructs. An example is that ``He is accused of being a Member of the European Parliament'' makes sense even though the translation is completely wrong.
 
 \clearpage
 \subsection{Performance profiling}
