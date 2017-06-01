@@ -162,3 +162,6 @@ In theory, if there are too many layers the network should optimize such that so
 The idea is that getting $\mathcal{F}(\mathbf{x}) = 0$ is a lot easier to solve than $\mathcal{H}(\mathbf{x}) = \mathbf{x}$. For both the ReLU and sigmoid transformation, $\mathcal{F}(\mathbf{x}) = 0$ can be obtained by moving the weights to some extreme, while $\mathcal{H}(\mathbf{x}) = \mathbf{x}$ is drastically more difficult, particularly for the sigmoid case. If the layer really needs a non-trivial $\mathcal{H}(\mathbf{x})$ function, the optimizer simply needs to find $\mathcal{H}(\mathbf{x}) - \mathbf{x}$, which should not be that much more difficult.
 
 A downside of using a residual layer is that the output dimension must match the dimension of $\mathbf{x}$. However there are workarounds, for example, one can add an extra dense layer to change the dimensionality of either the output dimension or $\mathbf{x}$.
+
+\subsection{Initialization}
+\todo[inline]{Section describing the vanishing and exploding gradient (moment) problem, and show to solve it using initialization.}

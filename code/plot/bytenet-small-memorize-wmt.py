@@ -5,7 +5,7 @@ from code.plot.util.ggplot import GGPlot
 import pandas as pd
 
 summary = TFSummary(
-    'hpc_asset/bytenet_wmt_2014_timeing/bytenet_wmt_2014_gpu4_timeing',
+    'hpc_asset/bytenet_small_wmt_2014_timeing/bytenet_wmt_2014_gpu4_timeing',
     alpha=0.1
 )
 
@@ -49,4 +49,4 @@ p = p + theme(legend.position="bottom",
 ggsave(filepath, p, width=page.width, height=9, units="cm");
 """)
 
-gg.run(data, 'bytenet/validation-memorize-wmt')
+gg.run(data, 'bytenet-small/validation-memorize-wmt')

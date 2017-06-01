@@ -3,11 +3,11 @@ from code.plot.tracing import Tracing, Group, Aggregate
 from code.plot.util.ggplot import GGPlot
 
 trace_gpu1 = Tracing(
-    'hpc_asset/bytenet_wmt_2014_profile'
+    'hpc_asset/bytenet_small_wmt_2014_profile'
     '/bytenet_wmt_2014_gpu1_profile/timeline.json'
 )
 trace_gpu4 = Tracing(
-    'hpc_asset/bytenet_wmt_2014_profile'
+    'hpc_asset/bytenet_small_wmt_2014_profile'
     '/bytenet_wmt_2014_gpu4_profile/timeline.json'
 )
 
@@ -23,7 +23,7 @@ p = p + theme(legend.position="none",
 ggsave(filepath, p, width=page.width, height=height, units="cm");
 """)
 
-gg.run(trace_gpu4.dataframe(), 'bytenet/profile-raw-gpu4', file_format='pdf',
+gg.run(trace_gpu4.dataframe(), 'bytenet-small/profile-raw-gpu4', file_format='pdf',
        height=13)
-gg.run(trace_gpu1.dataframe(), 'bytenet/profile-raw-gpu1', file_format='pdf',
+gg.run(trace_gpu1.dataframe(), 'bytenet-small/profile-raw-gpu1', file_format='pdf',
        height=7)

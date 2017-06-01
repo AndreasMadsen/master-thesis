@@ -10,11 +10,11 @@ def group_and_aggregate(trace):
 
 
 trace_gpu1 = Tracing(
-    'hpc_asset/bytenet_wmt_2014_profile'
+    'hpc_asset/bytenet_small_wmt_2014_profile'
     '/bytenet_wmt_2014_gpu1_profile/timeline.json'
 )
 trace_gpu4 = Tracing(
-    'hpc_asset/bytenet_wmt_2014_profile'
+    'hpc_asset/bytenet_small_wmt_2014_profile'
     '/bytenet_wmt_2014_gpu4_profile/timeline.json'
 )
 
@@ -32,7 +32,7 @@ p = p + theme(legend.position="bottom",
 ggsave(filepath, p, width=page.width, height=height, units="cm");
 """)
 
-gg.run(group_and_aggregate(trace_gpu4), 'bytenet/profile-grouped-gpu4',
+gg.run(group_and_aggregate(trace_gpu4), 'bytenet-small/profile-grouped-gpu4',
        height=14)
-gg.run(group_and_aggregate(trace_gpu1), 'bytenet/profile-grouped-gpu1',
+gg.run(group_and_aggregate(trace_gpu1), 'bytenet-small/profile-grouped-gpu1',
        height=8)

@@ -12,14 +12,12 @@ def observation_speed(dataframe, gpus):
 
 
 summary_gpu1 = TFSummary(
-    'hpc_asset/bytenet_wmt_2014_xla_compare_timeing'
-    '/bytenet_wmt_2014_gpu1_noxla',
+    'hpc_asset/bytenet_wmt_2014_timeing/bytenet_wmt_2014_gpu1_timeing',
     alpha=0.1
 )
 
 summary_gpu4 = TFSummary(
-    'hpc_asset/bytenet_wmt_2014_xla_compare_timeing'
-    '/bytenet_wmt_2014_gpu4_noxla',
+    'hpc_asset/bytenet_wmt_2014_timeing/bytenet_wmt_2014_gpu4_timeing',
     alpha=0.1
 )
 
@@ -40,7 +38,7 @@ p = ggplot(dataframe, aes(x=time))
 p = p + geom_line(aes(y = value.raw, colour=parallelism), alpha=0.2)
 p = p + geom_line(aes(y = value.smooth, colour=parallelism))
 p = p + labs(x="duration", y="obs./sec")
-p = p + scale_x_datetime(date_labels="%Mmin %Hh")
+p = p + scale_x_datetime(date_labels="%Hh")
 p = p + theme(legend.position="bottom",
               text=element_text(size=10))
 
