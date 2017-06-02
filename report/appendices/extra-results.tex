@@ -19,8 +19,17 @@
 \clearpage
 
 \section{Simplified Bytenet}
-\subsection{Memorizing WMT NewsTest}
+\label{appendix:result:bytenet-small}
+\subsection{Learning Synthetic Digits Problem}
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=1]{bytenet-small/validation-synthetic-digits.pdf}
+    \caption{Shows misclassification rate and the cross entropy loss. For comparison a the attention model has misclassification rate at 0.51. The exponential moving average used a forget factor of $0.4$.}
+    \label{fig:result:bytenet:digits}
+\end{figure}
+\clearpage
 
+\subsection{Memorizing WMT NewsTest}
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{bytenet-small/validation-memorize-wmt.pdf}
