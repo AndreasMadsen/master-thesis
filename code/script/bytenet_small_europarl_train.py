@@ -23,7 +23,7 @@ dataset_test = WMTBilingualNews(batch_size=128,
 model = ByteNet(dataset_train,
                 version='v1-small',
                 deep_summary=False,
-                save_dir='asset/bytenet_small_europarl_nosummary_max500_adam',
+                save_dir='asset/bytenet_small_europarl_max500_adam',
                 gpus=4)
 model.add_metric(BleuScore(dataset_train, name='BLEU-score-train'))
 model.add_metric(BleuScore(dataset_test, name='BLEU-score-test'))
