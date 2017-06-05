@@ -21,9 +21,10 @@ dataset_test = WMTBilingualNews(batch_size=128,
                                 validate=True)
 
 model = ByteNet(dataset_train,
-                save_dir='asset/bytenet_small_wmt_2014_profile/bytenet_wmt_2014_gpu4_profile',
+                save_dir='asset/bytenet_wmt_2014_profile/bytenet_wmt_2014_gpu4_profile',
                 deep_summary=False, gpus=4)
 model.add_metric(BleuScore(dataset_train, name='BLEU-score-train'))
 model.add_metric(BleuScore(dataset_test, name='BLEU-score-test'))
 model.add_metric(ModelLoss(dataset_test, name='model-loss-test'))
-model.train(max_ep=10, profile=100, lr=0.0001)
+model.train(max_ep=10, profile=100,
+            optim='Adam', lr=0.0003, beta2=0.999)

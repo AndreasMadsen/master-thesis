@@ -20,4 +20,6 @@ model.add_metric(MisclassificationRate(dataset_train, name='missrate-train'))
 model.add_metric(MisclassificationRate(dataset_test, name='missrate-test'))
 model.add_metric(ModelLoss(dataset_test, name='model-loss-test'))
 
-model.train(max_ep=300, lr=0.001, log_interval=10, save_interval=30)
+model.train(max_ep=300,
+            optim='Adam', lr=0.001, beta2=0.999,
+            log_interval=10, save_interval=30)

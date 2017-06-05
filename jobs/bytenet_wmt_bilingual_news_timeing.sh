@@ -2,7 +2,7 @@
 #BSUB -q gpuqueuetitanx
 #BSUB -J bytenet-wmt-bilingual-news-timeing
 #BSUB -n 6
-#BSUB -R "rusage[ngpus_excl_p=1]"
+#BSUB -R "rusage[ngpus_excl_p=4]"
 #BSUB -W 24:00
 #BSUB -u amwebdk@gmail.com
 #BSUB -B

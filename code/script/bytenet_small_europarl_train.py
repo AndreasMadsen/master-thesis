@@ -28,4 +28,4 @@ model = ByteNet(dataset_train,
 model.add_metric(BleuScore(dataset_train, name='BLEU-score-train'))
 model.add_metric(BleuScore(dataset_test, name='BLEU-score-test'))
 model.add_metric(ModelLoss(dataset_test, name='model-loss-test'))
-model.train(max_ep=3, optim='Adam', lr=0.0003, beta2=0.999)
+model.train(max_ep=6, optim='Adam', lr=0.0003, beta2=0.999)
