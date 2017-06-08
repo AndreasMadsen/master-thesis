@@ -1,6 +1,6 @@
 #!/bin/sh
 #BSUB -q gpuqueuetitanx
-#BSUB -J bytenet-wmt-bilingual-news
+#BSUB -J bytenet-small-wmt-bilingual-news
 #BSUB -n 6
 #BSUB -R "rusage[ngpus_excl_p=4]"
 #BSUB -W 06:00
@@ -14,4 +14,4 @@ export BASE_SAVE_DIR=/work1/$USER/kandidat
 export PYTHONPATH=./:./sugartensor/
 source ~/stdpy3/bin/activate
 
-python3 code/script/bytenet_wmt_bilingual_news_train.py
+python3 code/script/bytenet_small_wmt_bilingual_news_train.py

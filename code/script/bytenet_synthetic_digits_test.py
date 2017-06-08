@@ -8,14 +8,14 @@ from code.model import ByteNet
 # set log level to debug
 stf.sg_verbosity(10)
 
-dataset_train = SyntheticDigits(batch_size=16, examples=1000, seed=10)
+dataset_train = SyntheticDigits(batch_size=16, examples=128, seed=10)
 dataset_test = SyntheticDigits(batch_size=10, examples=128, seed=11,
                                shuffle=False, repeat=False)
 
 model = ByteNet(dataset_train,
                 num_blocks=3, latent_dim=20,
                 deep_summary=False,
-                save_dir='asset/bytenet_synthetic_digits')
+                save_dir='hpc_asset/bytenet_synthetic_digits')
 
 translation_tuple = model.predict_from_dataset(dataset_test, samples=10)
 

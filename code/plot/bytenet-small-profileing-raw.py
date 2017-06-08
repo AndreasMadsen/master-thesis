@@ -13,7 +13,7 @@ trace_gpu4 = Tracing(
 
 gg = GGPlot("""
 p = ggplot(dataframe)
-p = p + geom_rect(aes(xmin=start, xmax=start+max(duration, 0.01), ymin=thread+0.5, ymax=thread+1.5, fill=name))
+p = p + geom_rect(aes(xmin=start, xmax=start+duration, ymin=thread+0.5, ymax=thread+1.5, fill=name))
 p = p + facet_grid(device ~ .)
 p = p + labs(x="seconds", y="thread", fill="")
 p = p + ylim(0.5, 4.5)
