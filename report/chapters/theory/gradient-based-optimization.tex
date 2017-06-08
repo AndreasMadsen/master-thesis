@@ -115,7 +115,6 @@ Computationally this can be done slightly more efficient by combining \eqref{eq:
       \State \Return{$\mathbf{w}_t$}
     \EndFunction
   \end{algorithmic}
-  \label{alg:theory:semi-supervised:nmt}
 \end{algorithm}
 
 \subsection{He-Uniform Initialization}
@@ -161,15 +160,15 @@ Because $w_{h_{\ell-1}, h_{\ell}}$ has zero mean this can be rewritten as:
 \end{aligned}
 \end{equation}
 
-If additionally $w_{h_{\ell-1}, h_{\ell}}$ is chosen to be symmetric around zero, then half of the $z_{h_\ell}$ values will be truncated, thus the variance is also half. This means that $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_{\ell-1}}]$.
+If additionally $w_{h_{\ell-1}, h_{\ell}}$ is chosen to be symmetric around zero, then half of the $z_{h_\ell}$ values will be truncated, thus the variance is also half. This means that $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_\ell}]$.
 \begin{equation}
 \begin{aligned}
-\mathrm{Var}[a_{h_\ell}] &= \mathrm{Var}[\theta(z_{h_\ell})] = \frac{1}{2}\mathrm{Var}[z_{h_{\ell-1}}] \\
+\mathrm{Var}[a_{h_\ell}] &= \mathrm{Var}[\theta(z_{h_\ell})] = \frac{1}{2}\mathrm{Var}[z_{h_\ell}] \\
 \mathrm{Var}[a_{h_\ell}] &= \mathbb{E}[a_{h_\ell}^2] -\mathbb{E}[a_{h_\ell}]^2 = \mathbb{E}[a_{h_\ell}^2]
 \end{aligned}
 \end{equation}
 
-Applying $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_{\ell-1}}]$ and $\mathrm{Var}[z_{h_\ell}]$ can be reformulated as:
+Applying $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_\ell}]$ and $\mathrm{Var}[z_{h_\ell}]$ \todo{How can this be true?} can be reformulated as:
 \begin{equation}
 \begin{aligned}
 \mathrm{Var}[z_{h_\ell}] &= H_{\ell-1} \mathrm{Var}[w_{h_{\ell-1}, h_{\ell}}] \frac{1}{2} \mathrm{Var}[z_{h_{\ell-1}}] \\

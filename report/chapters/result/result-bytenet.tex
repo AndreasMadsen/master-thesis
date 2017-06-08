@@ -11,7 +11,7 @@ The Synthetic Digits dataset is used for validating the generalization propertie
 
 The internal dimensionality is set to 20, this is 20 units in the encoder and 40 units in the decoder, the latter is because the encoding is concatenated with the target embedding. It is unlikely that higher dimensionality is required, given that there are only 10 possible output characters. In fact, 20 might be much higher than necessary, but this may be a good thing in terms of validation as it provides an opportunity to ensure that the model doesn't overfit. Using a dimensionality of 20 the network has, just counting the convolution and dense layers, $73500$ weights. The training dataset contains only 128 observations, thus there is a huge potential for overfitting. The test dataset also contains 128 observations.
 
-The ByteNet model is optimized using the MaxProp optimizer with a learning rate of 0.001 and a mini-batch size of 16 running on 1 GPU. Because the BLEU score is not meaningful for the Synthetic Digits problem, where no words exist in the target, the misclassification rate is calculated instead.
+The ByteNet model is optimized using the Adam optimizer with a learning rate of 0.001 and a mini-batch size of 16 running on 1 GPU. Because the BLEU score is not meaningful for the Synthetic Digits problem, where no words exist in the target, the misclassification rate is calculated instead.
 
 \begin{figure}[h]
     \centering
@@ -25,10 +25,10 @@ The ByteNet model is optimized using the MaxProp optimizer with a learning rate 
 \begin{tabular}{r|p{3.3cm} p{3.3cm} p{3.3cm}}
 	obs. & source & target & predict\\ \hline
   0 & one zero four & 104 & 104 \\
-  1 & one five six & 156 & 15 \\
+  1 & one five six & 156 & 157 \\
   2 & five five nine & 559 & 559 \\
-  3 & one six & 16 & 10 \\
-  4 & two three four & 234 & 212 \\
+  3 & one six & 16 & 003 \\
+  4 & two three four & 234 & 24 \\
   5 & five three & 53 & 53
 \end{tabular}
 \caption{Source, target, and prediction on examples from the test dataset.}
@@ -50,7 +50,7 @@ Sometimes a model works well when it has few weights and low dimensionality but 
 
 The WMT 2014 NewsTest dataset for German to English translation was used for training, this contains 3003 observations. The WMT 2015 NewsTest dataset was used for testing, this contains 1596 observations. The internal dimensionality is set to 400, (800 in the decoder because of concatenation).
 
-The model ran 300 epochs over the training dataset, with a mini batch size of $4 \cdot 16 = 64$, running on 4 GPUs in parallel using synchronized updates with the MaxProp optimizer and a learning rate of 0.0001.
+The model ran 300 epochs over the training dataset, with a mini batch size of $4 \cdot 16 = 64$, running on 4 GPUs in parallel using synchronized updates with the Adam optimizer and a learning rate of 0.0003. \todo{Run less epochs}
 
 \begin{figure}[h]
     \centering
@@ -190,13 +190,13 @@ From figure \ref{fig:result:bytenet:profile-raw} it's seen that most of the time
 
 By comparing the speed of how fast the ByteNet implementation processes observations depending on the number of GPUs used, one gets that about 30\% of the time is spent wait for data transference in the 4 GPUs case. This calculation does, in particular, make sense when comparing with 1 GPU since a 1 GPU setup will not require data transfer of any weights, as the gradients and weights don't need to be synchronized on the CPU, but can be kept on the GPU where they are calculated.
 
-The data transfer does not explain all the waiting time, this can also be seen when profiling on the 1 GPU setup (appendix \ref{appendix:result:bytenet-profile}). By processing the profiling dump file, such that the waiting time is removed from the plot, one can see that about 90\% of the time not waiting for data is spend waiting for the TensorFlow service to queue computations. This is seen in figure \ref{fig:result:bytenet:profile-raw} and appendix \ref{appendix:result:bytenet-profile}.
+The data transfer does not explain all the waiting time, this can also be seen when profiling on the 1 GPU setup (appendix \ref{appendix:result:bytenet-profile}). By processing the profiling dump file, such that the waiting time is removed from the plot, one can see that about 90\% of the time not waiting for data is spend waiting for the TensorFlow service to queue computations. This is seen in figure \ref{fig:result:bytenet:profile-grouped} and appendix \ref{appendix:result:bytenet-profile}.
 
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{bytenet/profile-grouped-gpu4.pdf}
     \caption{Shows time spend executing operations in each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. The bottom level is the least detailed level, it just splits the model in the backward and forward pass. The next level, splits the model in the encoder and decoder. The last level at the top, primarily splits the ByteNet Residual Blocks.}
-    \label{fig:result:bytenet:profile-raw}
+    \label{fig:result:bytenet:profile-grouped}
 \end{figure}
 
 It is likely that the data transfer part could be optimized, but in general, this isn't easy and there are practical limitations to how much it can be improved. It is much more likely that the waiting time regarding the TensorFlow service could be improved.

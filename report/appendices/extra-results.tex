@@ -25,7 +25,6 @@
     \centering
     \includegraphics[scale=1]{bytenet-small/validation-synthetic-digits.pdf}
     \caption{Shows misclassification rate and the cross entropy loss. For comparison a the attention model has misclassification rate at 0.51. The exponential moving average used a forget factor of $0.4$.}
-    \label{fig:result:bytenet:digits}
 \end{figure}
 \clearpage
 
@@ -42,7 +41,6 @@
     \centering
     \includegraphics[width=\textwidth]{bytenet-small/profile-raw-gpu4.pdf}
     \caption{Shows time spend on each operation, when the operation was executed, and on what GPU/CPU it was executed. The color coding indicates the operation type, there are more than a 100 different operation types, most are specific to TensorFlow, thus the legend is not included.}
-    \label{fig:result:bytenet:profile-raw}
 \end{figure}
 \clearpage
 
