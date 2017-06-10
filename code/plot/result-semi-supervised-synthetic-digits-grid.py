@@ -34,7 +34,7 @@ model = SemiSupervisedByteNet(
     num_blocks=3, latent_dim=20, beam_size=5,
     gpus=2
 )
-model.inference_model(dataset_train.source)
+model.inference_model(dataset_train.source, dataset_train.length)
 
 results = []
 saved_models_pbar = tqdm(saved_models, unit='model')

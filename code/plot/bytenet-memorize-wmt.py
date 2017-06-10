@@ -5,8 +5,8 @@ from code.plot.util.ggplot import GGPlot
 import pandas as pd
 
 summary = TFSummary(
-    'hpc_asset/bytenet_wmt_2014_timeing/bytenet_wmt_2014_gpu4_timeing',
-    alpha=0.1
+    'hpc_asset/bytenet_wmt_2014',
+    alpha=0.3
 )
 
 entropy = pd.concat(

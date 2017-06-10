@@ -41,7 +41,7 @@ The jitter is likely not because of poor optimization, but rather because the er
 
 The lack of overfitting fits well with what the original ByteNet article also observed, in their translation model no regularization or early stopping was used, which is what one would typically use to prevent overfitting \cite{bytenet}.
 
-In table \ref{table:result:bytenet:digits} the predictions are about what one would expect. For the most part, the translation, in particular in the beginning of the output sequence, while the latter digit predictions show some error. This result is reasonable, as there is more data for the first two digits and because the input words have different length, the alignment between input and output characters becomes more uncertain. Of cause, the model would ideally learn the word separation completely and understand that there is a direct relation between word and digit, but they are likely difficult given both the many parameters and the small dataset.
+In table \ref{table:result:bytenet:digits} the predictions are about what one would expect. For the most part, the translations are good, in particular in the beginning of the output sequence, while the latter digit predictions show some error. This result is reasonable, as there is more data for the first two digits and because the input words have different length, the alignment between input and output characters becomes more uncertain. Of cause, the model would ideally learn the word separation completely and understand that there is a direct relation between word and digit, but learning this relation is likely difficult given both the many parameters and the small dataset.
 
 \clearpage
 \subsubsection{Memorizing WMT NewsTest}
@@ -50,21 +50,26 @@ Sometimes a model works well when it has few weights and low dimensionality but 
 
 The WMT 2014 NewsTest dataset for German to English translation was used for training, this contains 3003 observations. The WMT 2015 NewsTest dataset was used for testing, this contains 1596 observations. The internal dimensionality is set to 400, (800 in the decoder because of concatenation).
 
-The model ran 300 epochs over the training dataset, with a mini batch size of $4 \cdot 16 = 64$, running on 4 GPUs in parallel using synchronized updates with the Adam optimizer and a learning rate of 0.0003. \todo{Run less epochs}
+The model ran 120 epochs over the training dataset, with a mini batch size of ${4 \cdot 16 = 64}$, running on 4 GPUs in parallel using synchronized updates with the Adam optimizer and a learning rate of 0.0003.
 
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{bytenet/validation-memorize-wmt.pdf}
-    \caption{Shows BLEU score and cross entropy loss for the German to English WMT NewsTest dataset. Both training and test measures are calculated on a randomly sampled mini-batch from each dataset. The exponential moving average used a forget factor of $0.1$.}
+    \caption{Shows BLEU score and cross entropy loss for the German to English WMT NewsTest dataset. Both training and test measures are calculated on a randomly sampled mini-batch from each dataset. The exponential moving average used a forget factor of $0.3$.}
     \label{fig:result:bytenet:wmt}
 \end{figure}
 
 \begin{table}[h]
 \centering
-\begin{tabular}{r|p{3.3cm} p{3.3cm} p{3.3cm}}
-	obs. & source & target & predict\\ \hline
-  0 & Polizei von Karratha verhaftet 20-Jährigen nach schneller Motorradjagd & Karratha police arrest 20-year-old after high speed motorcycle chase & Wontin, far of the bercemal wete tower, and the Anxple pexf that deasid Therest wigh \\
-  1 & Das Motorrad sowie eine Person, die der Beschreibung des Fahrers entsprach wurden später bei einem Haus im Walcott Way in Bulgarra gesehen. & The motorcycle and a person matching the description of the rider was then spotted at a house on Walcott Way in Bulgarra. & The Cotherty the fhe srone me plinethe sernid hatt col ce srmacis " forst of cotwoull, tanes ap o hirs ondithame.
+\begin{tabular}{l|r|p{10cm}}
+  0 & source & Polizei von Karratha verhaftet 20-Jährigen nach schneller Motorradjagd \\[0.1cm]
+    & target & Karratha police arrest 20-year-old after high speed motorcycle chase \\[0.1cm]
+    & translation & In must in the ugains of the with of Chanamby a leadn-Minor ald the ace the town of the construction of the compunity the government. \\[0.1cm]
+    & BLEU & 0.00 \\[0.1cm] \hline
+  1 & source & Das Motorrad sowie eine Person, die der Beschreibung des Fahrers entsprach wurden später bei einem Haus im Walcott Way in Bulgarra gesehen. \\[0.1cm]
+    & target & The motorcycle and a person matching the description of the rider was then spotted at a house on Walcott Way in Bulgarra. \\[0.1cm]
+    & translation & The subplry has however, the mustront that the pitterns reperting make the Lark deponsed of the Austion," adm. \\[0.1cm]
+    & BLEU & 0.00
 \end{tabular}
 \caption{Source, target and prediction on the test dataset.}
 \label{table:result:bytenet:wmt-test}
@@ -72,10 +77,15 @@ The model ran 300 epochs over the training dataset, with a mini batch size of $4
 
 \begin{table}[h]
 \centering
-\begin{tabular}{r|p{3.3cm} p{3.3cm} p{3.3cm}}
-	obs. & source & target & predict\\ \hline
-  0  & Zwei Anlagen so nah beieinander: Absicht oder Schildbürgerstreich? & Two sets of lights so close to one another: intentional or just a silly error? & Two sets of Gights so closento ond anotrero forentiog ther Gperbe ties wron the pllis buching thats and and ane. \\
-  1 & Diese Frage hat Gutachs Bürgermeister gestern klar beantwortet. & Yesterday, Gutacht's Mayor gave a clear answer to this question. & Yesterday, Guthaltha Meyor gage in ther assuer to the ricesteon deromen to now, aing warr pepe hevern wer a sevembytich.
+\begin{tabular}{l|r|p{10cm}}
+  0 & source & Demgegenüber unterrichten australische Schulen durchschnittlich 143 Stunden jährlich und Schüler in Singapur erhalten 138 Stunden. \\[0.1cm]
+    & target & By comparison, Australian schools provide an average of 143 hours a year and pupils do around 138 hours in Singapore. \\[0.1cm]
+    & translation & By comparison, Australian schools provide an average of 143 hours a year and pupils do around 138 hours in Singapore. \\[0.1cm]
+    & BLEU & 100.00 \\[0.1cm] \hline
+  1 & source & Die Parkmöglichkeit unmittelbar vor dem Geschäft sei "ein nicht zu unterschätzender Vorteil für kleinere Fachhändler". \\[0.1cm]
+    & target & The option of parking right outside their businesses is "an advantage to smaller retailers that must not be underestimated.". \\[0.1cm]
+    & translation & The option of parking right outside their businesses is "an advantage to smaller retailers that must not be underestimated.". \\[0.1cm]
+    & BLEU & 100.00
 \end{tabular}
 \caption{Source, target and prediction on the training dataset.}
 \label{table:result:bytenet:wmt-train}
@@ -110,6 +120,8 @@ With the ByteNet model reasonably validated in terms of generalization on the sy
 The ByteNet model has an internal dimensionality of 400, just like the model used for training on the WMT NewsTest dataset. The Adam optimizer with a learning rate of 0.0003 is used for training. This used a training mini-batch size of $4 \cdot 16 = 64$ observations and the model was trained on 4 GPUs in parallel with synchronized updates. The Europarl v7 dataset is used for training and model ran 13 epochs over the Europarl v7 dataset. The WMT NewsTest 2015 dataset is used for testing, the continues testing was done on randomly sampled mini-batches with 128 observations.
 
 From figure \ref{fig:result:bytenet:europarl} its seen that the BLEU on the test dataset is approximately 5. However, because that BLEU score is calculated on a random subset of the dataset it is not completely accurate, the actual BLEU score calculated on the entirety of the WMT NewsTest dataset is $7.44$. The translations are shown in table \ref{table:result:bytenet:high-belu} and table \ref{table:result:bytenet:zero-belu}.
+
+\todo[inline]{Discussion oscillation.}
 
 \begin{table}[h]
 \centering
@@ -170,7 +182,7 @@ Translation \texttt{1}, \texttt{2}, and \texttt{3} are all interesting because w
 
 \clearpage
 \subsection{Performance profiling}
-To understand why the ByteNet model is so slow, TensorFlow was profiled while executing the computational graph. The setup is identical to the ``Memorizing WMT NewsTest'' setup running on 4 GPUs, and the profiling was done when evaluating the 100th mini-batch.
+To understand why the ByteNet model is so slow, TensorFlow was profiled while executing the computational graph. The setup is identical to the ``Memorizing WMT NewsTest'' setup running on 4 GPUs, and the profiling was done when evaluating the 4500th mini-batch. The 4500th mini-batch was chosen because the performance has reached its peak and stabilized.  
 
 \begin{figure}[h]
     \centering
@@ -188,9 +200,10 @@ From figure \ref{fig:result:bytenet:profile-raw} it's seen that most of the time
     \label{fig:result:bytenet:timing-gpus}
 \end{figure}
 
-By comparing the speed of how fast the ByteNet implementation processes observations depending on the number of GPUs used, one gets that about 30\% of the time is spent wait for data transference in the 4 GPUs case. This calculation does, in particular, make sense when comparing with 1 GPU since a 1 GPU setup will not require data transfer of any weights, as the gradients and weights don't need to be synchronized on the CPU, but can be kept on the GPU where they are calculated.
+By comparing the speed of how fast the ByteNet implementation processes observations depending on the number of GPUs used, one gets that about 37\% of the time is spent wait for data transference in the 4 GPUs case. This calculation does, in particular, make sense when comparing with 1 GPU since a 1 GPU setup will not require data transfer of any weights, as the gradients and weights don't need to be synchronized on the CPU, but can be kept on the GPU where they are calculated.
 
-The data transfer does not explain all the waiting time, this can also be seen when profiling on the 1 GPU setup (appendix \ref{appendix:result:bytenet-profile}). By processing the profiling dump file, such that the waiting time is removed from the plot, one can see that about 90\% of the time not waiting for data is spend waiting for the TensorFlow service to queue computations. This is seen in figure \ref{fig:result:bytenet:profile-grouped} and appendix \ref{appendix:result:bytenet-profile}.
+The data transfer does not explain all the waiting time, this can also be seen when profiling on the 1 GPU setup (appendix \ref{appendix:result:bytenet-profile}). By processing the profiling dump file, such that the waiting time is removed from the plot, one can see that about 90\% of the time not waiting for data is spend waiting for the TensorFlow service to queue computations. This is seen in figure \ref{fig:result:bytenet:profile-grouped} and appendix \ref{appendix:result:bytenet-profile}. \todo{How can we see this? Compare Block sections instead.}
+
 
 \begin{figure}[h]
     \centering

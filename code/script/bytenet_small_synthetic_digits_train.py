@@ -23,4 +23,4 @@ model.add_metric(ModelLoss(dataset_test, name='model-loss-test'))
 
 model.train(max_ep=300,
             optim='Adam', lr=0.001, beta2=0.999,
-            log_interval=10, save_interval=30)
+            log_interval=1, save_interval=30)

@@ -6,7 +6,7 @@ import pandas as pd
 
 summary = TFSummary(
     'hpc_asset/bytenet_small_synthetic_digits',
-    alpha=0.4
+    alpha=0.1
 )
 
 print(summary.read_summary('metrics/model-loss-test_1'))

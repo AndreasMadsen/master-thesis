@@ -54,4 +54,5 @@ model = SemiSupervisedByteNet(
 )
 model.add_metric(MisclassificationRate(dataset_test))
 model.add_metric(ModelLoss(dataset_test))
-model.train(max_ep=300, lr=0.001)
+model.train(max_ep=300,
+            optim='Adam', lr=0.001, beta2=0.999)
