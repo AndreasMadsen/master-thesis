@@ -25,10 +25,10 @@ The ByteNet model is optimized using the Adam optimizer with a learning rate of 
 \begin{tabular}{r|p{3.3cm} p{3.3cm} p{3.3cm}}
 	obs. & source & target & predict\\ \hline
   0 & one zero four & 104 & 104 \\
-  1 & one five six & 156 & 157 \\
+  1 & one five six & 156 & 150 \\
   2 & five five nine & 559 & 559 \\
-  3 & one six & 16 & 003 \\
-  4 & two three four & 234 & 24 \\
+  3 & one six & 16 & 68 \\
+  4 & two three four & 234 & 235 \\
   5 & five three & 53 & 53
 \end{tabular}
 \caption{Source, target, and prediction on examples from the test dataset.}
@@ -66,9 +66,9 @@ The model ran 120 epochs over the training dataset, with a mini batch size of ${
     & target & Karratha police arrest 20-year-old after high speed motorcycle chase \\[0.1cm]
     & translation & In must in the ugains of the with of Chanamby a leadn-Minor ald the ace the town of the construction of the compunity the government. \\[0.1cm]
     & BLEU & 0.00 \\[0.1cm] \hline
-  1 & source & Das Motorrad sowie eine Person, die der Beschreibung des Fahrers entsprach wurden später bei einem Haus im Walcott Way in Bulgarra gesehen. \\[0.1cm]
-    & target & The motorcycle and a person matching the description of the rider was then spotted at a house on Walcott Way in Bulgarra. \\[0.1cm]
-    & translation & The subplry has however, the mustront that the pitterns reperting make the Lark deponsed of the Austion," adm. \\[0.1cm]
+  1 & source & Das Motorrad wurde sichergestellt und für drei Monate beschlagnahmt. \\[0.1cm]
+    & target & The motorcycle was seized and impounded for three months. \\[0.1cm]
+    & translation & The New York works with smaries for twe to the come to cover earling scace us deliving the construction work. \\[0.1cm]
     & BLEU & 0.00
 \end{tabular}
 \caption{Source, target and prediction on the test dataset.}
@@ -82,10 +82,10 @@ The model ran 120 epochs over the training dataset, with a mini batch size of ${
     & target & By comparison, Australian schools provide an average of 143 hours a year and pupils do around 138 hours in Singapore. \\[0.1cm]
     & translation & By comparison, Australian schools provide an average of 143 hours a year and pupils do around 138 hours in Singapore. \\[0.1cm]
     & BLEU & 100.00 \\[0.1cm] \hline
-  1 & source & Die Parkmöglichkeit unmittelbar vor dem Geschäft sei "ein nicht zu unterschätzender Vorteil für kleinere Fachhändler". \\[0.1cm]
-    & target & The option of parking right outside their businesses is "an advantage to smaller retailers that must not be underestimated.". \\[0.1cm]
-    & translation & The option of parking right outside their businesses is "an advantage to smaller retailers that must not be underestimated.". \\[0.1cm]
-    & BLEU & 100.00
+  1 & source & Diese Umlage wird jedes Jahr im Oktober von den vier Betreibern der der großen Stromtrassen neu festgesetzt. \\[0.1cm]
+    & target & This levy will be reset by the four operators of the large power grids, in October of each year. \\[0.1cm]
+    & translation & This levy will be reset by the four operators of the lerge power grids, in October of each year. \\[0.1cm]
+    & BLEU & 87.23
 \end{tabular}
 \caption{Source, target and prediction on the training dataset.}
 \label{table:result:bytenet:wmt-train}
@@ -95,13 +95,13 @@ Ensuring that the optimization converges was the primary purpose of this experim
 
 As said the test loss is not very interesting, as there is isn't enough training data to expect the model to produce meaningful results. The cross entropy on the test dataset does also show an increase after the initial decrease, which indicates some overfitting. Again, this is to be expected given the small training dataset.
 
-More interesting is the correlation between the training cross entropy and the training BLEU score. Initially, the cross entropy decreases a lot, but the BLEU score stays at 0. It is first when the cross entropy nears 0, that the BLEU score begins to improve. This observation is quite important as it indicates that cross entropy isn't the best loss measure for the translation problem. This is because the cross entropy can be quite low if it just gets the majority of the characters almost correct, but the position must be correct. The BLEU score, on the other hand, demands that the words matches exactly, but is looser regarding the position. In particular, the cross entropy and BLEU score are not very correlated when the translation model gets a space wrong. For example in table \ref{table:result:bytenet:wmt-train} the target is ``close to'' but the prediction is ``closento''. This is very close in terms of cross entropy but is completely wrong in terms of the BLEU score, since none of the words matches. Nevertheless, the cross entropy loss is useful because its gradient in combination with softmax is easily commutable, and the BLEU score does become very high in the end, even though the correlation between cross entropy and the BLEU score is weak.
+More interesting is the correlation between the training cross entropy and the training BLEU score. Initially, the cross entropy decreases a lot, but the BLEU score stays at 0. It is first when the cross entropy nears 0, that the BLEU score begins to improve. This observation is quite important as it indicates that cross entropy isn't a prefect loss measure for the translation problem. This is because the cross entropy can be quite low if it just gets the majority of the characters almost correct, but the position must be correct. The BLEU score, on the other hand, demands that the words matches exactly, but is looser regarding the position. In particular, the cross entropy and BLEU score are not very correlated when the translation model gets a space wrong. For example in table \ref{table:result:bytenet:wmt-train} the target is ``large'' but the prediction is ``lerge''. This is very close in terms of cross entropy but is completely wrong in terms of the BLEU score, since the words doesn't match. Nevertheless, the cross entropy loss is useful because its gradient in combination with softmax is easily commutable, and the BLEU score does become very high in the end, even though the correlation between cross entropy and the BLEU score is weak.
 
 The training BLEU score is actually extremely good, it shows almost a perfect translation. Typically translation models only show a BLEU score between 15 and 25 on a test set. This is not necessarily because this the translation is wrong, but because there many different ways of translating a text correctly. The BLEU score does actually support multiple target sequences, but this rarely provided in the test dataset because of the labor demands for creating multiple translations is very high.
 
-The only way the model can be this good is by primarily memorizing the output given the input. It is unlikely there is much understanding of the latent semantic meaning in the text. That being said, the first predictions in table \ref{table:result:bytenet:wmt-test} shows that the model understands enough grammar to use both interjection comma, and Oxford comma. It also understands that if the source doesn't end with a punctuation period then the target also should end with a period symbol. That being said, the second prediction example in table \ref{table:result:bytenet:wmt-test} also contains single quotation mark, which is not grammatically meaningful. 
+The only way the model can be this good is by primarily memorizing the output given the input. It is unlikely there is much understanding of the latent semantic meaning in the text. That being said, the predictions in table \ref{table:result:bytenet:wmt-test} shows that the model understands some grammar, such as which words comes before nouns. That being said, the second prediction example in table \ref{table:result:bytenet:wmt-test} contains a single quotation mark, which is not grammatically meaningful. 
 
-Some of the above-mentioned issues could perhaps be improved by not using the target sequence in the decoder during training step. Instead, the predicted sequence could be used in the decoder input, just like in the inference model. This could solve issues like ``close to'' becoming ''closento'', as predicting space would become a more important as it indicates the start of a word. The disadvantage of doing this is that training would be slower, as the decoder can't be parallelized over the sequence. Some research suggests that one uses a hybrid model where the training loss is composed of both an assisted part and a non-assisted part, where the target sequence isn't used \cite{no-assist-train}.
+Some of the above-mentioned issues could perhaps be improved by not using the target sequence in the decoder during training step. Instead, the predicted sequence could be used in the decoder input, just like in the inference model. This could solve issues like ``large'' becoming ''lerge''. The disadvantage of doing this is that training would be slower, as the decoder can't be parallelized over the sequence. Some research suggests that one uses a hybrid model where the training loss is composed of both an assisted part and a non-assisted part, where the target sequence isn't used \cite{no-assist-train}.
 
 Another observation is that the predicted sequences are in general a bit longer than the target sequences. This is likely because of how the sequence loss is constructed, this only measures the error where the target is explicitly known. Thus there is little penalty for predicting longer sequences than the target sequence. However, there is some penalty, because the predicted \texttt{<eos>} symbol should match the target \texttt{<eos>} symbol. This problem could be solved by padding the target sequence sufficiently with a special \texttt{<null>} symbol, and then also measure the error on part of the sequence. However, this introduces an issue where the translation model can just predict ``\texttt{<null><null><null><null>...}'' and this will in terms of cross entropy be a good match since the majority of the sequence matches. This is an easily obtainable solution for the optimizer and it can be a local minimum that is difficult to escape.
 
@@ -202,8 +202,9 @@ From figure \ref{fig:result:bytenet:profile-raw} it's seen that most of the time
 
 By comparing the speed of how fast the ByteNet implementation processes observations depending on the number of GPUs used, one gets that about 37\% of the time is spent wait for data transference in the 4 GPUs case. This calculation does, in particular, make sense when comparing with 1 GPU since a 1 GPU setup will not require data transfer of any weights, as the gradients and weights don't need to be synchronized on the CPU, but can be kept on the GPU where they are calculated.
 
-The data transfer does not explain all the waiting time, this can also be seen when profiling on the 1 GPU setup (appendix \ref{appendix:result:bytenet-profile}). By processing the profiling dump file, such that the waiting time is removed from the plot, one can see that about 90\% of the time not waiting for data is spend waiting for the TensorFlow service to queue computations. This is seen in figure \ref{fig:result:bytenet:profile-grouped} and appendix \ref{appendix:result:bytenet-profile}. \todo{How can we see this? Compare Block sections instead.}
+The data transfer does not explain all the waiting time. Likely this particular profiling is an extreme case. TensorFlow transfers the dataset in chucks in preparation for future mini-batches. If TensorFlow is transferring the dataset while profiling in this exact moment, that will cause extra waiting time.
 
+By processing the profiling dump file, such that the waiting time is removed from the plot, one can see that time is primarily spend in the layers that contains normalization and activation (\textit{activation}, \textit{conv-dilated}, \textit{reduce-dim}). \todo{add naming schema figure}
 
 \begin{figure}[h]
     \centering
