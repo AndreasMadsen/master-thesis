@@ -25,7 +25,7 @@ The idea behind this is simple, if the initial embedding dimensionality is set t
 
 In terms of weights the simplified ByteNet model has approximately $\sfrac{5}{9}$ times less weights than the ByteNet model. The simplified ByteNet model also has approximately one third of the operations as the ByteNet model. Based on these parameters one should expect less transfer time and less time spend waiting for the TensorFlow service.
 
-The simplified ByteNet model was validated identically to the how the ByteNet model was validated. The results (appendix \ref{appendix:result:bytenet-small}) where very similar with some minor differences. Memorizing WMT NewsTest took fewer iterations, this is likely because there are fewer parameters. The simplified ByteNet model learned the synthetic digits problem better, with a misclassification error of $0.25$. An explanation could for the improved misclassification error is that the the simplified ByteNet model has fewer parameters and non-linear transformation, this might make it overfits less.
+The simplified ByteNet model was validated identically to the how the ByteNet model was validated. The results (appendix \ref{appendix:result:bytenet-small}) where very similar with some minor differences. Memorizing WMT NewsTest took fewer iterations, this is likely because there are fewer parameters. The simplified ByteNet model learned the synthetic digits problem better, with a misclassification error of $0.25$. An explanation could for the improved misclassification error is that the the simplified ByteNet model has fewer parameters and non-linear transformation, this might make it overfit less.
 
 \subsection{Performance Profiling}
 

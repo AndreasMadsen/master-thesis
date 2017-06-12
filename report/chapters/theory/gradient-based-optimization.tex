@@ -35,7 +35,7 @@ Beyond making the computation feasible this also has some advantages:
 \begin{itemize}
 \item Given two datasets one with 256 observations and another with 16 observations. It will take 16 times more time to calculate the gradient using 256 observations. However, because of the square-root law it only decreases the standard error by a factor of 4. It is thus likely to be more economical to perform 16 as many iterations, than being 4 times more accurate.
 
-\item It is typically easy to parallelism over observations. For a multiparallel hardware like a GPU it is typically possible to parallelize over many observations without extra cost. For large networks it is common to estimate the gradient using 16 observations.
+\item It is typically easy to parallelism over observations. For a multi-parallel hardware like a GPU it is typically possible to parallelize over many observations without extra cost. For large networks it is common to estimate the gradient using 16 observations.
 
 \item Sampling observations from a dataset adds noise to the gradients. This noise can have a regularizing effect on the training, causing less overfitting \cite{deep-learning}.
 \end{itemize}
@@ -46,7 +46,7 @@ The stochastic part of \textit{minibatch stochastic gradient decent} comes from 
 
 Adam optimization is a gradient-based optimization method for optimizing a stochastic loss function, it has been shown to work theoretically and empirically. It even works theoretically and empirically on a stochastic loss function with changing distribution. Changing distribution is something that is quite common when changing the parameters of the model, thus this is an important property \cite{adam-optimization}.
 
-The central idea of Adam optimization is to scale the stepsize by an signal-to-noise estimate. Such that when the signal is strong a large step is taken, when it is weak a small step is taken. This is accomplished by having a running estimate of the first and second moment.
+The central idea of Adam optimization is to scale the step-size by an signal-to-noise estimate. Such that when the signal is strong a large step is taken, when it is weak a small step is taken. This is accomplished by having a running estimate of the first and second moment.
 \begin{equation}
 \begin{aligned}
 \mathbf{g}_t &= \frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}} \\
@@ -57,7 +57,7 @@ The central idea of Adam optimization is to scale the stepsize by an signal-to-n
 
 The ``signal-to-noise'' ratio as the original paper \cite{adam-optimization} calls it, is then calculated as $\frac{\mathbf{m}_t}{\sqrt{\mathbf{v}_t}}$. Calling  $\frac{\mathbf{m}_t}{\sqrt{\mathbf{v}_t}}$ a ``signal-to-noise'' ratio is a slight abuse of terminology, because is not a variance estimate but instead the uncentered variance estimate, but the effect is similar.
 
-A problem that remains is how to initialize $\mathbf{m}_{0}$ and $\mathbf{v}_{0}$. The solution is to initialize them as zero. Since zero is what the gradient will converge to that is not unreasonable, however to improve the estimates they are rescaled to be unbiased.
+A problem that remains is how to initialize $\mathbf{m}_{0}$ and $\mathbf{v}_{0}$. The solution is to initialize them as zero. Since zero is what the gradient will converge to that is not unreasonable, however to improve the estimates they are re-scaled to be unbiased.
 
 Consider the second-order moment at iteration $t$, this can be directly expressed as:
 \begin{equation}
@@ -131,7 +131,7 @@ z_{h_\ell} &= \sum_{h_{\ell-1} = 1}^{H_{\ell-1}} w_{h_{\ell-1}, h_{\ell}} a_{h_{
 
 In both cases the output of layer $\ell$ ($z_{h_\ell}$ and $\delta_{h_\ell}$) depends on the output of the previous layer ($z_{h_{\ell-1}}$ and $\delta_{h_{\ell-1}}$). If both $z_{h_\ell}$ and $\delta_{h_\ell}$ does not maintain the same scale throughout all the layers the values will diverge either to very small (vanishing) or very big values (exploding).
 
-Since the values of input is unknown and the weights are to be initialized randomly, one needs to analyse $z_{h_\ell}$ and $\delta_{h_\ell}$ as stochastic variables. Keeping the expectation at a constant scale for all layers is not a huge problem, the biases $b_{h_\ell}$ are initialized to zero (not random), and the weights $w_{h_{\ell-1}, h_\ell}$ should have zero mean and be independently sampled. Likewise it is for the analysis assumed that the inputs $a_{h_0}$ also are independent, but they do not necessarily have zero mean.
+Since the values of input is unknown and the weights are to be initialized randomly, one needs to analyze $z_{h_\ell}$ and $\delta_{h_\ell}$ as stochastic variables. Keeping the expectation at a constant scale for all layers is not a huge problem, the biases $b_{h_\ell}$ are initialized to zero (not random), and the weights $w_{h_{\ell-1}, h_\ell}$ should have zero mean and be independently sampled. Likewise it is for the analysis assumed that the inputs $a_{h_0}$ also are independent, but they do not necessarily have zero mean.
 \begin{equation}
 \begin{aligned}
 \mathbb{E}[z_{h_\ell}]
