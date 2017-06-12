@@ -7,6 +7,7 @@ from code.tf_operator.convolution import aconv1d
 
 def parallel_encoder_residual_block(tensor,
                                     size=3, rate=1,
+                                    act='relu',
                                     normalization='bn',
                                     block_type='bytenet',
                                     name=None, reuse=None):
@@ -24,16 +25,16 @@ def parallel_encoder_residual_block(tensor,
 
         if block_type == 'bytenet':
             # reduce dimension
-            pre_aconv = tensor.sg_bypass(act='relu', **normalize, scale=False,
+            pre_aconv = tensor.sg_bypass(act=act, **normalize, scale=False,
                                          name="activation")
             pre_aconv = pre_aconv.sg_conv1d(size=1, dim=in_dim // 2,
-                                            act='relu', **normalize, scale=False,
+                                            act=act, **normalize, scale=False,
                                             name="reduce-dim")
 
             # 1xk conv dilated
             aconv = aconv1d(pre_aconv,
                             size=size, rate=rate,
-                            act='relu', **normalize, scale=False,
+                            act=act, **normalize, scale=False,
                             name="conv-dilated")
 
             # dimension recover and residual connection
@@ -41,7 +42,7 @@ def parallel_encoder_residual_block(tensor,
                                   name="recover-dim") + tensor
         elif block_type == 'small':
             # activate and normalize input
-            pre_aconv = tensor.sg_bypass(act='relu', **normalize, scale=False,
+            pre_aconv = tensor.sg_bypass(act=act, **normalize, scale=False,
                                          name="activation")
             # 1xk conv dilated
             aconv = aconv1d(pre_aconv,

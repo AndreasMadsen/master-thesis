@@ -41,9 +41,16 @@ def seq_decoder_residual_block_init(tensor,
 
 def seq_decoder_residual_block(tensor, previous,
                                size=3, rate=1,
+                               act='relu',
+                               normalization='ln',
                                block_type='bytenet',
                                name=None, reuse=None):
     default_name = f"seq-decoder-res-block-{size}-{rate}"
+
+    # use check normalization
+    normalize = {
+        'ln': normalization == 'ln'
+    }
 
     scope_variables = [tensor] + list(previous)
     with tf.variable_scope(name, default_name, scope_variables, reuse=reuse):
@@ -52,16 +59,16 @@ def seq_decoder_residual_block(tensor, previous,
 
         # reduce dimension
         if block_type == 'bytenet':
-            pre_aconv = tensor.sg_bypass(act='relu', ln=True, scale=False,
+            pre_aconv = tensor.sg_bypass(act=act, **normalize, scale=False,
                                          name="activation")
             pre_aconv = seq_dense(pre_aconv, dim=in_dim // 2,
-                                  act='relu', ln=True, scale=False,
+                                  act=act, **normalize, scale=False,
                                   name="reduce-dim")
 
             # 1xk conv dilated
             aconv = seq_causal_aconv1d(pre_aconv, previous=previous,
                                        size=size, rate=rate,
-                                       act='relu', ln=True, scale=False,
+                                       act=act, **normalize, scale=False,
                                        name="conv-dilated")
 
             # dimension recover and residual connection
@@ -69,7 +76,7 @@ def seq_decoder_residual_block(tensor, previous,
                             dim=in_dim,
                             name="recover-dim") + tensor
         elif block_type == 'small':
-            pre_aconv = tensor.sg_bypass(act='relu', ln=True, scale=False,
+            pre_aconv = tensor.sg_bypass(act=act, **normalize, scale=False,
                                          name="activation")
 
             # 1xk conv dilated

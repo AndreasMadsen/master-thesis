@@ -11,9 +11,11 @@ def bytenet_supervised_translator(x, y,
                                   shift=True,
                                   latent_dim=20, voca_size=20, num_blocks=3,
                                   rate=[1, 2, 4, 8, 16],
+                                  low_memory=False,
                                   encoder_size=5,
                                   encoder_normalization='bn',
-                                  low_memory=False,
+                                  decoder_normalization='ln',
+                                  act='relu',
                                   block_type='bytenet',
                                   labels=None, container=None,
                                   name=None, reuse=None):
@@ -49,6 +51,7 @@ def bytenet_supervised_translator(x, y,
         enc = x.sg_lookup(emb=emb_x)
         enc = parallel_bytenet_encoder(enc, num_blocks=num_blocks, rate=rate,
                                        size=encoder_size,
+                                       act=act,
                                        normalization=encoder_normalization,
                                        block_type=block_type,
                                        name="encoder")
@@ -57,6 +60,8 @@ def bytenet_supervised_translator(x, y,
         dec = enc.sg_concat(target=y_src.sg_lookup(emb=emb_y))
         dec = parallel_bytenet_decoder(dec, num_blocks=num_blocks, rate=rate,
                                        low_memory=low_memory,
+                                       act=act,
+                                       normalization=decoder_normalization,
                                        block_type=block_type,
                                        name="decoder")
 

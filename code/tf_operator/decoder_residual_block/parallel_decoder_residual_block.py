@@ -8,9 +8,16 @@ from code.tf_operator.convolution import causal_aconv1d
 def parallel_decoder_residual_block(tensor,
                                     size=3, rate=1,
                                     low_memory=False,
+                                    act='relu',
+                                    normalization='ln',
                                     block_type='bytenet',
                                     name=None, reuse=None):
     default_name = f"decoder-res-block-{size}-{rate}"
+
+    # use check normalization
+    normalize = {
+        'ln': normalization == 'ln'
+    }
 
     with tf.variable_scope(name, default_name, [tensor], reuse=reuse):
         # input dimension
@@ -18,15 +25,15 @@ def parallel_decoder_residual_block(tensor,
 
         if block_type == 'bytenet':
             # reduce dimension
-            pre_aconv = tensor.sg_bypass(act='relu', ln=True, scale=False,
+            pre_aconv = tensor.sg_bypass(act=act, **normalize, scale=False,
                                          name="activation")
             pre_aconv = pre_aconv.sg_conv1d(size=1, dim=in_dim // 2,
-                                            act='relu', ln=True, scale=False,
+                                            act=act, **normalize, scale=False,
                                             name="reduce-dim")
 
             # 1xk conv dilated
             aconv = causal_aconv1d(pre_aconv, size=size, rate=rate,
-                                   act='relu', ln=True, scale=False,
+                                   act=act, **normalize, scale=False,
                                    low_memory=low_memory,
                                    name="conv-dilated")
 
@@ -35,7 +42,7 @@ def parallel_decoder_residual_block(tensor,
                                   name="recover-dim") + tensor
         elif block_type == 'small':
             # activate and normalize input
-            pre_aconv = tensor.sg_bypass(act='relu', ln=True, scale=False,
+            pre_aconv = tensor.sg_bypass(act=act, **normalize, scale=False,
                                          name="activation")
             # 1xk conv dilated
             aconv = causal_aconv1d(pre_aconv, size=size, rate=rate,

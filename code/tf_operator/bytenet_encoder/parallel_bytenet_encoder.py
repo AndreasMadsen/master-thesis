@@ -8,6 +8,7 @@ from code.tf_operator.encoder_residual_block \
 def parallel_bytenet_encoder(x,
                              num_blocks=3, size=5,
                              rate=[1, 2, 4, 8, 16],
+                             act='relu',
                              normalization='bn',
                              block_type='bytenet',
                              name=None, reuse=None):
@@ -20,6 +21,7 @@ def parallel_bytenet_encoder(x,
                 for rate_i in rate:
                     enc = parallel_encoder_residual_block(
                         enc, size=size, rate=rate_i,
+                        act=act,
                         normalization=normalization,
                         block_type=block_type,
                         name=f'encoder-res-block.{i}.{size}.{rate_i}'
