@@ -1,52 +1,52 @@
 \section{Gradient-Based Optimization}
 \label{sec:theory:optimization}
 
-In machine learning one often wish to minimize a loss function that is not easily optimizable. Such a loss function can be misclassification rate or the BLEU score which is commonly used in translation. Because these loss functions are hard to optimize directly a similar loss  function like cross-entropy is often used. Loss functions like cross-entropy are easily differentiable which makes it feasible to optimize them.
+In machine learning one often wish to minimize a loss function that is not easily optimizable. Such a loss function can be misclassification rate or the BLEU score which is commonly used in translation. Because these loss functions are hard to optimize directly a similar loss function like cross-entropy is often used. Loss functions like cross-entropy are easily differentiable which makes it feasible to optimize them.
 
-Modern neural networks typically have a large number of weights, the ByteNet model which will later be used for natural language translation has approximately 27 million parameters. Classical optimization typically use the second-order derivative of the loss function such as the Newton method, or use an approximation like the Quasi-Newton method. However because the second-order derivative matrix (the Hessian), or even just approximations of it, scales quadratically with the number of weights, it is not feasible to use the second-order derivative for optimizing neural networks.
+Modern neural networks typically have a large number of weights, the ByteNet model which will later be used for natural language translation has approximately 27 million parameters. Classical optimization methods typically use the second-order derivative of the loss function such as the Newton method or use an approximation like the Quasi-Newton method. However, because the second-order derivative matrix (the Hessian), or even just approximations of it, scales quadratically with the number of weights, it is not feasible to use the second-order derivative for optimizing neural networks.
 
-Because of the many weights in neural networks optimization, optimization is typically done using only the gradient, this is known as \textit{Gradient-Based Optimization}.
+Because of the many weights in neural networks, optimization is typically done using only the gradient, this is known as \textit{gradient-based optimization}.
 
-The fundamental principal in \textit{Gradient-Based Optimization} is to initialize the parameters, typically this will be done randomly. The parameters are then optimized by iteratively going in the opposite direction of the gradient of the loss function with respect to the parameters.
+The fundamental principal in \textit{gradient-based optimization} is to initialize the parameters, typically this will be done randomly. The parameters are then optimized by iteratively going in the opposite direction of the gradient of the loss function with respect to the parameters.
 
 \begin{equation}
 \mathbf{w}_t = \mathbf{w}_{t-1} - {\boldsymbol\Delta}_t, \quad {\boldsymbol\Delta}_t = \alpha \frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}
 \label{eq:theory:optimization:batch-optimization}
 \end{equation}
 
-Here $\mathbf{w}_t$ is a vector containing all the model weights at iteration $t$, ${\boldsymbol\Delta}_t$ is the step taken, and $\alpha$ is called the \textit{step size} or \textit{learning rate}. The learning rate $\alpha$ should be small enough such that the step doesn't jump over the minima, but also big enough enough such that the model gets optimized within reasonable time.
+Here $\mathbf{w}_t$ is a vector containing all the model weights at iteration $t$, ${\boldsymbol\Delta}_t$ is the step taken, and $\alpha$ is called the \textit{step size} or \textit{learning rate}. The learning rate $\alpha$ should be small enough such that the step doesn't jump over the minima, but also big enough such that the model gets optimized within reasonable time.
 
-It is important to understand that even if the global minima is found, $\mathcal{L}(\mathbf{w}_{t-1})$ is not the true loss function, instead it is the loss function given a training dataset. Hopefully this training dataset is an accurate representation, and the model with the optimized parameters will also work well for future data, but this is not possible to guarantee this. To validate the model, a test dataset that is not a part of the training dataset is used.
+It is important to understand that even if the global minima is found, $\mathcal{L}(\mathbf{w}_{t-1})$ is not the true loss function, it is just the loss function given a training dataset. Hopefully, the training dataset is an accurate representation of reality, but this is not possible to guarantee. To validate the model, a test dataset that is not a part of the training dataset is used.
 
-It is often the case that the minima when using the training dataset is not the minima when using the test dataset. The typical behaviour is that the training loss will continue to decrease because that is what is being optimized, while the test loss will only decrease initially and then increase later. This behaviour is called overfitting, there are numerous ways to prevent this, some of which will be discussed and used throughout this thesis.
+It is often the case that the minima when using the training dataset is not the minima when using the test dataset. The typical behavior, is that the training loss will continue to decrease because that is what is being optimized, while the test loss will only decrease initially and then increase later. This behavior is called overfitting, there are numerous ways to prevent this, some of which will be discussed and used throughout this thesis.
 
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{theory/overfitting.pdf}
-    \caption{Shows the ByteNet model overfitting. The semi-transparent lines is the raw loss, and the non-transparent lines is an exponential moving average.}
+    \caption{Shows the ByteNet model overfitting. The semi-transparent line is the loss, and the non-transparent line is an exponential moving average of the loss.}
 \end{figure}
 
 \subsection{Stochastic Optimization}
 
-While the approach in \eqref{eq:theory:optimization:batch-optimization} can work, it is often not feasible to calculate $\frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}$ on the entire dataset. For a model with a huge number of parameters, it is typically necessary to also have a very large dataset. To solve this problem $\frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}$ is estimated using a random sample of observations in each iteration. This approach is called \textit{minibatch stochastic gradient decent} or just \textit{minibatch learning} \cite{deep-learning}.
+While the approach in \eqref{eq:theory:optimization:batch-optimization} can work, it is often not feasible to calculate $\frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}$ on the entire dataset. For a model with a huge number of parameters, it is typically necessary to also have a very large dataset. To solve this problem $\frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}$ is estimated using a random sample of observations in each iteration. This approach is called \textit{minibatch stochastic gradient descent} or just \textit{minibatch learning} \cite{deep-learning}.
 
 Beyond making the computation feasible this also has some advantages:
 
 \begin{itemize}
-\item Given two datasets one with 256 observations and another with 16 observations. It will take 16 times more time to calculate the gradient using 256 observations. However, because of the square-root law it only decreases the standard error by a factor of 4. It is thus likely to be more economical to perform 16 as many iterations, than being 4 times more accurate.
+\item Consider two datasets one with 256 observations and another with 16 observations. It will take 16 times more time to calculate the gradient using 256 observations than 16 observations. However, because of the square-root law, it only decreases the standard error by a factor of 4. It is thus likely to be more economical to perform 16 as many iterations, than being 4 times more accurate.
 
-\item It is typically easy to parallelism over observations. For a multi-parallel hardware like a GPU it is typically possible to parallelize over many observations without extra cost. For large networks it is common to estimate the gradient using 16 observations.
+\item It is typically easy to parallelize over observations. For a multi-parallel hardware like a GPU it is typically possible to parallelize over many observations without extra cost. For large networks, it is common to estimate the gradient approximately 16 observations.
 
 \item Sampling observations from a dataset adds noise to the gradients. This noise can have a regularizing effect on the training, causing less overfitting \cite{deep-learning}.
 \end{itemize}
 
-The stochastic part of \textit{minibatch stochastic gradient decent} comes from the fact that $\frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}$ is no longer the same in each iteration. Because it it estimated from a new random sample of observations from the dataset, $\frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}$ is essentially a random distribution. The changes the minimization problem from minimizing $\mathcal{L}$ to minimizing the expectation $\mathbb{E}[\mathcal{L}]$. Minibatch learning does not directly tackle this change of problem type, it just causes it. To properly optimize a stochastic loss function more advanced optimization methods are needed.
+The stochastic part of \textit{minibatch stochastic gradient descent} comes from the fact that $\frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}$ is no longer the same in each iteration. Because the gradient is estimated from a new random sample of observations from the dataset, $\frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}$ is essentially samples from a random distribution. The changes the minimization problem from minimizing $\mathcal{L}$ to minimizing the expectation $\mathbb{E}[\mathcal{L}]$. Minibatch learning does not directly tackle this change of problem type, it just causes it. To correctly optimize a stochastic loss function more advanced optimization methods are needed.
 
 \subsection{Adam Optimization}
 
-Adam optimization is a gradient-based optimization method for optimizing a stochastic loss function, it has been shown to work theoretically and empirically. It even works theoretically and empirically on a stochastic loss function with changing distribution. Changing distribution is something that is quite common when changing the parameters of the model, thus this is an important property \cite{adam-optimization}.
+Adam optimization is a gradient-based optimization method for optimizing a stochastic loss function, it has been shown to work well both theoretically and empirically. It even works on a stochastic loss function with changing distribution. Changing distribution is something that is quite common when changing the parameters of the model, thus this is an important property \cite{adam-optimization}.
 
-The central idea of Adam optimization is to scale the step-size by an signal-to-noise estimate. Such that when the signal is strong a large step is taken, when it is weak a small step is taken. This is accomplished by having a running estimate of the first and second moment.
+The central idea of Adam optimization is to scale the step-size by a signal-to-noise estimate. Such that when the signal is strong a large step is taken and when it is weak a small step is taken. This is accomplished by having a running estimate of the first and second moment.
 \begin{equation}
 \begin{aligned}
 \mathbf{g}_t &= \frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}} \\
@@ -55,9 +55,9 @@ The central idea of Adam optimization is to scale the step-size by an signal-to-
 \end{aligned}
 \end{equation}
 
-The ``signal-to-noise'' ratio as the original paper \cite{adam-optimization} calls it, is then calculated as $\frac{\mathbf{m}_t}{\sqrt{\mathbf{v}_t}}$. Calling  $\frac{\mathbf{m}_t}{\sqrt{\mathbf{v}_t}}$ a ``signal-to-noise'' ratio is a slight abuse of terminology, because is not a variance estimate but instead the uncentered variance estimate, but the effect is similar.
+The ``signal-to-noise'' ratio as the original paper \cite{adam-optimization} calls it, is then calculated as $\frac{\mathbf{m}_t}{\sqrt{\mathbf{v}_t}}$. Calling  $\frac{\mathbf{m}_t}{\sqrt{\mathbf{v}_t}}$ a ``signal-to-noise'' ratio is a slight abuse of terminology, because $\mathbf{v}_t$ is not exactly a variance estimate, but the effect is similar.
 
-A problem that remains is how to initialize $\mathbf{m}_{0}$ and $\mathbf{v}_{0}$. The solution is to initialize them as zero. Since zero is what the gradient will converge to that is not unreasonable, however to improve the estimates they are re-scaled to be unbiased.
+A problem that remains is how to initialize $\mathbf{m}_{0}$ and $\mathbf{v}_{0}$. The solution is to initialize them as zero. Since zero is what the gradient will converge to, this is not unreasonable, however to improve the estimates they are rescaled to be unbiased.
 
 Consider the second-order moment at iteration $t$, this can be directly expressed as:
 \begin{equation}
@@ -77,7 +77,7 @@ To make the $\mathbf{v}_t$ estimate unbiased the relation between $\mathbb{E}[\m
 Thus to unbias the $\mathbf{v}_t$ estimate it is scaled by $\frac{1}{1 - \beta_2^t}$, similarly $\mathbf{m}_t$ re scaled by $\frac{1}{1 - \beta_1^t}$:
 \begin{equation}
 \begin{aligned}
-\hat{\mathbf{m}}_t &= \frac{1}{1 - \beta_1^t} \mathbf{m}_t, \quad \hat{\mathbf{v}}_t &= \frac{1}{1 - \beta_2^t} \mathbf{v}_t
+\hat{\mathbf{m}}_t = \frac{1}{1 - \beta_1^t} \mathbf{m}_t, \quad \hat{\mathbf{v}}_t = \frac{1}{1 - \beta_2^t} \mathbf{v}_t
 \end{aligned}
 \label{eq:theory:optimization:adam-unbias}
 \end{equation}
@@ -119,7 +119,7 @@ Computationally this can be done slightly more efficient by combining \eqref{eq:
 
 \subsection{He-Uniform Initialization}
 
-An open question that has not been answered is how to initialize the weights $\mathbf{w}_0$. This turns out to very much depend on the architecture, the ByteNet model that will be used later is a convolutional model with ReLU activation. For this kind of architecture \textit{He initialization} has been shown to perform well \cite{he-initialization}. 
+An open question that has not been answered is how to initialize the weights $\mathbf{w}_0$. This turns out to very much depend on the architecture, the ByteNet model that will be used later is a convolutional model with ReLU activation. For this kind of architecture, \textit{He initialization} has been shown to perform well \cite{he-initialization}. 
 
 Good initialization is required to prevent either exploding or vanishing gradients. Consider both the forward and backward pass for a feed forward neural network.
 \begin{equation}
@@ -129,9 +129,9 @@ z_{h_\ell} &= \sum_{h_{\ell-1} = 1}^{H_{\ell-1}} w_{h_{\ell-1}, h_{\ell}} a_{h_{
 \end{aligned}
 \end{equation}
 
-In both cases the output of layer $\ell$ ($z_{h_\ell}$ and $\delta_{h_\ell}$) depends on the output of the previous layer ($z_{h_{\ell-1}}$ and $\delta_{h_{\ell-1}}$). If both $z_{h_\ell}$ and $\delta_{h_\ell}$ does not maintain the same scale throughout all the layers the values will diverge either to very small (vanishing) or very big values (exploding).
+In both cases, the output of layer $\ell$ ($z_{h_\ell}$ and $\delta_{h_\ell}$) depends on the output of the previous or next layer ($z_{h_{\ell-1}}$ and $\delta_{h_{\ell-1}}$). If both $z_{h_\ell}$ and $\delta_{h_\ell}$ does not maintain the same scale throughout all the layers, the values will diverge either to very small (vanishing) or very big values (exploding).
 
-Since the values of input is unknown and the weights are to be initialized randomly, one needs to analyze $z_{h_\ell}$ and $\delta_{h_\ell}$ as stochastic variables. Keeping the expectation at a constant scale for all layers is not a huge problem, the biases $b_{h_\ell}$ are initialized to zero (not random), and the weights $w_{h_{\ell-1}, h_\ell}$ should have zero mean and be independently sampled. Likewise it is for the analysis assumed that the inputs $a_{h_0}$ also are independent, but they do not necessarily have zero mean.
+Since the values of input are unknown and the weights are to be initialized randomly, one needs to analyze $z_{h_\ell}$ and $\delta_{h_\ell}$ as stochastic variables. Keeping the expectation at a constant scale for all layers is not a huge problem, the biases $b_{h_\ell}$ are initialized to zero (not random), and the weights $w_{h_{\ell-1}, h_\ell}$ should have zero mean and be independently sampled. Likewise, it is for the analysis assumed that the inputs $a_{h_0}$ also are independent, but they do not necessarily have zero mean.
 \begin{equation}
 \begin{aligned}
 \mathbb{E}[z_{h_\ell}]
@@ -142,9 +142,9 @@ Since the values of input is unknown and the weights are to be initialized rando
 \end{aligned}
 \end{equation}
 
-It turns out that to get a good initialization it is also necessary to keep a constant variance for all layers \cite{glorot-initialization, he-initialization}. To do this correctly it is necessary to know the activation function. An often used approach is the Glorot initialization \cite{glorot-initialization}, however this assumes the activation function is linear around $0$ which is not the case for ReLU ($max(0, z_{h_{\ell}})$. He initialization has later been derived which works specifically for the ReLU activation function \cite{he-initialization}.
+It turns out that to get a good initialization it is also necessary to keep a constant variance for all layers \cite{glorot-initialization, he-initialization}. To do this correctly it is necessary to know the activation function. An often used approach is the Glorot initialization \cite{glorot-initialization}, however this assumes the activation function is linear around $z_{h_\ell} = 0$ which is not the case for ReLU ($max(0, z_{h_{\ell}})$. He initialization has later been derived specifically for the ReLU activation function \cite{he-initialization}.
 
-First the variance for the forward pass is calculated:
+The variance for the forward pass is calculated:
 \begin{equation}
 \mathrm{Var}[z_{h_\ell}] = H_{\ell-1} \mathrm{Var}[w_{h_{\ell-1}, h_{\ell}} a_{h_{\ell-1}}]
 \end{equation}
@@ -160,7 +160,7 @@ Because $w_{h_{\ell-1}, h_{\ell}}$ has zero mean this can be rewritten as:
 \end{aligned}
 \end{equation}
 
-If additionally $w_{h_{\ell-1}, h_{\ell}}$ is chosen to be symmetric around zero, then half of the $z_{h_\ell}$ values will be truncated, thus the variance is also half. This means that $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_\ell}]$.
+If additionally $w_{h_{\ell-1}, h_{\ell}}$ is chosen to be symmetric around zero, then half of the $z_{h_\ell}$ values will be truncated in the ReLU activation, thus the variance is halfed. This means that $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_\ell}]$.
 \begin{equation}
 \begin{aligned}
 \mathrm{Var}[a_{h_\ell}] &= \mathrm{Var}[\theta(z_{h_\ell})] = \frac{1}{2}\mathrm{Var}[z_{h_\ell}] \\
@@ -168,7 +168,7 @@ If additionally $w_{h_{\ell-1}, h_{\ell}}$ is chosen to be symmetric around zero
 \end{aligned}
 \end{equation}
 
-Applying $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_\ell}]$ and $\mathrm{Var}[z_{h_\ell}]$ \todo{How can this be true?} can be reformulated as:
+Applying $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_\ell}]$ to $\mathrm{Var}[z_{h_\ell}]$ \todo{How can this be true?} yields:
 \begin{equation}
 \begin{aligned}
 \mathrm{Var}[z_{h_\ell}] &= H_{\ell-1} \mathrm{Var}[w_{h_{\ell-1}, h_{\ell}}] \frac{1}{2} \mathrm{Var}[z_{h_{\ell-1}}] \\
@@ -184,7 +184,7 @@ From \eqref{eq:theory:optimize:he-all-var} it seen that to satisfy a constant va
 
 The same sufficient condition is found by analyzing the backward pass \cite{he-initialization}.
 
-As long as the sampling distribution has zero mean, is symmetric, is sampled independently, and has variance $\frac{2}{H_{\ell-1}}$, there shouldn't be any convergence issues. Two normal choices are the normal distribution, and the uniform distribution. An issue with using the normal distribution is that there is a small risk that extreme values will be sampled, which can cause issues. A truncated normal distribution could be used to solve this issue, but a much simpler solution is to just use a uniform distribution.
+Thus long as the sampling distribution has zero mean, is symmetric, is sampled independently, and has variance $\frac{2}{H_{\ell-1}}$, there shouldn't be any convergence issues. Two normal choices are the normal distribution and the uniform distribution. An issue with using the normal distribution is that there is a small risk that extreme values will be sampled, which can cause issues. A truncated normal distribution could be used to solve this issue, but a much simpler solution is to just use a uniform distribution.
 
 A uniform distribution from $-r$ to $r$ has variance:
 \begin{equation}
@@ -195,4 +195,3 @@ Thus the uniform distribution parameter should be:
 r = \sqrt{\frac{6}{H_{\ell-1}}}
 \end{equation}
 
-\todo[inline]{Consider a short discussion on embedder initialization.}
