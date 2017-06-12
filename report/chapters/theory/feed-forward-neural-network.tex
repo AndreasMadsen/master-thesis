@@ -2,7 +2,7 @@
 \section{Feed forward Neural Network}
 \label{sec:theory:ffnn}
 
-Neural Machine Translation is based on the neural network framework. Modern networks are extremely complex and use rather advanced operations such as convolution, others use complex combinations of simpler operations such as the LSTM block \cite{deep-learning}. To give a short introduction to this framework the feed forward neural network (FFNN) is presented. This is the simplest type of network in the neural network family. As such it doesn't have much use for translation, but the more advanced neural networks can be seen as extensions of a feed forward neural network.
+Neural machine translation is based on the neural network framework. Modern networks are extremely complex and use rather advanced operations such as convolution, others use complex combinations of simpler operations such as the LSTM block \cite{deep-learning}. To give a short introduction to this framework the feed forward neural network (FFNN) is presented. This is the simplest type of network in the neural network family. As such it doesn't have much use for translation, but the more advanced neural networks can be seen as extensions of a feed forward neural network.
 
 \subsection{The neuron}
 
@@ -26,15 +26,15 @@ A feed forward neural network is in its simplest form a \textit{multivariate non
 \begin{figure}[h]
 	\centering
 	\includegraphics[scale=1]{theory/ffnn-network.pdf}
-	\caption{Visual representation of a neural network with two hidden layers. Some lines are less visible, this is just a visual aid because the many connections can be difficult to look at.}
+	\caption{Visual representation of a neural network with two hidden layers. Some lines are less visible, this is just a visual aid because the many connections can otherwise be difficult to look at.}
 	\label{fig:theory:ffnn:network}
 \end{figure}
 
-The neural network in Figure \ref{fig:theory:ffnn:network}, have one input layer $x_i, i \in [1, I]$ and one output layer $y_k, k \in [1, K]$. This is the same for any neural network, what varies is the type of network (here a feed forward neural network) and the number of hidden layers (here two). The hidden layers are typically the layers that contain the non-linear transformation functions. If there are no hidden layers, the neural network is just a multi-class logistic regressor\cite{bishop}.
+The neural network in Figure \ref{fig:theory:ffnn:network}, have one input layer $x_i, i \in [1, I]$ and one output layer $y_k, k \in [1, K]$. This is the same for any neural network, what varies is the type of network (here a feed forward neural network) and the number of hidden layers (here two). The hidden layers are typically the layers that contain the non-linear transformation functions. If there are no hidden layers, the neural network is just a multi-class logistic regressor \cite{bishop}.
 
 Because there is more than one neuron in each layer and many layers, the neuron index and layer index is denoted by the subscript. For example, a neuron output is denoted by $a_{h_{\ell}}$ for $h_{\ell} \in [1, H_{\ell}]$, where $h_{\ell}$ is the neuron index and $H_\ell$ is the number of neurons in layer $\ell$.
 
-While diagrams like in figure \ref{fig:theory:ffnn:network} are useful for feed forward neural networks, they becomes too verbose for more complex networks. Instead each layer is just represented by a single block like in figure \ref{fig:theory:ffnn:network-block}.
+While diagrams like in figure \ref{fig:theory:ffnn:network} are useful for feed forward neural networks, they becomes too verbose for more complex networks. Instead the visual representation is simplified such each layer is represented by a single block like in figure \ref{fig:theory:ffnn:network-block}.
 
 \begin{figure}[h]
 	\centering
@@ -69,7 +69,7 @@ The $z_k$ values are feed to the softmax function are often called \textit{logit
 
 \subsection{Loss function}
 
-Optimization of the parameters $w_{i,j}$ and $b_{j}$ requires a definition of a loss function. For classification it makes sense to maximize the joint probability of observing all the observations:
+Optimization of the parameters $w_{h_{\ell-1}, h_{\ell}}$ and $b_{h_{\ell}}$ requires a definition of a loss function. For classification it makes sense to maximize the joint probability of observing all the observations:
 \begin{equation}
 P(\mathbf{t} | \mathbf{x}, \mathbf{w}, \mathbf{b}) = \prod_{n=1}^N P(\mathbf{t}_n | \mathbf{x}_n, \mathbf{w}, \mathbf{b})  = \prod_{n=1}^N \prod_{k=1}^K P(C_{n, k} | \mathbf{x}_n, \mathbf{w}, \mathbf{b})^{t_{n, k}}
 \end{equation}
@@ -88,11 +88,13 @@ Because of the linearity in \eqref{eq:theory:ffnn:long-loss}, it makes sense to 
 \label{eq:theory:ffnn:loss}
 \end{equation}
 
-The formulation in \eqref{eq:theory:ffnn:loss} is particularly useful as it allows for some numerical stability tricks, see Appendix \ref{appendix:numerical-stability:cross-entropy}
+The formulation in \eqref{eq:theory:ffnn:loss} is called the \textit{cross-entropy loss function}, it is particularly useful as it allows for some numerical stability tricks, see Appendix \ref{appendix:numerical-stability:log-softmax}.
+
+In cases where $t_k$ is an indicator vector, \eqref{eq:theory:ffnn:loss} can be computationally simplified to only calculate the term where $t_k = 1$. 
 
 \subsection{Backward pass}
 
-For the neural network, there is no closed form solution to optimizing the loss function. Instead, gradient-based optimization algorithms are used. Gradient-based optimization uses the derivatives of the loss function with respect to the parameters to iteratively optimize the parameters. This approach will be discussed in Section \ref{sec:theory:optimization}, for now the important part is to calculate the derivatives:
+For neural networks, there is no closed form solution to optimizing the loss function. Instead, gradient-based optimization algorithms are used. Gradient-based optimization uses the derivatives of the loss function with respect to the parameters to iteratively optimize the parameters. This approach will be discussed in Section \ref{sec:theory:optimization}, for now the important part is to calculate the derivatives:
 \begin{equation}
 \begin{aligned}
 \frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1}, h_\ell}} \wedge \frac{\partial \mathcal{L}}{\partial b_{h_\ell}}, && \forall \ell \in [1, L + 1]
@@ -102,7 +104,7 @@ For the neural network, there is no closed form solution to optimizing the loss 
 
 For calculating the derivatives the \textit{error backpropagation} algorithm is used, this algorithm results in what is called the \textit{backward pass}.
 
-The main trick in \textit{error backpropagation} is to define the partial derivative $\delta_{h_\ell}$, this is then used for bookkeeping and is what makes it feasible to calculate the derivatives.
+The main trick in \textit{error backpropagation} is to define the partial derivative $\delta_{h_\ell}$, this is used for bookkeeping and is what makes it feasible to calculate the derivatives.
 \begin{equation}
 \delta_{h_\ell} \defeq \frac{\partial \mathcal{L}}{\partial z_{h_\ell}}
 \end{equation}
@@ -132,4 +134,4 @@ The last delta ($\delta_{h_{L+1}}$) is different but can still be calculated by 
 \label{eq:theory:ffnn:bprop-delta-last}
 \end{equation}
 
-Using \eqref{eq:theory:ffnn:bprop-delta-last} and \eqref{eq:theory:ffnn:bprop} all $\delta_{h_\ell}$ for $\ell \in [1, L+1]$ can be calculated for a feed forward neural network with $L$ hidden layers. Note in particular how \eqref{eq:theory:ffnn:bprop-delta-last} is an error measure and this value is propagated back through the network by the $\delta_{h_\ell}$ equations in \eqref{eq:theory:ffnn:bprop}. This is why the method is called \textit{error backpropagation}.
+Using \eqref{eq:theory:ffnn:bprop-delta-last} and \eqref{eq:theory:ffnn:bprop} all $\delta_{h_\ell}$ for $\ell \in [1, L+1]$ can be calculated for a feed forward neural network with $L$ hidden layers. Note in particular how \eqref{eq:theory:ffnn:bprop-delta-last} is an error measure and how this value is propagated back through the network by the $\delta_{h_\ell}$ equations in \eqref{eq:theory:ffnn:bprop}. This is why the method is called \textit{error backpropagation}.
