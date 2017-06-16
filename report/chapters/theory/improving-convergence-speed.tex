@@ -1,7 +1,7 @@
 \section{Improving Convergence Speed}
 \label{sec:convergence}
 
-A good optimization algorithm is essential for fitting a deep neural network, however the convergence rate can often be improved by modifying the network architecture itself such that the cost function is easier to optimize. These modifications do not radically alter the network, but rather modifies existing layers. The modifications can become the identity function through parameter optimization and thus doesn't change the theoretical capabilities of the neural network.
+A good optimization algorithm is essential for fitting a deep neural network. However, the convergence rate can often be improved by modifying the network architecture itself, such that the cost function is easier to optimize. These modifications do not radically alter the network, but rather modifies existing layers. The modifications can become the identity function through parameter optimization, thus they don't change the theoretical capabilities of the neural network.
 
 \subsection{Batch Normalization}
 Traditionally in feed forward neural networks, it has been the norm to standardize the input to have zero mean and unit variance.
@@ -9,13 +9,13 @@ Traditionally in feed forward neural networks, it has been the norm to standardi
 \hat{x}_i = \frac{x_i - \mathbb{E}[x_i]}{\sqrt{\textsc{Var}[x_i] + \epsilon}}, \quad \forall i \in [1, I]
 \end{equation}
 
-This standardization places the input to the sigmoid activation function in its linear domain ($\sigma(\epsilon) \approx \epsilon, \forall \epsilon \in [-1, 1]$), which is a reasonable starting point for the optimization \todo{[LeCun et al., 1998b; Wiesler \& Ney, 2011]}. Batch normalization extends this idea to standardize before all activation functions in a deep neural network. This has positive consequences beyond limiting the sigmoid activation to its linear domain \cite{batch-normalization}.
+This standardization places the input to the sigmoid activation function in its linear domain ($\sigma(\epsilon) \approx \epsilon, \forall \epsilon \in [-1, 1]$), which is a reasonable starting point for the optimization. Batch normalization extends this idea, such standardizing is done before all activation functions in the neural network. This has positive consequences beyond limiting the sigmoid activation to its linear domain \cite{batch-normalization}.
 
 Consider a neural network with just one hidden layer:
 \begin{equation}
-\mathcal{L}(\mathbf{t}, \mathbf{W}_2 \theta(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1) + \mathbf{b}_2)
+Z_{h_L} = Z_{h_2} = \sum_{h_1 = 1}^{H_1} w_{h_1, h_2} \theta\left(\sum_{h_0 = 1}^{H_0} w_{h_0, h_1} x_{h_0} + b_{h_1}\right) + b_{h_2}
 \end{equation}
-When optimizing the loss function, the parameters $\mathbf{W}_1, \mathbf{W}_2, \mathbf{b}_1$ and $\mathbf{b}_2$ are all optimized simultaneously. Furthermore, the optimization of $\mathbf{W}_2, \mathbf{b}_2$ does directly depend on $\theta(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1)$ though the error term. This becomes an issue when the distribution of $\theta(\mathbf{W}_1 \mathbf{x} + \mathbf{b}_1)$ changes because the updated $\mathbf{W}_2$ and $\mathbf{b}_2$ assumes the original distribution. This change of the distribution of the internal activations is called an \textit{internal covariate shift}. \cite{batch-normalization}.
+When optimizing the loss function, the parameters $w_{h_1, h_2}, w_{h_0, h_1}, b_{h_2}$, and $b_{h_1}$ are all optimized simultaneously. Furthermore, the optimization of $w_{h_1, h_2}, w_{h_0, h_1}$ does directly depend on $\theta(z_{h_1})$ though the error term. This becomes an issue when the distribution of $\theta(z_{h_1})$ changes, because the updated $w_{h_1, h_2}$, and $w_{h_0, h_1}$ assumes the original distribution. This change of the distribution of the internal activations is called an \textit{internal covariate shift}. \cite{batch-normalization}.
 
 The \textit{internal covariate shift} issue can be illustrated by considering a scalar $a = w x + b \sim \mathcal{N}(b, w)$, as it would appear in a very simple neural network, the sigmoid activation function is then applied on $\mathcal{N}(b, w)$ by using the \textit{change of variable theorem}. Using this one can change $w$ and $b$ and observe how the sigmoid activation distribution changes (Figure \ref{fig:convergence:batch-norm:activation-distribution}).
 
@@ -26,8 +26,10 @@ The \textit{internal covariate shift} issue can be illustrated by considering a 
 	\label{fig:convergence:batch-norm:activation-distribution}
 \end{figure}
 
+While this issue isn't as theoretically significant for other activation functions, such as the ReLU activation function, it does often still have pratical effects, particularly for deep neural networks.
+
 \subsubsection{A solution}
-The \textit{internal covariate shift} issue can in practice be solved by using a small learning rate. However, this is not an optimal solution as it prolongs the optimization. Batch normalization is an alternative solution, that solves the issue by standardizing the input to the activation function. To truly standardize this input the covariance matrix, as well as its inverse square root, should be calculated. These calculations are very expensive, thus batch normalization makes a practical compromise by only standardizing using the variance.
+The \textit{internal covariate shift} issue can in practice be solved by using a small learning rate. However, this is not an optimal solution as it prolongs the optimization. Batch normalization is an alternative solution, that solves the issue by standardizing the input to the activation function. To truly standardize the input, the covariance matrix as well as its inverse square root, should be calculated. These calculations are very expensive, thus batch normalization makes a practical compromise by only standardizing using the variance.
 \begin{equation}
 \hat{z}_{h_\ell} = \frac{z_{h_\ell} - \mathbb{E}[z_{h_\ell}]}{\sqrt{\textsc{Var}[z_{h_\ell}] + \epsilon}}, a_{h_\ell} = \theta(\hat{z}_{h_\ell})
 \end{equation}
@@ -37,14 +39,13 @@ The expectation ($\mathbb{E}[z_{h_\ell}]$) and variance ($\textsc{Var}[z_{h_\ell
 z_{h_\ell} = \sum_{h_{\ell-1}}^{H_{\ell-1}} w_{h_{\ell-1}, h_\ell} a_{h_{\ell-1}} 
 \end{equation}
 
-
 Finally, to allow batch normalization to become the identity function, two more parameters ($\gamma, \beta$) are added to the optimization problem:
 \begin{equation}
 \hat{z}_{h_\ell} = \gamma_{h_\ell} \frac{z_{h_\ell} - \mathbb{E}[z_{h_\ell}]}{\sqrt{\textsc{Var}[z_{h_\ell}] + \epsilon}} + \beta_{h_\ell}, a_{h_\ell} = \theta(\hat{z}_{h_\ell})
 \label{eq:theory:convergence:batch-norm}
 \end{equation}
 
-The backward pass for learning ($w, \gamma, \beta$) is rather complicated, but computationally completely feasible as long as the mini-batch size is small. See Appendix \ref{appendix:backward-pass:batch-norm} for the backward pass.
+The backward pass for learning ($w, \gamma, \beta$) is rather complicated, but computationally very feasible as long as the mini-batch size is small. See Appendix \ref{appendix:backward-pass:batch-norm} for the backward pass.
 
 In the special case that $\theta(\cdot)$ is multiplicative linear with respect to a scalar (i.e. $\theta(\alpha \hat{z}_{h_\ell}) = \alpha \theta(\hat{z}_{h_\ell})$) and the following layer isn't sensitive to a multiplication factor, then $\gamma_{h_\ell}$ can be removed from the optimization. A common case is where $\theta(\cdot)$ is the ReLU function, in this case:
 \begin{equation}
@@ -54,13 +55,13 @@ In the special case that $\theta(\cdot)$ is multiplicative linear with respect t
 \end{aligned}
 \end{equation}
 
-In the next layer $\alpha_{h_\ell}$ is then multiplied by some other weight that $\gamma_{h_\ell}$ can be merged into. This simplification can often be applied and can be quite valuable as it removed some computations and further simplifies the loss curvature.
+In the next layer, $\alpha_{h_\ell}$ is then multiplied by some other weights that $\gamma_{h_\ell}$ can be merged into. This simplification can often be applied. It can be quite valuable as it removed some computations and further simplifies the loss curvature.
 
 \subsubsection{Inference}
 
 With an established backward pass, the network can easily be trained. However, there is still an open question about how inference should be done.
 
-The inference should be deterministic once training is done, thus the ideal solution would be to use the estimated expectation and variance from the entire training dataset in \eqref{eq:theory:convergence:batch-norm}. However, because this calculation can be rather expensive a more practical solution is to use a moving average. Let's denote $\sigma^2_{\mathcal{B}_i}$ and $\mu_{\mathcal{B}_i}$ as the variance and mean estimate after mini-batch $i$. Then in addition to the optimization of ($w, \gamma, \beta$), $\sigma^2_{\mathcal{B}_i}$ and $\mu_{\mathcal{B}_i}$ will also update during training.
+The inference should be deterministic once training is done, thus the ideal solution would be to use the estimated expectation and variance from the entire training dataset. However, because this calculation can be rather expensive a more practical solution is to use a moving average. Let's denote $\sigma^2_{\mathcal{B}_i}$ and $\mu_{\mathcal{B}_i}$ as the variance and mean estimate after mini-batch $i$. Then in addition to the optimization of the parameters $w, \gamma$, and $\beta$, the variance $\sigma^2_{\mathcal{B}_i}$, and mean $\mu_{\mathcal{B}_i}$ will also be updated during training.
 \begin{equation}
 \begin{aligned}
 \sigma^2_{\mathcal{B}_i} &= \lambda \sigma^2_{\mathcal{B}_{i-1}} + (1 - \lambda) \textsc{Var}[z_{h_\ell}] \\
@@ -68,7 +69,7 @@ The inference should be deterministic once training is done, thus the ideal solu
 \end{aligned}
 \end{equation}
 
-At inference $\hat{z}_{h_\ell}$ are then calculated using $\sigma^2_{\mathcal{B}_i}$ and $\mu_{\mathcal{B}_i}$.
+At inference, $\hat{z}_{h_\ell}$ are then calculated using $\sigma^2_{\mathcal{B}_i}$ and $\mu_{\mathcal{B}_i}$.
 
 \begin{equation}
 \hat{z}_{h_\ell} = \gamma_{h_\ell} \frac{z_{h_\ell} - \mu_{\mathcal{B}_i}}{\sqrt{\sigma^2_{\mathcal{B}_i} + \epsilon}} + \beta_{h_\ell}, a_{h_\ell} = \theta(\hat{z}_{h_\ell})
@@ -76,15 +77,12 @@ At inference $\hat{z}_{h_\ell}$ are then calculated using $\sigma^2_{\mathcal{B}
 
 \subsubsection{Weight sharing network}
 
-Because it is the weight changes that causes an \textit{internal covariate shift}, the normalization should happen over all $z_{h_\ell}$ values that use these weights. Thus in RNN, the normalization should also be done over time, and in CNN the normalization should also happen over the ``image''. This works well for actual images, however in RNN and CNN that describes a causal relation, the mean and variance at any time step (e.g. $t=0$) will contain information from all time steps, which breaks the causality of the network. This issue in practice be solved by not normalizing over time, however, if the sequences aren't all of the same lengths then the mean and variance estimation for the last time step will be extremely poor.
+Because it is the weight changes that causes an \textit{internal covariate shift}, the normalization should happen over all $z_{h_\ell}$ values that use these weights. Thus in RNN, the normalization should also be done over time, and in CNN the normalization should also happen over the ``image''. This works well for actual images. However, in RNN and CNN that describes a causal relation, the mean and variance at any time step will contain information from multiple time steps, which breaks the causality of the network. This issue is in practice solved by not normalizing over time, however, if the sequences aren't all of the same lengths then the mean and variance estimates for the last time step will be extremely poor.
 
+\clearpage
 \subsection{Layer Normalization}
 
-Layer normalization attempts to solve the issues that exist when batch normalization is applied to causal weight sharing networks. It does this by not normalization over the batch, but normalizing over the $\{z_{h_\ell}\}_{h_\ell=1}^{H_\ell}$ vector. \cite{layer-normalization}
-
-\begin{displayquote}
-Notice that changes in the output of one layer will tend to cause highly correlated changes in the summed inputs to the next layer, especially with ReLU units whose outputs can change by a lot. This suggests the “covariate shift” problem can be reduced by fixing the mean and the variance of the summed inputs within each layer. \todo{understand this}
-\end{displayquote}
+Layer normalization attempts to solve the issues that exist when batch normalization is applied to causal weight sharing networks. It does this by not normalizing over the batch, but normalizing over the $\{z_{h_\ell}\}_{h_\ell=1}^{H_\ell}$ vector. The idea is that the output in one layer will often cause highly correlated changes in the summed inputs used in the next layer. Fixing the mean and the variance of the summed inputs should reduce this trend \cite{layer-normalization}.
 
 Normalizing over the summed inputs $z_{h_\ell}$ results in the following forward pass:
 \begin{equationbox}[H]
@@ -110,11 +108,11 @@ Note that the bias $b_{h_\ell}$ is excluded here for a different reason than wha
 \begin{equation*}
 \hat{z}_{h_\ell} = \gamma_{h_\ell} \frac{z_{h_\ell} - \mu_{\ell}}{\sqrt{\sigma_{\ell}^2 + \epsilon}} + b_{h_\ell} + \beta_{h_\ell},
 \end{equation*}
-but $ b_{h_\ell}$ then becomes redundant because of $\beta_{h_\ell}$.
+but $b_{h_\ell}$ is redundant because of $\beta_{h_\ell}$.
 
 The backward pass for learning ($w, \gamma, \beta$) is like in batch normalization a bit complicated, see Appendix \ref{appendix:backward-pass:batch-norm} for the backward pass.
 
-Similar to batch normalization the $\hat{z}_{h_\ell}$ calculation can be simplified if $\theta(\cdot)$ is multiplicative linear (i.e. $\theta(\alpha \hat{z}_{h_\ell}) = \alpha \theta(\hat{z}_{h_\ell})$) and $\gamma_{h_\ell}$ can be merged into a weight in the following layer.
+Similar to batch normalization, the $\hat{z}_{h_\ell}$ calculation can be simplified if $\theta(\cdot)$ is multiplicative linear (i.e. $\theta(\alpha \hat{z}_{h_\ell}) = \alpha \theta(\hat{z}_{h_\ell})$) and if $\gamma_{h_\ell}$ can be merged into weights in the following layer.
 
 \subsubsection{Properties}
 
@@ -127,21 +125,22 @@ Batch normalization and layer normalization have somewhat similar properties, as
 	Batch norm & Invariant & No & Invariant & Invariant \\
 	Layer norm & Invariant & Invariant & Invariant & No \\
 \end{tabular}
-\caption{Invariance properties when using batch or layer normalization. Also, note that batch normalization is invariant to \textit{Weight vector re-scaling} and layer normalization is invariant to \textit{Single training case re-scaling} \cite{layer-normalization}.}
+\caption{Invariance properties when using batch or layer normalization. Also, note that batch normalization is invariant to \textit{weight vector re-scaling} and layer normalization is invariant to \textit{single training case re-scaling} \cite{layer-normalization}.}
 \label{table:convergence:layer-norm:properties}
 \end{table}
 
-Another difference between batch and layer normalization is that in layer normalization it is not necessary to maintain a moving average over $\mu$ and $\sigma^2$ for inference, as these are estimated per observation.
+Another difference between batch and layer normalization, is that in layer normalization it is not necessary to maintain a moving average over $\mu$ and $\sigma^2$ for inference, as these are estimated per observation.
 
 \subsubsection{Experimental Results}
 
-In the original paper \cite{layer-normalization} they showed that layer normalization outperforms batch normalization in RNNs. batch normalization is however the preferred choice in CNN, though layer normalization still performs better than the non-normalized baseline. It is theoretically unclear why layer normalization performs poorly on CNNs, but a possible explanation is that there is an underlying assumption that the hidden units $a_{h_\ell}$ make similar contributions, in CNN the hidden units typically represents very different things (e.g. ear, mouth, hair) thus some will be very inactive while others will be very active.
+In the original paper \cite{layer-normalization} they showed that layer normalization outperforms batch normalization in RNNs. Batch normalization is however the preferred choice in CNN, though layer normalization still performs better than the non-normalized baseline. It is theoretically unclear why layer normalization performs poorly on CNNs, but a possible explanation is that there is an underlying assumption that the hidden units $a_{h_\ell}$ make similar contributions, in CNN the hidden units typically represents very different things (e.g. ear, mouth, hair) thus some will be very inactive while others will be very active \cite{layer-normalization}.
 
+\clearpage
 \subsection{Residual Learning}
 
-The most sophisticated neural networks are typically rather deep networks with many layers, thus it is easy to think that ``deeper is better''. However it turns that this is not necessarily true. First of all, there is a vanishing/exploding gradient problem, but recently with good normalization and weight initialization, this is becoming less significant. It turns out that adding layers to a networks that already works well can degrade performance. This is not just a matter of overfitting as also the training error degrades \cite{residual-learning}.
+The most sophisticated neural networks are typically rather deep networks with many layers, thus it is easy to think that ``deeper is better''. However it turns out that this is not necessarily true. First of all, there is a vanishing/exploding gradient problem, but recently with good normalization and weight initialization, this is becoming less significant. It turns out that adding layers to networks that already works well can degrade performance. This is not just a matter of overfitting, as also the training error degrades \cite{residual-learning}.
 
-In theory, if there are too many layers the network should optimize such that some of the layers simply becomes the identity function. However, even modern day optimizes are not able to find such a solution. Residual learning solves this problem, by changing the network architecture such that the optimization problem is easier to solve. If the desired function is denoted $\mathcal{H}(\mathbf{x})$, residual learning solves the issue by changing optimization problem such it should find $\mathcal{F}(\mathbf{x}) \defeq \mathcal{H}(\mathbf{x}) - \mathbf{x}$ instead. This is done by transforming the layer to be $\mathcal{F}(\mathbf{x}) + \mathbf{x}$.
+In theory, if there are too many layers the network should optimize such that some of the layers simply becomes the identity function. However, even modern day gradient-based optimizes are typically not able to find such a solution. Residual learning solves this problem, by changing the network architecture such that the identity solution is easier to find. If the desired function is denoted $\mathcal{H}(\mathbf{x})$, residual learning solves the issue by changing optimization problem such it should find $\mathcal{F}(\mathbf{x}) \defeq \mathcal{H}(\mathbf{x}) - \mathbf{x}$ instead. This is done by transforming the layer to be $\mathcal{F}(\mathbf{x}) + \mathbf{x}$.
 
 \begin{figure}[H]
     \centering
@@ -159,6 +158,6 @@ In theory, if there are too many layers the network should optimize such that so
     \caption{Comparison of traditional and residual Dense-ReLU layer}
 \end{figure}
 
-The idea is that getting $\mathcal{F}(\mathbf{x}) = 0$ is a lot easier to solve than $\mathcal{H}(\mathbf{x}) = \mathbf{x}$. For both the ReLU and sigmoid transformation, $\mathcal{F}(\mathbf{x}) = 0$ can be obtained by moving the weights to some extreme, while $\mathcal{H}(\mathbf{x}) = \mathbf{x}$ is drastically more difficult, particularly for the sigmoid case. If the layer really needs a non-trivial $\mathcal{H}(\mathbf{x})$ function, the optimizer simply needs to find $\mathcal{H}(\mathbf{x}) - \mathbf{x}$, which should not be that much more difficult.
+The idea is that getting $\mathcal{F}(\mathbf{x}) = 0$ is a lot easier to solve for, when compared to $\mathcal{H}(\mathbf{x}) = \mathbf{x}$. For both the ReLU and sigmoid transformation, $\mathcal{F}(\mathbf{x}) = 0$ can be obtained by moving the weights to some extreme, while $\mathcal{H}(\mathbf{x}) = \mathbf{x}$ is drastically more difficult, particularly for the sigmoid case. If the layer really needs a non-trivial $\mathcal{H}(\mathbf{x})$ function, the optimizer simply needs to find $\mathcal{H}(\mathbf{x}) - \mathbf{x}$, which should not be much more difficult.
 
-A downside of using a residual layer is that the output dimension must match the dimension of $\mathbf{x}$. However there are workarounds, for example, one can add an extra dense layer to change the dimensionality of either the output dimension or $\mathbf{x}$.
+A downside of using a residual layer is that the output dimension must match the dimension of $\mathbf{x}$. However there are workarounds, for example, one can add an extra dense layer to change the dimensionality, of either the output or input dimension.

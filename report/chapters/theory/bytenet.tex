@@ -3,7 +3,7 @@
 
 The ByteNet model is an alternative approach to neural machine translation, it specifically focuses on having linear computational complexity, having a resolution preserving encoding, and be a character-level translation model \cite{bytenet}. This is somewhat different from existing popular models such as the Sutskever 2014 model \cite{sutskever-2014-nmt} and the attention based Bahdanau 2015 model \cite{bahdanau-2015-nmt}.
 
-Note that the model presented here is a simplified version of the original ByteNet model \cite{bytenet}. First, there are no bags of characters, only individual characters are used as the sentence representation. Secondly, the sub-batch normalization in the decoder is replaced by layer normalization, besides being a simpler solution than sub-batch normalization this could also improve the model performance \cite{layer-normalization}. At last, the network has less weights a fewer layers than in the original ByteNet model.
+Note that the model presented here is a simplified version of the original ByteNet model \cite{bytenet}. First, there are no bags of characters, only individual characters are used as the sentence representation. Secondly, the sub-batch normalization in the decoder is replaced by layer normalization, besides being a simpler solution than sub-batch normalization this could also improve the model performance \cite{layer-normalization}. At last, the network has less weights and fewer layers than in the original ByteNet model.
 
 \subsection{ByteNet Residual Block}
 
@@ -28,7 +28,7 @@ Before explaining the full ByteNet network, a central component of the ByteNet m
 
 \subsubsection{Encoder Residual Block}
 
-The \textit{ByteNet residual block} is at its core a dilated convolution, but adds upon this many of the ideas presented in section \ref{sec:convergence}. The entire block is a \textit{residual layer}, meaning that that the input is added to the final output of the transformation function $\mathcal{F}$. The transformation can be logically grouped into a set of sub-blocks, a normalization block, a dimensional reduction block, a dilated convolution block, and finally a dimensional restoration block.
+The \textit{ByteNet residual block} is at its core a dilated convolution, but adds upon this many of the ideas presented in section \ref{sec:convergence}. The entire block is a \textit{residual layer}, meaning that that the input is added to the final output of the block. The block can be logically grouped into a set of sub-blocks, a normalization block, a dimensional reduction block, a dilated convolution block, and finally a dimensional restoration block.
 
 The normalization block consists of batch normalization and a ReLU activation. For this to make sense there must be some parameters before the activation such that the network can control the ReLU. This will either be an embedding lookup or another \textit{residual block}.
 
@@ -36,11 +36,11 @@ The dimensional reduction block reduces the dimensionality of the dataset from $
 
 \afterpage{\clearpage}
 
-The dilated convolution block depends on two parameters (3 if dimension size $d_{enc}$ is included), the kernel width $k$ and the dilation rate $r$. ByteNet specifies a specific structure for these parameters, but these choices only make sense from the full network perspective, thus they will be discussed later. Besides being a dilated convolution the sub-block is quite normal, as it also performs a batch normalization and ReLU activation. The convolution also maintains the dimensionality, which at this point is $\frac{1}{2}d_{enc}$.
+The dilated convolution block depends on two parameters, the kernel width $k$, and the dilation rate $r$ (3 if dimension size $d_{enc}$ is included). ByteNet specifies a specific structure for these parameters, but these choices only make sense from the full network perspective, thus they will be discussed later. Besides being a dilated convolution the sub-block is quite normal, as it also performs a batch normalization and ReLU activation. The convolution also maintains the dimensionality, which at this point is $\frac{1}{2}d_{enc}$.
 
 For the \textit{residual layer} to make sense, the output dimension must be equal to the input dimension, thus the final sub-block is just a dense layer that transforms from $\frac{1}{2}d_{enc}$ dimensions to $d_{enc}$ dimensions. This sub-block does not contain either a batch normalization, or a ReLU activation. Though these are implicitly performed if another \textit{residual block} follows.
 
-The number of weights from all these sub-layers in the \textit{encoder residual block} excluding the bias and normalization terms:
+The number of weights from all these sub-blocks in the \textit{encoder residual block}, excluding the bias and normalization terms, are:
 \begin{equation}
 k \left(\frac{d_{enc}}{2}\right)^2 + \frac{1}{2} d_{enc}^2 + \frac{1}{2} d_{enc}^2 = \left(\frac{k}{4} + 1\right) d_{enc}^2
 \end{equation}
@@ -60,9 +60,9 @@ Masking the convolution means that only the part of the convolution kernel that 
 \subsection{Hierarchical Dilated Convolution}
 \label{sec:theory:bytenet:hierarchical-dilated-convolution}
 
-Each \textit{ByteNet Residual Block} can conceptually be seen as just a modified dilated convolution. This conceptual model is useful for understanding the main trick that makes \textit{ByteNet} so powerful, \textit{Hierarchical Dilated Convolution}.
+Each \textit{ByteNet residual block} can conceptually be seen as just a modified dilated convolution. This conceptual model is useful for understanding the main trick that makes \textit{ByteNet} so powerful, called \textit{hierarchical dilated convolution}.
 
-The idea behind \textit{Hierarchical Dilated Convolution} is that by exponentially increasing the dilation rate in stacked dilated convolution layers, the effective kernel width will exponentially increase for each layer, while the amount of weight in the kernel only increases linearly. The encoder part (bottom half) of figure \ref{fig:bytenet:simplified-hdc} helps to understand this idea in detail.
+The idea behind \textit{hierarchical dilated convolution} is that by exponentially increasing the dilation rate in stacked dilated convolution layers, the effective kernel width will exponentially increase for each layer, while the amount of weight in the kernel only increases linearly. The encoder part (bottom half) of figure \ref{fig:bytenet:simplified-hdc} helps to understand this idea in detail.
 
 \begin{figure}[h]
     \centering
@@ -75,12 +75,12 @@ Let the dilation rate for the encoding layers $\ell \in [1, L_{enc}]$ be denoted
 \begin{equation}
 \sum_{\ell = 1}^{L_{enc}} (k - 1) 2^{\ell-1} + 1 = (k - 1) (2^{L_{enc}} - 1) + 1
 \end{equation}
-The kernel size is however $k \times d$ for all layers, thus the total amount of weights is:
+However, the kernel size is $k \times d$ for all layers, thus the total number of weights are:
 \begin{equation}
 \sum_{\ell = 1}^{L_{enc}} k d = L_{enc} k d
 \end{equation}
 
-In the original ByteNet model they use 5 dilated convolution layers, each with a kernel width of $5$, this results in an effective kernel width of 125 characters (actually it is 373 character wide because they repeat the pattern 3 times). Having a wide but computationally cheap kernel is extremely important for a character-based translation model such as ByteNet. In an attention-based translation model, such as the Bahdanau model \cite{bahdanau-2015-nmt} the width is in theory arbitrarily wide (though in practice very wide attention mechanisms works poorly), however as discussed previously this approach causes a quadratic computational complexity (section \ref{sec:theory:sequential:bahdanau}). By \textit{hierarchical dilated convolution} ByteNet manages to keep the complexity linear, while still having a very wide kernel. In practice sentences have a limited length and thus a hierarchical dilated convolution approach can be comparable to an attention approach. In the WMT 2014 en-de dataset, the longest sentences are 400 characters wide (Figure \ref{fig:bytenet:wmt-deen-density}).
+In the original ByteNet model they use 5 dilated convolution layers, each with a kernel width of $5$, this results in an effective kernel width of 125 characters (actually it is 373 character wide because they repeat the pattern 3 times). Having a wide but computationally cheap kernel is extremely important for a character-based translation model such as ByteNet. In an attention-based translation model, such as the Bahdanau model \cite{bahdanau-2015-nmt} the width is in theory arbitrarily wide (though in practice very wide attention mechanisms works poorly), however, as discussed previously this approach causes a quadratic computational complexity (section \ref{sec:theory:sequential:bahdanau}). By using \textit{hierarchical dilated convolution} ByteNet manages to keep the complexity linear, while still having a very wide kernel. In practice sentences have a limited length and thus a hierarchical dilated convolution approach can be comparable to an attention approach. In the WMT 2014 en-de dataset, the longest sentences are 400 characters wide (Figure \ref{fig:bytenet:wmt-deen-density}).
 
 \begin{figure}[h]
     \centering
@@ -91,16 +91,16 @@ In the original ByteNet model they use 5 dilated convolution layers, each with a
 
 \subsection{The Network}
 
-The full \textit{ByteNet} model combines the \textit{Residual Blocks} with the \textit{Hierarchical Dilated Convolution} as discussed earlier. The \textit{Hierarchical Dilated Convolution} pattern is then repeated 3 times for both the encoder and decoder, as visualized in figure \ref{fig:bytenet:network}.
+The full \textit{ByteNet} model combines the \textit{residual blocks} with the \textit{hierarchical dilated convolution} as discussed earlier. The \textit{hierarchical dilated convolution} pattern is then repeated 3 times for both the encoder and decoder, as visualized in figure \ref{fig:bytenet:network}.
 
-The input to the encoder is the source sequences mapped using an embedding matrix. The input to the decoder is the encoded sequence concatenated with the previous target prediction. This target prediction is then also mapped using a different embedding matrix. Note in particular that because the encoded vector is concatenated with the target sequence vector, the internal dimensionality of the decoder is twice that of the encoder. The decoded output is finally projected using a dense layer such the output has vocabulary sized dimensionality. After this, a softmax is used to transform the output into the probability domain.
+The input to the encoder is the source sequences mapped using an embedding matrix. The input to the decoder is the encoded sequence concatenated with the previous target prediction. This target prediction is then also mapped using a different embedding matrix. Note in particular that because the encoded vector is concatenated with the target sequence vector, the internal dimensionality of the decoder is twice that of the encoder. The decoded output is finally transformed using a dense layer such the output has vocabulary sized dimensionality. After this, a softmax is used to transform the output into the probability domain.
 
-An interesting effect of this network is that all layers are invariant to adding a bias term, as well as the $\gamma$ term in the normalization. The encoder embedding and encoder layers are invariant because of batch normalization. The decoder embedding and decoder layers are invariant because of layer normalization. The final dense layer is invariant because of the following softmax.
+An interesting effect of this network is that all layers are invariant to adding a bias term, as well as the $\gamma$ term in the normalization. The encoder embedding and encoder layers are invariant because of batch normalization. The decoder embedding and decoder layers are invariant because of layer normalization. The final dense layer is invariant because of the softmax in the end.
 
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{theory/bytenet-network.pdf}
-    \caption{The training network for the ByteNet Model, where the shifted target sequence is feed into the network. In the inference network, the shifted target sequence is replaced by the $\mathrm{argmax}(\cdot)$ of the softmax output. ResBlock$(k, r)$ in the encoder refers to the Encoder-Residual-Block$(k, r)$, in the decoder it refers to Decoder-Residual-Block$(k, r)$.}
+    \caption{The training network for the ByteNet Model, where the shifted target sequence is feed into the network. In the inference network, the shifted target sequence is replaced by the $\mathrm{argmax}(\cdot)$ of the softmax output. ResBlock$(k, r)$ in the encoder refers to the Encoder-Residual-Block$(k, r)$, in the decoder it refers to the Decoder-Residual-Block$(k, r)$.}
     \label{fig:bytenet:network}
 \end{figure}
 
@@ -109,6 +109,15 @@ The ByteNet model actually uses a different network for training than it does fo
 
 Feeding the target sequence to the network is an optimization trick that may seem counter-intuitive at first. The idea is that because the prediction of the current character depends on the prediction of the previous characters ($\mathbf{y}_t = f(\mathbf{x}_{1:|S|}, \mathbf{y}_{1:t-1})$), then instead of letting the prediction cascade, which will also cause prediction errors to cascade, $\mathbf{y}_{1:t-1}$ is replaced with the known target sequence such that $\mathbf{y}_t = f(\mathbf{x}_{1:|S|}, \mathbf{t}_{1:t-1})$.
 
-This trick also has the added benefit that training can be parallelized over target sentence and not just the observations and source sentence. 
+This trick also has the added benefit that training can be parallelized over target sentence and not just the observations and source sentence. There are some indications of this being suboptimal, and that one should use a hybrid of the two approaches \cite{no-assist-train}. However, the ByteNet model is unique in that it allows for parallelization over the target sequence. This would not be possible with a hybrid solution.
 
-\todo[inline]{There are some indications of this being suboptimal \url{https://arxiv.org/abs/1506.03099}}
+\subsubsection{Future ByteNet models}
+During this thesis the authors of ByteNet have released a revision of the original paper.
+
+In the new model, $6$ stacks of $5$ \textit{ByteNet residuals blocks} are used in both the encoder and decoder. This is twice that of the original model and allowed them to replace the bag-of-characters encoding with a normal character encoding.
+
+In the original model they used a sub-batch normalization, to preserve causality. In the new model this was simplified by using layer normalization, like in this thesis, except they also changed the encoder to use layer normalization.
+
+Finally the new model uses 800 as the encoding dimensionality, where the original model used a more tuned value of 892 dimensions.
+
+None of these changes are particularly relevant. Some of the changes was independently applied, such as using layer normalization and removing the back-of-characters encoding. Other changes such as increasing the number of \textit{ByteNet residuals blocks} can't be applied, because DTU doesn't have the resources to support it.
