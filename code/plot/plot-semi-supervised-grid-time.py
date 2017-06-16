@@ -27,27 +27,28 @@ semi_supervised = semi_supervised.groupby(
     ['labeled size', 'unlabled size'], as_index=False
 ).mean()
 
+del semi_supervised['misclassification rate']
+del semi_supervised['semi-supervised factor']
+
+semi_supervised.to_csv('time-result.csv', index=False)
+
 gg = GGPlot("""
 library(latex2exp)
-# reorder factors in dataframe
-dataframe$unlabled.size = factor(dataframe$unlabled.size,
-                                 levels=c("0", "512", "1024"), ordered=TRUE)
 # intrepret wall time as time
 dataframe$time = as.POSIXct(dataframe$wall.time, origin = "1970-01-01", tz = "UTC")
 
 size.to.label = function (value) {
-    return(TeX(sprintf("$\\\\lambda = %s$", value)));
+    return(TeX(sprintf("labeled obs.: $%s$", value)))
 }
 
-p = ggplot(dataframe, aes(x=labeled.size))
-p = p + geom_point(aes(y = time, colour=unlabled.size),
-                   position=position_dodge(width=0.1))
+p = ggplot(dataframe, aes(x=unlabled.size))
+p = p + geom_point(aes(y = time), colour="#00BFC4")
+p = p + geom_line(aes(y = time), colour="#00BFC4", linetype="dashed")
+p = p + facet_grid(~ labeled.size, labeller=as_labeller(size.to.label, default = label_parsed))
 p = p + scale_y_datetime(date_labels="%Hh")
-p = p + scale_x_continuous(trans="log2")
-p = p + scale_colour_manual(values=brewer.pal(7, "PuBu")[c(4, 6, 7)])
-p = p + labs(x="labled observations",
-             y="wall time",
-             colour="unlabled observations")
+p = p + scale_x_continuous(limits=c(-128, 1152), breaks=c(0, 512, 1024))
+p = p + labs(x="unlabled observations",
+             y="wall time")
 p = p + theme(legend.position="bottom",
               text=element_text(size=10))
 
