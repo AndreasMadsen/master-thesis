@@ -11,7 +11,7 @@ from code.moses import Tokenizer, multi_bleu
 target_tokenizer = Tokenizer('en')
 translation_tokenizer = Tokenizer('en')
 
-with open('result/translation/wmt-dump.json') as translations:
+with open('result/bytenet-translation/wmt-dump.json') as translations:
     with target_tokenizer, translation_tokenizer:
 
         for translation_raw in tqdm.tqdm(list(translations)):
