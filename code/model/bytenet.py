@@ -25,10 +25,37 @@ default_parameters = {
         'act': 'relu',
         'block_type': 'bytenet'
     },
+    'v1-nonorm': {
+        'encoder_size': 5,
+        'encoder_normalization': 'none',
+        'decoder_normalization': 'none',
+        'num_blocks': 3,
+        'latent_dim': 400,
+        'act': 'relu',
+        'block_type': 'bytenet'
+    },
+    'v1-selu': {
+        'encoder_size': 5,
+        'encoder_normalization': 'none',
+        'decoder_normalization': 'none',
+        'num_blocks': 3,
+        'latent_dim': 400,
+        'act': 'selu',
+        'block_type': 'bytenet'
+    },
     'v1-small': {
         'encoder_size': 5,
         'encoder_normalization': 'bn',
         'decoder_normalization': 'ln',
+        'num_blocks': 3,
+        'latent_dim': 200,
+        'act': 'relu',
+        'block_type': 'small'
+    },
+    'v1-small-nonorm': {
+        'encoder_size': 5,
+        'encoder_normalization': 'none',
+        'decoder_normalization': 'none',
         'num_blocks': 3,
         'latent_dim': 200,
         'act': 'relu',

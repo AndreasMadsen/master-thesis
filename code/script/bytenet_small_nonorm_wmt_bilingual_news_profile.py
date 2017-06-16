@@ -1,17 +1,18 @@
 
 import sugartensor as stf
 
-from code.dataset import Europarl, WMTBilingualNews
+from code.dataset import WMTBilingualNews
 from code.model import ByteNet
 from code.metric import BleuScore, ModelLoss
 
 # set log level to debug
 stf.sg_verbosity(10)
+gpus = 4
 
-dataset_train = Europarl(batch_size=64,
-                         source_lang='de', target_lang='en',
-                         min_length=None, max_length=500,
-                         external_encoding='build/europarl-max500.tfrecord')
+dataset_train = WMTBilingualNews(batch_size=16 * gpus,
+                                 year=2014,
+                                 source_lang='de', target_lang='en',
+                                 min_length=None, max_length=None)
 
 dataset_test = WMTBilingualNews(batch_size=128,
                                 year=2015,
@@ -21,11 +22,11 @@ dataset_test = WMTBilingualNews(batch_size=128,
                                 validate=True)
 
 model = ByteNet(dataset_train,
-                version='v1-small',
-                deep_summary=False,
-                save_dir='asset/bytenet_small_europarl_max500_adam',
-                gpus=4)
+                version='v1-small-nonorm',
+                save_dir=f'asset/bytenet_small_nonorm_wmt_2014_profile/bytenet_wmt_2014_gpu{gpus}_profile',
+                deep_summary=False, gpus=gpus)
 model.add_metric(BleuScore(dataset_train, name='BLEU-score-train'))
 model.add_metric(BleuScore(dataset_test, name='BLEU-score-test'))
 model.add_metric(ModelLoss(dataset_test, name='model-loss-test'))
-model.train(max_ep=12, optim='Adam', lr=0.0003, beta2=0.999)
+model.train(max_ep=25 * gpus, profile=4500,
+            optim='Adam', lr=0.0003, beta2=0.999)
