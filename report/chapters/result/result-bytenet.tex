@@ -9,21 +9,21 @@ Before using the model on the Europarl v7 dataset for solving the WMT Translatio
 
 The Synthetic Digits dataset is used for validating the generalization properties of the ByteNet implementation.
 
-The internal dimensionality is set to 20, this is 20 units in the encoder and 40 units in the decoder, the latter is because the encoding is concatenated with the target embedding. It is unlikely that higher dimensionality is required, given that there are only 10 possible output characters. In fact, 20 might be much higher than necessary, but this may be a good thing in terms of validation as it provides an opportunity to ensure that the model doesn't overfit. Using a dimensionality of 20 the network has, just counting the convolution and dense layers, $73500$ weights. The training dataset contains only 128 observations, thus there is a huge potential for overfitting. The test dataset also contains 128 observations.
+The internal dimensionality is set to 20, this is 20 units in the encoder and 40 units in the decoder, the latter is because the encoding is concatenated with the target embedding. It is unlikely that higher dimensionality is required, given that there are only 10 possible output characters. In fact, 20 might be much higher than necessary, but this may be a good thing in terms of validation as it provides an opportunity to ensure that the model doesn't overfit. Using a dimensionality of 20, the network has just counting the convolution and dense layers $73500$ weights. The training dataset contains only 128 observations, thus there is a huge potential for overfitting. The test dataset also contains 128 observations.
 
 The ByteNet model is optimized using the Adam optimizer with a learning rate of 0.001 and a mini-batch size of 16 running on 1 GPU. Because the BLEU score is not meaningful for the Synthetic Digits problem, where no words exist in the target, the misclassification rate is calculated instead.
 
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{bytenet/validation-synthetic-digits.pdf}
-    \caption{Shows misclassification rate and the cross entropy loss. For comparison a the attention model has misclassification rate at 0.51. The exponential moving average used a forget factor of $0.4$.}
+    \caption{Shows misclassification rate and the cross entropy loss. For comparison a the attention model has a misclassification rate of 0.51. The exponential moving average used a forget factor of $0.1$.}
     \label{fig:result:bytenet:digits}
 \end{figure}
 
 \begin{table}[h]
 \centering
 \begin{tabular}{r|p{3.3cm} p{3.3cm} p{3.3cm}}
-	obs. & source & target & predict\\ \hline
+	obs. & source & target & prediction\\ \hline
   0 & one zero four & 104 & 104 \\
   1 & one five six & 156 & 150 \\
   2 & five five nine & 559 & 559 \\
@@ -37,16 +37,16 @@ The ByteNet model is optimized using the Adam optimizer with a learning rate of 
 
 Figure \ref{fig:result:bytenet:digits} shows reasonable convergence, only the test error shows jitter during training and there is very little overfitting if any. In the end, the ByteNet model completely learned the training dataset.
 
-The jitter is likely not because of poor optimization, but rather because the errors are only calculated on a randomly sampled subset of the test dataset. For the different samples, the test error is different.
+The jitter is likely not because of poor optimization, but rather because the errors are only calculated on a randomly sampled subset of the test dataset. For the different samples, the test error is thus different.
 
 The lack of overfitting fits well with what the original ByteNet article also observed, in their translation model no regularization or early stopping was used, which is what one would typically use to prevent overfitting \cite{bytenet}.
 
-In table \ref{table:result:bytenet:digits} the predictions are about what one would expect. For the most part, the translations are good, in particular in the beginning of the output sequence, while the latter digit predictions show some error. This result is reasonable, as there is more data for the first two digits and because the input words have different length, the alignment between input and output characters becomes more uncertain. Of cause, the model would ideally learn the word separation completely and understand that there is a direct relation between word and digit, but learning this relation is likely difficult given both the many parameters and the small dataset.
+In table \ref{table:result:bytenet:digits} the predictions are about what one would expect. For the most part, the translations are good, in particular in the beginning of the output sequence, while the later digit predictions show some error. This result is reasonable, as there is more data for the first two digits and because the input words have different length. The alignment between input and output characters becomes more uncertain as the reed sequences gets longer. Of cause, the model would ideally learn the word separation completely and understand that there is a direct relation between word and digit, but learning this relation is likely difficult given both the many parameters and the small dataset.
 
 \clearpage
 \subsubsection{Memorizing WMT NewsTest}
 
-Sometimes a model works well when it has few weights and low dimensionality but breaks for higher dimensionality because of vanishing or exploding gradient issues. To validate that this is not an issue a good test is to see if the model can memorize a small dataset, but where the model complexity is kept high. For memorization one just expects the training loss to become very small, the test error is not important.
+Sometimes a model works well when it has few weights and low dimensionality, but breaks for higher dimensionality because of vanishing or exploding gradient issues. To validate that this is not an issue a good test is to see if the model can memorize a small dataset, but where the model complexity is kept high. For memorization one just expects the training loss to become very small, the test error is not important.
 
 The WMT 2014 NewsTest dataset for German to English translation was used for training, this contains 3003 observations. The WMT 2015 NewsTest dataset was used for testing, this contains 1596 observations. The internal dimensionality is set to 400, (800 in the decoder because of concatenation).
 

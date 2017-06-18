@@ -1,12 +1,15 @@
 
 from code.plot.util.tfsummary import TFSummary
 from code.plot.util.ggplot import GGPlot
+from code.dataset import SyntheticDigits
 
 import pandas as pd
 
+dataset = SyntheticDigits(batch_size=16, examples=128, seed=10)
+
 summary = TFSummary(
     'hpc_asset/bytenet_small_synthetic_digits',
-    alpha=0.1
+    alpha=0.2
 )
 
 print(summary.read_summary('metrics/model-loss-test_1'))
@@ -34,17 +37,15 @@ data = pd.concat(
   keys=['misclassification rate', 'cross entropy'],
   names=['loss type']
 )
-data = data.reset_index(level=['loss type', 'dataset', 'sec'])
+data = data.reset_index(level=['loss type', 'dataset', 'step'])
+data['epoch'] = data['step'] / dataset.num_batch
 
 gg = GGPlot("""
-dataframe$time = as.POSIXct(dataframe$sec, origin = "1970-01-01", tz = "UTC")
-
-p = ggplot(dataframe, aes(x=time))
+p = ggplot(dataframe, aes(x=epoch))
 p = p + geom_line(aes(y = value.raw, colour=dataset), alpha=0.2)
 p = p + geom_line(aes(y = value.smooth, colour=dataset))
 p = p + facet_wrap(~loss.type, ncol=1, scales="free_y")
-p = p + scale_x_datetime(date_labels="%M min.")
-p = p + labs(x="duration", y="")
+p = p + labs(x="batch epoch", y="")
 p = p + theme(legend.position="bottom",
               text=element_text(size=10))
 
