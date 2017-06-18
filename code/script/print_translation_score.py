@@ -41,8 +41,8 @@ def add_bleu_score(translation_tuple):
     }
 
 
-with open('result/translation/wmt-dump.json') as translations, \
-     open('result/translation/wmt-bleu.json', 'w') as translations_bleu:
+with open('result/bytenet-small-translation/wmt-dump.json') as translations, \
+     open('result/bytenet-small-translation/wmt-bleu.json', 'w') as translations_bleu:
     translations_raw = list(translations)
     translations = []
 

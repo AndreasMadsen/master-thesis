@@ -58,4 +58,44 @@ From figure \ref{fig:result:simple-bytenet:profile-grouped} that much of the tim
 \clearpage
 \subsection{WMT Translation Task}
 
-\todo[inline]{Given the minor performance gain both in computation and data transfer, the Simplified ByteNet model is not really worth it.}
+The Europarl v7 dataset is used to train the simplified ByteNet model. The setup is identical to that previously used to train the normal ByteNet model. The internal dimensionality is 400, the Adam optimizer is used with a learning rate of 0.0003, and the mini-batch size is $4 \cdot 16 = 64$ observations, 4 GPUs with synchronized updates was used, and the model ran 13 epochs over the Europarl v7 dataset.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=1]{bytenet-small/europarl.pdf}
+    \caption{Shows BLEU score and cross entropy loss for the Simplified ByteNet model, trained on Europarl v7 and tested on WMT NewsTest 2015. Both training and test measures are calculated on a randomly sampled mini-batch from each dataset. The exponential smoothing used a forget factor of $0.05$. The raw data for the non-simplified ByteNet model is now shown.}
+    \label{fig:result:bytenet-small:europarl}
+\end{figure}
+
+The simplified ByteNet model uses almost 24 hours less training time. However, it also learns at a slower rate, thus in terms of BLUE score given the time spend learning the normal ByteNet model is actually much faster.
+
+An interesting observation is that the simplified ByteNet model also overfits a lot more than the normal ByteNet model. This contradicts most intuition about overfitting, which usually is the more weights, layers, and non-linearities, the easier it is to make the model overfit. The simplified ByteNet model has less of all three factors, thus there is no reason to expect the simplified ByteNet model to overfit more.
+
+It is not clear why this overfitting happens, but it is very likely a contributing factor to why the test BLEU score isn't isn't better. However, this can not be the entire explanation, as also the training BLEU score is worse. If anything, overfitting should cause a higher training BLEU score as regularization typically increases the training loss in order to decrease the test loss.
+
+Possible regularization methods are L1, L2, and dropout. Particularly, L1 regularization could be interesting in the first 5 \textit{residual blocks}, as these layers likely performs some characters-to-word encoding. Such an encoding should be very sparse, L1 regularization would enforce such a sparsity.
+
+The translations as shown in table \ref{table:result:bytenet-small:translations} are rather bad, they have little connection to the source sequence and there a tendency for the sequence ``Mr \textit{insert name}'' to appear without context. The poor translations can likely be attributed to the server overfitting. \todo{total BLEU score is $0.55$}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{l|r|p{10cm}}
+0 & source & Die formelle Anerkennung der Arbeitsrechte als Menschenrechte - und die Erweiterung des Schutzes der Bürgerrechte als Schutz gegen Diskriminierung bei der Schaffung von Arbeitnehmervertretungen - ist längst überfällig. \\[0.1cm]
+& target & The formal recognition of labor rights as human rights - and the extension of civil rights protections to prevent discrimination against labor organizing - is long overdue. \\[0.1cm]
+& translation & However, the recommendation of jobs and generations and proposes the promotion of gross regions of the world growth to prodictively rejecting the rejection of the representative of the representative increase' . \\[0.1cm]
+& BLEU & 0.00 \\[0.1cm] \hline
+
+1 & source & Die Premierminister Indiens und Japans trafen sich in Tokio. \\[0.1cm]
+& target & India and Japan prime ministers meet in Tokyo \\[0.1cm]
+& translation & Mr Pieper and the independence of Singapore in London. \\[0.1cm]
+& BLEU & 0.00 \\[0.1cm] \hline
+
+2 & source & Er wird beschuldigt, am 7. Juni 2013 eine Frau im Scotland's Hotel in Pitlochry in Perthshire vergewaltigt zu haben. \\[0.1cm]
+& target & He is alleged to have raped a woman at the Scotland's Hotel in Pitlochry in Perthshire on June 7, 2013. \\[0.1cm]
+& translation & Madam President, I should like to contribute to Mr President Mr President in his report. \\[0.1cm]
+& BLEU & 0.00 \\[0.1cm]
+\end{tabular}
+\caption{Cherry-picked translations from WMT NewsTest.}
+\label{table:result:bytenet-small:translations}
+\end{table}
+

@@ -5,8 +5,11 @@
 \usepackage{fontspec}
 
 % Sans-serif font
+\defaultfontfeatures{Ligatures={NoCommon, NoDiscretionary, NoHistoric, NoRequired, NoContextual}}
+\setmainfont{Latin Modern Roman}
+
 \setsansfont[
-    Ligatures=TeX,
+    Ligatures={NoCommon, NoDiscretionary, NoHistoric, NoRequired, NoContextual}, % TeX,
     Extension=.otf,
     UprightFont=*-regular,
     BoldFont=*-bold,

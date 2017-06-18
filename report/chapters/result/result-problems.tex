@@ -1,43 +1,50 @@
 
 \section{Problems and Datasets}
 
-3 datasets will be used to evaluate the ByteNet and the semi-supervised ByteNet models. The WMT Translation Task provides a large corpus of text in form of different datasets. Two datasets are used in this thesis, the Europarl v7 dataset, and the WMT NewsTest dataset. For validating the implementation and discussing the model a very simple synthetic dataset is also used, this dataset is named ``Synthetic Digits''.
+3 datasets will be used to evaluate the ByteNet and the semi-supervised ByteNet models. The WMT Translation Task provides a large corpus of text in different datasets. Two datasets are used in this thesis, the Europarl v7 dataset, and the WMT NewsTest dataset. For validating the implementation and discussing the model a very simple synthetic dataset is also used, this dataset is named ``Synthetic Digits''.
 
 \subsection{WMT Translation Task}
 
-Each year WMT holds a conference on machine translation, this works as a series of workshops and competitions on different translation tasks. One of these translation tasks is on news translation \cite{wmt16}. The task is to translate paragraphs from news articles to another language. The translations are evaluated on the WMT NewsTest dataset, that is from news articles collected over a specific year. The news translation task is the primary translation task that NMT papers evaluate their models on \cite{bytenet, bahdanau-2015-nmt, sutskever-2014-nmt}.
+Each year WMT holds a conference on machine translation, this works as a series of workshops and competitions on different translation tasks. One of these translation tasks is on news translation \cite{wmt16}. The task is to translate paragraphs from news articles to another language. The translations are evaluated on the WMT NewsTest dataset, that is from news articles collected over a specific year. The news translation task is the primary translation task that neural machine translation (NMT) papers evaluate their models on \cite{bytenet, bahdanau-2015-nmt, sutskever-2014-nmt}.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{r|p{5cm} p{5cm}}
-	obs. & source & target\\ \hline
-     0 & Die Premierminister Indiens und Japans trafen sich in Tokio. & India and Japan prime ministers meet in Tokyo \\
-     1 & Pläne für eine stärkere kerntechnische Zusammenarbeit stehen ganz oben auf der Tagesordnung. & High on the agenda are plans for greater nuclear co-operation. \\
-     2 & Berichten zufolge hofft Indien darüber hinaus auf einen Vertrag zur Verteidigungszusammenarbeit zwischen den beiden Nationen. & India is also reportedly hoping for a deal on defence collaboration between the two nations.
+\begin{tabular}{l|r|p{10cm}}
+     0 & source & Die Premierminister Indiens und Japans trafen sich in Tokio. \\[0.1cm]
+       & target & India and Japan prime ministers meet in Tokyo \\[0.1cm] \hline
+     1 & source & Pläne für eine stärkere kerntechnische Zusammenarbeit stehen ganz oben auf der Tagesordnung. \\[0.1cm]
+       & target & High on the agenda are plans for greater nuclear co-operation. \\[0.1cm] \hline
+     2 & source & Berichten zufolge hofft Indien darüber hinaus auf einen Vertrag zur Verteidigungszusammenarbeit zwischen den beiden Nationen. \\[0.1cm]
+       & target & India is also reportedly hoping for a deal on defence collaboration between the two nations.
 \end{tabular}
-\caption{Example form the WMT NewsTest 2015 de-en dataset.}
+\caption{Examples from the WMT NewsTest 2015 de-en dataset.}
 \end{table}
 
-The WMT NewsTest is about 3000 sentences each year, this is not enough data to build a good translation model. To that end WMT provides additional datasets for training, most importantly is the Europarl v7 dataset. The Europarl dataset contains high-quality translations of various of documents from the European Parliament \cite{europarl}. While this dataset is a huge high-quality dataset it is also heavily biased, as some word-grams like ``The European Parliament'' appears much more often that in the NewsTest dataset.
+The WMT NewsTest is about 3000 sentences each year, this is not enough data to build a good translation model. To that end WMT provides additional datasets for training, most importantly is the Europarl v7 dataset. The Europarl dataset contains high-quality translations of various of documents from the European Parliament \cite{europarl}. While this dataset is a huge high-quality dataset it is also heavily biased. For example, some word-grams like ``The European Parliament'' appears much more often that in the NewsTest dataset.
 
-A few of the sequences in Europarl v7 are rather long (3000+ characters), including these sequences causes out of memory issues on the GPU, thus only sequence pairs where both the source and the target sequence is less than 500 are included. This sequence length was chosen because no sequence in the WMT NewsTest dataset is longer than 500 characters.
+A few of the sequences in Europarl v7 are very long (3000+ characters), including these sequences causes out-of-memory issues on the GPU, thus only sequence pairs where both the source and target sentences are less than 500 characters long are included. This sequence length was chosen because no sentence in the WMT NewsTest dataset is longer than 500 characters.
+
+After removing sentences that are too long, the Europarl v7 dataset contains 1,901,056 English-German sequence pairs.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{r|p{5cm} p{5cm}}
-	obs. & source & target\\ \hline
-        0 & Wir sind nach wie vor der Ansicht, daß der wirtschaftliche und soziale Zusammenhalt ein zentrales Ziel der Union ist. & We still feel that economic and social cohesion is one of the Union' s fundamental objectives. \\
-        1 & Den Kommissar möchte ich auffordern, in diesen beiden Bereichen tätig zu werden und uns dabei mit einzubinden. & These are two areas of action which I invite the Commissioner to set up and in which I would ask him to involve us. \\
-        2  & Dies zwingt das Europäische Parlament, den Herrn Kommissar und die Kommission zu entschlossenem strategischen Handeln. & This fact means that the European Parliament, the Commissioner and the Commission must act decisively and strategically.
+\begin{tabular}{l|r|p{10cm}}
+        0 & source & Wir sind nach wie vor der Ansicht, daß der wirtschaftliche und soziale Zusammenhalt ein zentrales Ziel der Union ist. \\[0.1cm]
+          & target & We still feel that economic and social cohesion is one of the Union' s fundamental objectives. \\[0.1cm] \hline
+        1 & source & Den Kommissar möchte ich auffordern, in diesen beiden Bereichen tätig zu werden und uns dabei mit einzubinden. \\[0.1cm]
+          & target & These are two areas of action which I invite the Commissioner to set up and in which I would ask him to involve us. \\[0.1cm] \hline
+        2 & source & Dies zwingt das Europäische Parlament, den Herrn Kommissar und die Kommission zu entschlossenem strategischen Handeln. \\[0.1cm]
+          & target & This fact means that the European Parliament, the Commissioner and the Commission must act decisively and strategically.
 \end{tabular}
-\caption{Example from the Europarl v7 de-en dataset.}
+\caption{Examples from the Europarl v7 de-en dataset.}
 \end{table}
 
 \subsection{Synthetic Digits}
 
-While WMT Translation Task is a good problem to measure a translation model on, it is a complex problem that takes a long time for a neural network to learn. It is also not obvious if a model will be able to solve this problem at all. In particular, the semi-supervised ByteNet model has never been attempted before, thus it is meaning full to validate that it can solve a simple problem before attempting more a more complex problem like the WMT Translation Task.
+While the WMT Translation Task is a good problem to measure a translation model on, it is a complex problem that takes a long time for a neural network to learn. It is also not obvious if a model will be able to solve this problem at all. In particular, the semi-supervised ByteNet model has never been attempted before. It is thus meaningful to validate that the models can solve a simple problem before attempting to solve more complex problems, like the WMT Translation Task.
 
-The synthetic digits dataset is simply a uniformly random sequence of integers. In the source, each digit is spelled out in English, in the target each digit is represented by a symbol. The sequence length is uniformly randomly chosen to be either 2 or 3 digits long.
+The Synthetic Digits dataset is simply a uniformly random sequence of integers. In the source, each digit is spelled out in English, in the target each digit is represented by a symbol. The sequence length is uniformly randomly chosen to be either 2 or 3 digits long.
+
 \begin{table}[H]
 \centering
 \begin{tabular}{r|p{5cm} p{5cm}}
@@ -46,5 +53,5 @@ The synthetic digits dataset is simply a uniformly random sequence of integers. 
     1 & four eight & 48 \\
     2 & eight four four & 844
 \end{tabular}
-\caption{Example from the Synthetic Digits dataset generator.}
+\caption{Examples from the Synthetic Digits dataset generator.}
 \end{table}

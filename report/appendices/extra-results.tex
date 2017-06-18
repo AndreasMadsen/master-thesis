@@ -26,7 +26,7 @@
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{bytenet-small/validation-synthetic-digits.pdf}
-    \caption{Shows misclassification rate and the cross entropy loss. For comparison a the attention model has misclassification rate at 0.51. The exponential moving average used a forget factor of $0.4$.}
+    \caption{Shows misclassification rate and the cross entropy loss. For comparison a the attention model has misclassification rate at 0.51. The exponential moving average used a forget factor of $0.1$.}
 \end{figure}
 \clearpage
 
@@ -59,3 +59,15 @@
     \includegraphics[scale=1]{bytenet-small/profile-grouped-gpu1.pdf}
     \caption{Shows time spend executing operations in each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. The bottom level is the least detailed level, it just splits the model in the backward and forward pass. The next level, splits the model in the encoder and decoder. The last level at the top, primarily splits the Simplified ByteNet Residual Blocks.}
 \end{figure}
+
+\clearpage
+
+\section{SELU ByteNet}
+\label{appendix:result:bytenet-selu}
+\subsection{Learning Synthetic Digits Problem}
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=1]{bytenet-selu/validation-synthetic-digits.pdf}
+    \caption{Shows misclassification rate and the cross entropy loss. For comparison a the attention model has misclassification rate at 0.51. The exponential moving average used a forget factor of $0.1$.}
+\end{figure}
+
