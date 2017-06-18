@@ -41,7 +41,10 @@ class ModelOp:
 
             for i in (3, 4):
                 if modelpath[i] in ['conv-dilated', 'activation', 'recover-dim', 'reduce-dim']:
-                    self.minor_group = modelpath[i]
+                    if modelpath[i] == 'activation':
+                        self.minor_group = 'pre-normalization'
+                    else:
+                        self.minor_group = modelpath[i]
 
                     if modelpath[i + 1] in ['batchnorm', 'moments']:
                         self.patch_group = 'normalization'

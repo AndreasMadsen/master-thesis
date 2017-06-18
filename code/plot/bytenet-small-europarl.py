@@ -69,7 +69,7 @@ bytenet_small, batch_lines = model_dataframe(
 
 data = pd.concat(
   [bytenet_full, bytenet_small],
-  keys=['bytenet full', 'bytenet small'],
+  keys=['ByteNet', 'Simplified ByteNet'],
   names=['type']
 )
 

@@ -28,6 +28,11 @@ p = p + theme(legend.position="bottom",
               axis.title.y=element_blank(),
               axis.text.y=element_blank(),
               axis.ticks.y=element_blank())
+p = p + scale_colour_manual(breaks=c(
+    "forward", "backward", "encoder", "decoder",
+    "embedding", "pre-normalization", "conv-dilated", "other",
+    "recover-dim", "reduce-dim"
+))
 
 ggsave(filepath, p, width=page.width, height=height, units="cm");
 """)

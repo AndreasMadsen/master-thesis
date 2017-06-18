@@ -57,7 +57,7 @@ normal_model['value raw'] = np.nan
 
 data = pd.concat(
   [small_model, normal_model],
-  keys=['small ByteNet', 'ByteNet'],
+  keys=['Simplified ByteNet', 'ByteNet'],
   names=['type']
 )
 
