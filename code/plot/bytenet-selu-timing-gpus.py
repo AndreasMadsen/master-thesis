@@ -61,7 +61,7 @@ speed_selu = pd.concat(
 )
 speed = pd.concat(
     [speed_full, speed_small, speed_selu],
-    keys=['bytenet full', 'bytenet small', 'bytenet selu'],
+    keys=['ByteNet', 'Simplified ByteNet', 'SELU ByteNet'],
     names=['type']
 )
 speed = speed.reset_index(level=['type', 'parallelism', 'sec'])

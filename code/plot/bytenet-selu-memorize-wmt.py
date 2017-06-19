@@ -63,7 +63,7 @@ data = pd.concat(
 
 data = data.reset_index(level=['type', 'loss type', 'dataset', 'step'])
 data['epoch'] = data['step'] / dataset.num_batch
-
+data = data.loc[data['epoch'] <= 150]
 
 gg = GGPlot("""
 p = ggplot(dataframe, aes(x=epoch))

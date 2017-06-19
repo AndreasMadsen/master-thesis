@@ -28,11 +28,15 @@ The activation function is a variation on the exponential-linear-unit (ELU), whi
 \end{array}
 \end{equation}
 
+\todo[inline]{show figure of the SLEU(x) model.}
+
 The initialization should then be done such that $\mathbb{E}[z_{h_\ell}] = 0$ and $\mathrm{var}[z_{h_\ell}] = 1$. This is achieved by initializing the weights such that:
 \begin{equation}
 \mathrm{Var}[w_{h_{\ell-1}, h_{\ell}}] = \frac{1}{H_{\ell-1}} \quad \Rightarrow \quad r = \sqrt{\frac{3}{H_{\ell-1}}}
 \end{equation}
 where $r$ is the symmetric uniform distribution parameter, similarly to that used in He-Initialization.
+
+Using the SELU activation function and its derived initialiser, the convergence for the ``Memorizing WMT NewsTest'' experiment is somewhat similar to the normal ByteNet case (figure \ref{fig:result:selu-bytenet:bytenet-selu-wmt}). However, there are some significant differences. The initial cross entropy loss is much higher in the SELU ByteNet case, this indicates that the derived initialiser isn't the optimal choice. Secondly the training BELU score shows almost no improvement initially and then a very fast improvement after a few 75 epochs. These two observations are likely connected, if the initialization is bad it will take a long time for the network to reach a similar state as the normal ByteNet model does initially. If this is true, and if it's possible to initialize the SELU ByteNet model better, the SELU ByteNet model should actually converge in much fewer iterations that the normal ByteNet model.
 
 \begin{figure}[h]
     \centering
@@ -41,12 +45,41 @@ where $r$ is the symmetric uniform distribution parameter, similarly to that use
     \label{fig:result:selu-bytenet:bytenet-selu-wmt}
 \end{figure}
 
-\todo[inline]{Await new results.}
-\todo[inline]{Synthetic digits shows similar results as the normalized ByteNet model. \ref{appendix:result:bytenet-selu}.}
+Finally the synthetic digits experiment shows similar results as the normal ByteNet model (Appendix \ref{appendix:result:bytenet-selu}).
 
 \clearpage
 \subsection{Performance Profiling}
 
-\todo[inline]{Show performance profile of selu-bytenet}
+Repeating the performance experiment from both the normal ByteNet model and the simplified ByteNet model, shows that the SELU ByteNet model is extremely fast in comparison. Comparing the time spend running 300 epochs is actually a problem in this case, as the heating phase that transfers data and optimizes allocation takes up most of the time. However, comparing obs./sec shows that the SELU model is at least twice as fast as the normal ByteNet model.
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=1]{bytenet-selu/timing-gpus.pdf}
+    \caption{Comparing observations per second, depending on the number of GPUs used. The experiment learns the WMT NewsTest dataset over 300 epochs.}
+    \label{fig:result:selu-bytenet:timing-gpus}
+\end{figure}
+
+The processed profiling in figure \ref{fig:result:selu-bytenet:profile-grouped} (the unprocessed plot is in appendix \ref{appendix:result:bytenet-selu}), shows that the convoluted dilation is the most expensive part. This is completely reasonable, as this is the operation that involves the largest amount of raw computation. However, TensorFlow actually has an inefficient implementation of the dilated convolution, because dilated convolution isn't supported directly by CuDNN v5.1. CuDNN stands for CUDA Deep Neural Network and is a library developed by Nvidia that contains efficient implementation of common operations used in neural networks. The next version of CuDNN supports dilated convolution, but TensorFlow does not yet use this version \cite{nvidia-cudnn}.
+
+Another interesting observation when looking at the processed profiling in figure \ref{fig:result:selu-bytenet:profile-grouped}, is the time spend in the ``\textit{pre-normalization}'' layer, which now just contains the SELU activation, compared to the time spend in \textit{recover-dim}, which just contains a \textit{sequential-dense} layer. This shows that the SELU activation uses an unreasonable amount of time. The SELU activation uses less raw computations than the \textit{sequential-dense} layer, and the SELU activation is purely an element-wise operation and should thus be easy to parallelize. The reason for this performance is the before-mentioned naive execution of the computational graph.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=1]{bytenet-selu/profile-grouped-gpu4.pdf}
+    \caption{Shows time spend executing each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. Bottom level is the backward and forward pass. Second level is the encoder and decoder. Last level primarily splits the SELU ByteNet Residual Blocks.}
+    \label{fig:result:selu-bytenet:profile-grouped}
+\end{figure}
+
+\clearpage
 \subsection{WMT Translation Task}
+
+The Europarl v7 dataset is used to train the SELU ByteNet model. The setup is identical to that previously used to train the normal and simplified ByteNet model.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=1]{bytenet-selu/europarl.pdf}
+    \caption{Shows BLEU score and cross entropy loss for the SELU ByteNet model, trained on Europarl v7 and tested on WMT NewsTest 2015. Both training and test measures are calculated on a randomly sampled mini-batch from each dataset. The exponential smoothing used a forget factor of $0.05$. The raw data for the non-simplified ByteNet model is not shown.}
+    \label{fig:result:bytenet-selu:europarl}
+\end{figure}
+
+From figure \ref{fig:result:bytenet-selu:europarl} it is very apparent that the SELU model is extremely fast in comparison to the normal ByteNet model. However it also leans extremely poorly. 

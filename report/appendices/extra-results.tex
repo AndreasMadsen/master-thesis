@@ -71,3 +71,10 @@
     \caption{Shows misclassification rate and the cross entropy loss. For comparison a the attention model has a misclassification rate of 0.51. The exponential moving average used a forget factor of $0.2$.}
 \end{figure}
 
+\clearpage
+\subsection{WMT NewsTest profiling using four GPUs}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\textwidth]{bytenet-selu/profile-raw-gpu4.pdf}
+    \caption{Shows time spend on each operation, when the operation was executed, and on what GPU/CPU it was executed. The color coding indicates the operation type, there are more than a 100 different operation types, most are specific to TensorFlow, thus the legend is not included.}
+\end{figure}
