@@ -7,7 +7,7 @@ import pandas as pd
 
 
 class TFSummary:
-    def __init__(self, logdir, alpha=0.25):
+    def __init__(self, logdir, alpha=0.25, max_value=float('inf')):
         rundirs = [
             dirname for dirname in os.listdir(logdir)
             if dirname[0] != '.' and path.isdir(path.join(logdir, dirname))
@@ -30,15 +30,16 @@ class TFSummary:
             )
 
         self.alpha = alpha
+        self.max_value = max_value
 
     def summary_iterator(self):
         prev_wall_time = 0
         file_wall_time_offset = 0
 
-        for eventfile in self.tfevent_filepaths:
+        for file_index, eventfile in enumerate(self.tfevent_filepaths):
             first_event_in_file = True
 
-            for e in tf.train.summary_iterator(eventfile):
+            for i, e in enumerate(tf.train.summary_iterator(eventfile)):
                 if first_event_in_file:
                     file_wall_time_offset = prev_wall_time - e.wall_time
                     first_event_in_file = False
@@ -73,7 +74,7 @@ class TFSummary:
                     data.append({
                         'step': e.step,
                         'wall time': wall_time,
-                        'value raw': v.simple_value
+                        'value raw': min(self.max_value, v.simple_value)
                     })
 
         # construct dataframe

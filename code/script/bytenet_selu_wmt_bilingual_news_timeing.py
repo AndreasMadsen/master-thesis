@@ -7,7 +7,7 @@ from code.metric import BleuScore, ModelLoss
 
 # set log level to debug
 stf.sg_verbosity(10)
-gpus = 4
+gpus = 1
 
 dataset_train = WMTBilingualNews(batch_size=16 * gpus,
                                  year=2014,

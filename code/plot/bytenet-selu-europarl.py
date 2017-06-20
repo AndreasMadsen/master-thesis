@@ -11,10 +11,11 @@ dataset = Europarl(batch_size=64,
                    external_encoding='build/europarl-max500.tfrecord')
 
 
-def model_dataframe(filepath):
+def model_dataframe(filepath, max_value=float('inf')):
     summary = TFSummary(
         filepath,
-        alpha=0.05
+        alpha=0.05,
+        max_value=max_value
     )
 
     entropy = pd.concat(
@@ -64,7 +65,8 @@ bytenet_full, _ = model_dataframe(
 bytenet_full['value raw'] = np.nan
 
 bytenet_selu, batch_lines = model_dataframe(
-    'hpc_asset/bytenet_selu_europarl_max500_adam'
+    'hpc_asset/bytenet_selu_europarl_max500_adam',
+    max_value=50000
 )
 
 data = pd.concat(

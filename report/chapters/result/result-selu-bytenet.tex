@@ -28,7 +28,12 @@ The activation function is a variation on the exponential-linear-unit (ELU), whi
 \end{array}
 \end{equation}
 
-\todo[inline]{show figure of the SLEU(x) model.}
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=1]{theory/selu-activation-function.pdf}
+    \caption{Shows $\mathrm{ReLU}(x)$ and $\mathrm{SELU}(x)$ in the range $x \in [-5, 5]$.}
+    \label{fig:result:selu-bytenet:bytenet-selu-activation}
+\end{figure}
 
 The initialization should then be done such that $\mathbb{E}[z_{h_\ell}] = 0$ and $\mathrm{var}[z_{h_\ell}] = 1$. This is achieved by initializing the weights such that:
 \begin{equation}
@@ -45,7 +50,7 @@ Using the SELU activation function and its derived initialiser, the convergence 
     \label{fig:result:selu-bytenet:bytenet-selu-wmt}
 \end{figure}
 
-Finally the synthetic digits experiment shows similar results as the normal ByteNet model (Appendix \ref{appendix:result:bytenet-selu}).
+Finally, the synthetic digits experiment shows similar results as the normal ByteNet model (Appendix \ref{appendix:result:bytenet-selu}).
 
 \clearpage
 \subsection{Performance Profiling}
@@ -82,4 +87,12 @@ The Europarl v7 dataset is used to train the SELU ByteNet model. The setup is id
     \label{fig:result:bytenet-selu:europarl}
 \end{figure}
 
-From figure \ref{fig:result:bytenet-selu:europarl} it is very apparent that the SELU model is extremely fast in comparison to the normal ByteNet model. However it also leans extremely poorly. 
+From figure \ref{fig:result:bytenet-selu:europarl} it is very apparent that the SELU model is extremely fast in comparison to the normal ByteNet model, it completes all 13 epochs in less than a day. However, it also learns extremely poorly.
+
+The cross entropy on the training dataset spikes on occasion, this could explain some of the poor learning behavior. Such an issue is typically solved with gradient clipping, where a hard upper bound is set on the gradient, preventing an exploding gradient. However, the idea behind the SELU activation function is precisely to prevent vanishing and exploding gradients, thus it doesn't seam reasonable to employ additional techniques to prevent exploding gradients.
+
+Another possibility is that the Adam optimization parameters need to be much different when the SELU activation function is used. However, the Adam optimizer acts under most conditions as a trust-region, thus the parameters shouldn't affect the output too much \cite{adam-optimization}.
+
+It is possible that with enough tuning SELU could be made functional, in which case SELU ByteNet would be a very powerful model. However, the behaviour of SELU and why it theoretically and sometime in practice works, is not obvious. The proof for the convergence properties of SELU alone, is 90+ pages \cite{selu}. This makes the SELU activation function hard to reason about, and thus it is hard to make educated guesses about how to tune the model.
+
+Finally, it is possible that the sparse nature of ReLU is essential for creating a natural language model, where sparse pattern often occur. It is thus possible that the SELU activation function will never work.

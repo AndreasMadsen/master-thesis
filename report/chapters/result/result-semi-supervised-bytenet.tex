@@ -7,7 +7,7 @@ The semi-supervised ByteNet model combines the generalized ``Semi-Supervised Lea
 
 \subsection{Synthetic Digits Problem}
 
-The ByteNet model in itself is rather slow at learning, at least given the current state of TensorFlow. The strategy presented in ``Semi-Supervised Learning for NMT'' does not make this any better. In fact, because the unsupervised part of the loss requires inference using a beam search, the execution time will increase linearly with respect to the beam size. The situation may be even worse for ByteNet since ByteNet when used supervised allows for full palatalization over both the source and target sequence. When inference is done on the ByteNet model, as it is in the unsupervised case, only the encoder part is supervised.
+The ByteNet model in itself is rather slow at learning, at least given the current state of TensorFlow. The strategy presented in ``Semi-Supervised Learning for NMT'' does not make this any better. In fact, because the unsupervised part of the loss requires inference using a beam search, the execution time will increase linearly with respect to the beam size. The situation may be even worse for ByteNet since ByteNet when used supervised allows for full parallelization over both the source and target sequence. When inference is done on the ByteNet model, as it is in the unsupervised case, only the encoder part is supervised.
 
 Because of these complications, it is not feasible to apply the Semi-Supervised ByteNet model on the full Europarl v7 dataset and another monolingual (unlabeled) dataset. Instead, to show that the model works and validate the implementation, the model is applied to the synthetic digits problem.
 
