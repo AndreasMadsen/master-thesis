@@ -15,7 +15,7 @@
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{bytenet/profile-grouped-gpu1.pdf}
-    \caption{Shows time spend executing operations in each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. The bottom level is the least detailed level, it just splits the model in the backward and forward pass. The next level, splits the model in the encoder and decoder. The last level at the top, primarily splits the ByteNet Residual Blocks.}
+    \caption{Shows time spend executing each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. Bottom level is the backward and forward pass. Second level is the encoder and decoder. Last level primarily splits the SELU ByteNet Residual Blocks.}
 \end{figure}
 
 \clearpage
@@ -57,7 +57,7 @@
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{bytenet-small/profile-grouped-gpu1.pdf}
-    \caption{Shows time spend executing operations in each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. The bottom level is the least detailed level, it just splits the model in the backward and forward pass. The next level, splits the model in the encoder and decoder. The last level at the top, primarily splits the Simplified ByteNet Residual Blocks.}
+    \caption{Shows time spend executing each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. Bottom level is the backward and forward pass. Second level is the encoder and decoder. Last level primarily splits the SELU ByteNet Residual Blocks.}
 \end{figure}
 
 \clearpage

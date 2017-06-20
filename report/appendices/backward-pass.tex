@@ -88,7 +88,6 @@ The weight $w_{h_{\ell-1},h_\ell}(i)$ affects all time steps, thus the chain rul
 &= \sum_{t} \delta_{h_\ell}(t) a_{h_{\ell-1}}(t + r\,i)
 \end{aligned}
 \end{equation}
-\todo[inline]{somehow this can be rewritten to a convolution: $(\delta_{h_\ell} * rot(a_{h_{\ell-1}}))(i)$, see \url{https://grzegorzgwardys.wordpress.com/2016/04/22/8/}}
 
 Here $\delta_{h_\ell}(t)$ is defined as:
 \begin{equation}
@@ -128,7 +127,7 @@ This is the derivative for the dilated convolution. Because the derivative is a 
 \section{Batch Normalization}
 \label{appendix:backward-pass:batch-norm}
 
-To derive the backward pass for batch normalization it helps to setup equations for $\mathbb{E}[z_{h_\ell}]$ and $\textsc{Var}[z_{h_\ell}]$. To do this we need to reintroduce the observation index this time it will be denoted with the superscript $(i)$. Similarly, the mini-batch will be denoted with $\mathcal{B}$. With these changes the the full forward pass can be written as:
+To derive the backward pass for batch normalization it helps to setup equations for $\mathbb{E}[z_{h_\ell}]$ and $\textsc{Var}[z_{h_\ell}]$. To do this we need to reintroduce the observation index this time it will be denoted with the superscript $(i)$. Similarly, the mini-batch will be denoted with $\mathcal{B}$. With these changes the full forward pass can be written as:
 \begin{equationbox}[H]
 Activation:
 \begin{equation*}
