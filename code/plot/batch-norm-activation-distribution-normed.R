@@ -17,7 +17,7 @@ sigmoid.dist = function (y, mean, sd) {
   return (dnorm(sigmoid.inv(y), mean=mean, sd=sd) * sigmoid.inv.diff(y))
 }
 
-settings = data.frame(mu=c(0, 1, 0), mean=c(1, 1, 2))
+settings = data.frame(mu=c(1, 0), mean=c(1, 2))
 
 dat = data.frame(x=c(), density=c(), labels=c(), name=c())
 each.row = function (row) {
@@ -30,7 +30,7 @@ each.row = function (row) {
   ))
   dat <<- rbind(dat, data.frame(
     x=seq(0, 1, 0.01),
-    density=sigmoid.dist(seq(0, 1, 0.01), mean=row[1], sd=row[2]),
+    density=sigmoid.dist(seq(0, 1, 0.01), mean=0, sd=1),
     label=label,
     distribution='sigmoid'
   ))
@@ -45,4 +45,4 @@ p = p + ylim(0, 2.5)
 p = p + theme(legend.position="bottom",
               text=element_text(size=10))
 
-ggsave("../report/graphics/theory/batch-norm-activation-distribution.pdf", p, width=12.96703, height=10, units="cm")
+ggsave("../report/graphics/theory/batch-norm-activation-distribution-normed.pdf", p, width=12.96703, height=7, units="cm")

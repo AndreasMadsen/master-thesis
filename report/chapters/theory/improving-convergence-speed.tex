@@ -29,10 +29,17 @@ The \textit{internal covariate shift} issue can be illustrated by considering a 
 While this issue isn't as theoretically significant for other activation functions, such as the ReLU activation function, it does often still have pratical effects, particularly for deep neural networks.
 
 \subsubsection{A solution}
-The \textit{internal covariate shift} issue can in practice be solved by using a small learning rate. However, this is not an optimal solution as it prolongs the optimization. Batch normalization is an alternative solution, that solves the issue by standardizing the input to the activation function. To truly standardize the input, the covariance matrix as well as its inverse square root, should be calculated. These calculations are very expensive, thus batch normalization makes a practical compromise by only standardizing using the variance.
+The \textit{internal covariate shift} issue can in practice be solved by using a small learning rate. However, this is not an optimal solution as it prolongs the optimization. Batch normalization is an alternative solution, that solves the issue by standardizing the input to the activation function. To truly standardize the input, the covariance matrix as well as its inverse square root, should be calculated. These calculations are very expensive, thus batch normalization makes a practical compromise by only standardizing using the variance. Figure \ref{fig:convergence:batch-norm:activation-distribution-normed} shows the sigmoid distribution after standardization.
 \begin{equation}
 \hat{z}_{h_\ell} = \frac{z_{h_\ell} - \mathbb{E}[z_{h_\ell}]}{\sqrt{\textsc{Var}[z_{h_\ell}] + \epsilon}}, a_{h_\ell} = \theta(\hat{z}_{h_\ell})
 \end{equation}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[scale=1]{theory/batch-norm-activation-distribution-normed}
+	\caption{Shows $X \sim \mathcal{N}(\mu, \sigma)$ and $\mathrm{sigmoid}(\hat{X})$, where $\hat{X}$ is standardized using batch normalization. The sigmoid distribution is calculated using the \textit{change of variable theorem}.}
+	\label{fig:convergence:batch-norm:activation-distribution-normed}
+\end{figure}
 
 The expectation ($\mathbb{E}[z_{h_\ell}]$) and variance ($\textsc{Var}[z_{h_\ell}]$) themselves are expensive to estimate over the entire dataset, thus it's only done over each mini-batch. This also makes it much more feasible to integrate the standardization into the backward pass. Note also that because the expectation is subtracted, the bias $b_{h_\ell}$ in $z_{h_\ell}$ has no effect and should thus be omitted:
 \begin{equation}
