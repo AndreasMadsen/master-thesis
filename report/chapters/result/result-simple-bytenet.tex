@@ -1,10 +1,10 @@
 \section{Simplified ByteNet}
 
-The implementation of the ByteNet model spends $37\%$ of its time waiting for data transfer between the GPU and CPU, and even more time waiting because of the TensorFlow service. This is because of the large amount of weights and operations that is used in the ByteNet model.
+The implementation of the ByteNet model spends $37\%$ of its time waiting for data transfer between the GPU and CPU, and even more time waiting because of the TensorFlow service. This is because of the many of weights and operations that are used in the ByteNet model.
 
-To solve this issue, a simplified version of the ByteNet model is used. This model uses less weights and less operations than ByteNet, but remains true to the principals behind ByteNet. Those principals are: running in linear time, parallelize over both sequence and observations, and have a resolution persistent encoding. The simplified version also maintains the bottleneck of 200 dimensions that ByteNet has in its dilated-convolution layer.
+To solve this issue, a simplified version of the ByteNet model is used. This model uses fewer weights and fewer operations than ByteNet, but remains true to the principals behind ByteNet. Those principals are: running in linear time, parallelize over both sequence and observations, and have a resolution persistent encoding. The simplified version also maintains the bottleneck of 200 dimensions that ByteNet has in its dilated-convolution layer.
 
-The idea is simple, if the initial embedding dimensionality is set to 200, then the compression and decompression layers that exists before and after the dilated convolution are not needed. Of cause these layers adds non-linearities and weights to the model, thus one should not expect the model to perform equally well. However, the model should predict almost as well as the ByteNet model, while being significantly faster.
+The idea is simple, if the initial embedding dimensionality is set to 200, then the compression and decompression layers that exist before and after the dilated convolution are not needed. Of cause these layers add non-linearities and weights to the model, thus one should not expect the model to perform equally well. However, the model should predict almost as well as the ByteNet model, while being significantly faster.
 
 \begin{figure}[H]
     \centering
@@ -23,7 +23,7 @@ The idea is simple, if the initial embedding dimensionality is set to 200, then 
     \label{fig:result:simple-bytenet:residual-block}
 \end{figure}
 
-In terms of weights the simplified ByteNet model has approximately $\sfrac{5}{9}$ times less weights than the ByteNet model. The simplified ByteNet model also has approximately one third of the operations as the ByteNet model. Based on these parameters one should expect less transfer time and less time spend waiting for the TensorFlow service.
+In terms of weights, the simplified ByteNet model has approximately $\sfrac{5}{9}$ times fewer weights than the ByteNet model. The simplified ByteNet model also has approximately one-third of the operations as the ByteNet model. Based on these parameters one should expect less transfer time and less time spent waiting for the TensorFlow service.
 
 The simplified ByteNet model was validated identically to the how the ByteNet model was validated. The results (appendix \ref{appendix:result:bytenet-small}) were very similar with some minor differences. Memorizing WMT NewsTest took fewer iterations, this is likely because there are fewer parameters. The simplified ByteNet model learned the synthetic digits problem better, with a misclassification error of $0.25$. The improved misclassification error is likely because the simplified ByteNet model has fewer parameters and non-linear transformations, which makes it overfit less.
 
@@ -42,7 +42,7 @@ Measuring the total time spend, and the processed observations per second (figur
 
 On 1 GPU there is no data transfer of weights, thus it is only the TensorFlow service and the computation that takes time. Reducing the number of operations to $\sfrac{1}{3}$ should thus result in a $\sfrac{2}{3}$ computational performance gain. This is of cause an approximation as there is still the embedding layer, the concatenation of encoding and decoding, and the final output layer, thus $\sfrac{2}{3}$ the operations is an upper bound. However, $20\%$ is still far from what one would expect.
 
-Comparing the time spend in the 1 GPU experiment and the 4 GPU experiment, and because very little data transfer happens when using 1 GPU. The data shows that approximately $40\%$ time is spend transferring data. This is approximately the same as the $37\%$ in the normal ByteNet model. The number of weights is reduced by $\sfrac{5}{9}$, thus one would expect the transfer time to be reduced by this order, but this is not the case.
+Comparing the time spent in the 1 GPU experiment and the 4 GPU experiment, and because very little data transfer happens when using 1 GPU. The data shows that approximately $40\%$ time is spend transferring data. This is approximately the same as the $37\%$ in the normal ByteNet model. The number of weights is reduced by $\sfrac{5}{9}$, thus one would expect the transfer time to be reduced by this order, but this is not the case.
 
 \begin{figure}[h]
     \centering
@@ -51,9 +51,9 @@ Comparing the time spend in the 1 GPU experiment and the 4 GPU experiment, and b
     \label{fig:result:simple-bytenet:profile-grouped}
 \end{figure}
 
-Finally the TensorFlow profiler can be used to investigate what takes time. When processed the results are similar to those from the normal ByteNet model, see figure \ref{fig:result:simple-bytenet:profile-grouped}.
+Finally, the TensorFlow profiler can be used to investigate what takes time. When processed the results are similar to those from the normal ByteNet model, see figure \ref{fig:result:simple-bytenet:profile-grouped}.
 
-Figure \ref{fig:result:simple-bytenet:profile-grouped} shows that much of the time is spend in the \textit{pre-normalization layer}. The \textit{pre-normalization layer} is the layer in the residual block that contains the first normalization and ReLU activation. This validates the idea that it is the number of operations and not the operations themselves that cost in terms of time. The dilated convolution (called \textit{conv-dilated}) is a much more complex operation than normalization or ReLU, but TensorFlow implements it using just a few operations, thus it doesn't consume that much time. As mentioned earlier the TensorFlow team is aware of this performance issue. TensorFlow is planning to solve this issue by automatically compiling GPGPU (CUDA or OpenCL) kernels that combines multiple operations into one. However, this is still very experimental and doesn't yet provide a performance benefit when using multiple GPUs \cite{google-xla}.
+Figure \ref{fig:result:simple-bytenet:profile-grouped} shows that much of the time is spent in the \textit{pre-normalization layer}. The \textit{pre-normalization layer} is the layer in the residual block that contains the first normalization and ReLU activation. This validates the idea that it is the number of operations and not the operations themselves that cost in terms of time. The dilated convolution (called \textit{conv-dilated}) is a much more complex operation than normalization or ReLU, but TensorFlow implements it using just a few operations, thus it doesn't consume that much time. As mentioned earlier the TensorFlow team is aware of this performance issue. TensorFlow is planning to solve this issue by automatically compiling GPGPU (CUDA or OpenCL) kernels that combine multiple operations into one. However, this is still very experimental and doesn't yet provide a performance benefit when using multiple GPUs \cite{google-xla}.
 
 \clearpage
 \subsection{WMT Translation Task}
@@ -73,11 +73,11 @@ An interesting observation is that the simplified ByteNet model overfits a lot m
 
 It is not clear why this overfitting happens, but it is very likely a contributing factor to why the test BLEU score isn't better. However, this can not be the entire explanation, as also the training BLEU score is worse. If anything, overfitting should cause a higher training BLEU score, as regularization typically increases the training loss in order to decrease the test loss.
 
-Possible regularization methods are L1, L2, and dropout. Particularly, L1 regularization could be interesting in the first 5 \textit{residual blocks}, as these layers likely performs some characters-to-word encoding. Such an encoding should be very sparse, L1 regularization would enforce such a sparsity.
+Possible regularization methods are L1, L2, and dropout. Particularly, L1 regularization could be interesting in the first 5 \textit{residual blocks}, as these layers likely perform some characters-to-word encoding. Such an encoding should be very sparse, L1 regularization would enforce such a sparsity.
 
 The translations as shown in table \ref{table:result:bytenet-small:translations} are rather bad, they have little connection to the source sequence and there is a tendency for the sequence ``Mr \textit{insert name}'' to appear without context. The poor translations can likely be attributed to the severe overfitting.
 
-Calculating the BLEU score after training on the entire WMT NewsTest dataset, yields a BLEU score of $0.55$. This matches the poor translations a lot better, than the sampled BLEU score of approximately $3$.
+Calculating the BLEU score after training on the entire WMT NewsTest dataset, yields a BLEU score of $0.55$. This matches the poor translations a lot better than the sampled BLEU score of approximately $3$.
 
 \begin{table}[h]
 \centering
