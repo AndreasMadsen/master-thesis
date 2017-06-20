@@ -20,10 +20,14 @@ p = p + ylim(0.5, 4.5)
 p = p + theme(legend.position="none",
               text=element_text(size=10))
 
-ggsave(filepath, p, width=page.width, height=height, units="cm");
+ggsave(filepath, p, width=page.width, height=height, dpi=600, units="cm");
 """)
 
 gg.run(trace_gpu4.dataframe(), 'bytenet/profile-raw-gpu4', file_format='pdf',
        height=13)
+gg.run(trace_gpu4.dataframe(), 'bytenet/profile-raw-gpu4', file_format='png',
+       height=13)
 gg.run(trace_gpu1.dataframe(), 'bytenet/profile-raw-gpu1', file_format='pdf',
+       height=7)
+gg.run(trace_gpu1.dataframe(), 'bytenet/profile-raw-gpu1', file_format='png',
        height=7)
