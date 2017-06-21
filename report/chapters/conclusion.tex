@@ -1,2 +1,24 @@
 %!TEX root = ../Thesis.tex
 \chapter{Conclusion}
+
+Neural machine translation is a difficult and fast moving field. Over the 6 months this thesis has been carried out, several papers with new translation models have published. Each model shows a new state-of-the-part performance over the previous model on the WMT translation task \cite{bytenet, attention-is-all-you-need, tensor2tensor}. These models are created by Google, Microsoft, Facebook, etc., who have both computational resources and man-power to implement and experiment with a huge number of models. The goal and expectation of this thesis is thus not compete with these models, but rather explore a new direction for neural machine translation, by using additional monolingural (unlabeled) data. However, to do this a fast and decent translation model is required, thus much effort have been put into the supervised model.
+
+\paragraph{ByteNet} The ByteNet model was able to learn both the synthetic digits problem and memorize the WMT NewsTest dataset, this confirms the implementation and capabilities of the ByteNet model. For the real problem where the Europarl v7 dataset is used, ByteNet managed to archive a BLEU score of $7.44$ and produce reasonable good translations. This is far from state-of-the-art or just a phase-based (PBMT) baseline model, however given the limited resources the results are rather good.
+
+The original ByteNet paper including the latest revision, did not disclose how much time was spent training or how many resources that were used. From a scientific point of view this is rather inadequate, especially because they created the model from a computational performance perspective. A recent blog-post from Google published in June 2017, compares the different translation models and shows that ByteNet is actually one of the most computationally expensive models \cite{tensor2tensor}.
+
+It is possible that if the oscillation issues were solved, with TensorFlow improving the execution speed with the XLA just-in-time (JIT) compiler, and with CuDNN supporting dilated convolution and normalization, that ByteNet could run in reasonable time. However, it will likely take at least a year before TensorFlow and CuDNN are at this state.
+
+\paragraph{Simplified ByteNet}
+Blocks are necessary for depth, and compression is necessary for preventing overfitting. Not a likely direction for ByteNet.
+
+\paragraph{SELU ByteNet}
+* SELU is promising, but also a very new approach. If it could be made to work, ByteNet would be a seriuse contender in terms of computation time. Other models may not work as well, as some LSTM/GRU based models depends on sigmoid activation.
+
+\paragraph{Semi-Supervised ByteNet}
+While not mathmatically interesting, it is a pragmatic approach that works well with models that have fast/linear-time inference, such as ByteNet. However the normal ByteNet model is too slow for it to be relevant.
+
+\paragraph{Future Works}
+* Attention-is-all-you-need, similar principals to ByteNet. Parralize over sequence, training is linear in terms of sequence length (although inferince isn't), reselution presitent encoding. – They replaced 3*5 layers of normalization, with just 2-3 layers of normalization, by using attention, thus much faster.
+* SELU ByteNet, completely replaces normalization, if it could be made to work, ByteNet might be competeable, as dilated-convolution might be faster than their Multi-Head Attention layer.
+* Use psoudu-transfer learning from 2x supervised ByteNet to semi-supervised ByteNet.
