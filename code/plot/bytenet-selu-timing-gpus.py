@@ -36,6 +36,11 @@ selu_gpu4 = TFSummary(
     alpha=0.1
 )
 
+selu_gpu1 = TFSummary(
+    'hpc_asset/bytenet_selu_wmt_2014_timeing/bytenet_wmt_2014_gpu1_timeing',
+    alpha=0.1
+)
+
 speed_full = pd.concat(
     [
         observation_speed(full_gpu1.read_summary('global_step/sec'), 1),
@@ -54,9 +59,10 @@ speed_small = pd.concat(
 )
 speed_selu = pd.concat(
     [
+        observation_speed(selu_gpu1.read_summary('global_step/sec'), 1),
         observation_speed(selu_gpu4.read_summary('global_step/sec'), 4)
     ],
-    keys=['4 GPUs'],
+    keys=['1 GPU', '4 GPUs'],
     names=['parallelism']
 )
 speed = pd.concat(
