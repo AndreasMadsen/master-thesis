@@ -1,2 +1,50 @@
 %!TEX root = ../Thesis.tex
 \chapter{Notation}
+
+
+\begin{table}[H]
+\centering
+\begin{tabular}{r p{10cm}}
+	symbol & meaning \\ \hline
+	% Nework
+	$z$ & The activation input, calculated as a weighted sum over the input. \\
+	$a$ & The activation output, $a = \theta(z)$. \\
+	$\theta$ & The non-linear activation function. \\
+	$H$ & The amount of units in the layer. \\
+	$h$ & The index of a units in the layer. \\
+	$K$ & The amount of classes calculated in the softmax, $K = H_{L+1}$. \\ 
+	$\ell$ & The layer index. \\
+	$L$ & The amount of hidden layers. Including the softmax output layer there are $L+1$ layers. \\
+	$t$ & A target value. If used in a superscript it is the sequence index. \\
+	$w$ & A weight used in a neural neural network. \\
+	$x$ & The input to the neural network, $x = z_{h_0}$. \\
+	$y$ & The softmax output. \\
+	
+	% Optimization
+	$\mathcal{L}$ & The loss function (should always be minimized). \\
+	$\delta$ & Bookkeeping value used in backward propagation. \\
+	$\alpha$ & Learning rate used in the Adam Optimization algorithm. \\
+	
+	% Normalization
+	$\gamma$ & Scale parameter in normalization. \\
+	$\beta$ & Bias parameter in normalization. \\
+
+    % Dilated convolution
+	$d$ & The dimensionality of the vector representation. \\
+    $*$ & The convolution operator. \\
+    $\otimes$ & The Kronecker product. \\
+	$k$ & The kernel width in a 1d-convolution. \\
+	$r$ & The dilation rate used in dilated convolution. \\
+    
+	% BeamSearch
+	$b$ & The beam size used in the BeamSearch algorithm.
+\end{tabular}
+\caption*{\textbf{Table A.1: } Meaning of commonly used symbols.}
+\end{table}
+
+\begin{figure}[H]
+	\vspace{-0.1cm}
+	\centering
+	\includegraphics[scale=1]{appendices/notation}
+	\caption*{\textbf{Figure A.1: } A two-level subscript is used for the neuron index.}
+\end{figure}
