@@ -1,2 +1,8 @@
 %!TEX root = ../Thesis.tex
 \chapter{Summary (English)}
+
+This thesis investigates models for translating between natural languages. The models are based on a recently published model called ByteNet. The ByteNet model is a new approach to neural machine translation that isn't based on attention but instead layers of hierarchical dilated convolutions. Using this approach the ByteNet model runs in linear time while still being resolution persistent.
+
+Using a variation of the ByteNet model, the model is then applied in a semi-supervised settings, where it is trained on both a bilingual and a monolingural dataset. The idea is that the best performing models are typically those that uses the most data. For language pairs where the bilingual dataset is small, monolingural data could be a vital supplement.
+
+Results showed that ByteNet is able to learn natural language translation between from German to English using a bilingual dataset. The model was unfortunately too time consuming to use in a semi-supervised setting for natural language translation. However, a reduced ByteNet model was used to learn a synthetic problem that mimics natural language translation. The semi-supervised experiments showed that monolingural data improves the predictive performance.

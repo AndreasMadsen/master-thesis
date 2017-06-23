@@ -1,2 +1,8 @@
 %!TEX root = ../Thesis.tex
 \chapter{Summary (Danish)}
+
+Denne afhandling undersøger modeller til at oversætte imellem naturlige sprog. Modellerne er baseret på en fornyligt publiceret model kaldet ByteNet. ByteNet modellen er en ny tilgang til neural maskine oversættelse, som ikke er baseret på \textit{attention} men istedet bruger lag af hierarkisk dilateret konvolution. Ved brug af denne metode kan ByteNet køre i lineær tid og samtidig være vedvarende opløsningen.
+
+Ved at bruge en variation af ByteNet modellen, er modellen benytte i en semi-vejledt kontekst, hvor den er trænet på både et tosproget og ensproget datasæt. Iden er at de bedste ydende modeller er dem som bruger mest data, for sprogpar hvor det tosproget dataset er lille, kan et ensproget datasæt køre en stor forskel.
+
+Resultaterne viser at ByteNet er i stand til at lære sprog oversættelse imellem Tysk og Engelsk ved at bruge et tosproget dataset. Modellen var desvære for tidsmæssigt langsom til at kunne blive brugt i en semi-vejledt kontekst til sprog oversættelse. Ved at reducere ByteNet modellen var det dog muligt at lære et syntetisk problem er mindre om naturlige sprog oversættelse. De semi-vejledte eksperimenter viste at ensproget data forbedre modellen ydeevne.
