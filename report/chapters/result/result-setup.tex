@@ -6,7 +6,7 @@ Model evaluation measures, such as the misclassification rate, and the BLEU scor
 
 The evaluations are smoothed using an exponential moving average, this removes most of the noise associated with training neural networks with mini-batches. Because the moving average is done over different samples from the test and training dataset, the moving average will likely be close to the true average. However, this is not statistically guaranteed as the model differs in each iteration, thus stationarity is not guaranteed.
 
-\subsubsection{Example predictions}
+\subsubsection{After training prediction}
 The predictions made after training are done using a BeamSearch algorithm with a beam size of 10. Each prediction is the most likely sequence found during the BeamSearch that contains an \texttt{<eos>} symbol.
 
 \subsubsection{Multiple GPU parallelization}
@@ -45,6 +45,17 @@ The partition algorithm first constructs a histogram using the length of each se
   \end{algorithmic}
 \end{algorithm}
 
-\subsubsection{Software}
+\subsubsection{Software and Hardware}
 
-\todo[inline]{Document TensorFlow and python version, add link to code.}
+\textbf{The thesis code is available at: } \url{https://github.com/AndreasMadsen/master-thesis}
+
+TensorFlow 1.1 \cite{tensorflow2015-whitepaper} and Python 3.6 were used to build, train and evaluate the models. A TensorFlow abstraction layer called \texttt{sugartensor} (\url{https://github.com/buriburisuri/sugartensor}) developed by KakaoBrain was also used. During this thesis I have made 6 separate contributions to the project. The plots are generated using ggplot2 \cite{ggplot2} in R .
+
+TensorFlow was compiled for the specific CPU architecture and for CUDA Compute Capabilities 6.1. CUDA 8.0 and CuDNN 5.1 was used.
+
+The DTU HPC system was used for computation. They have two Titan GPU machines, each machine have:
+\begin{itemize}[noitemsep]
+\item 4 Nvidia Titan X (Pascal) GPUs.
+\item 1 Intel Xeon CPU E5-2640 v4 CPU, with 10 cores.
+\item 128 GB RAM.
+\end{itemize}
