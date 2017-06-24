@@ -1,6 +1,6 @@
 \section{SELU ByteNet}
 
-The Simplified ByteNet experiments indicates that, the compression and decompression layers are necessary, and the normalization layers are very expensive. From these observations it makes sense to analyse whether the normalization layers are actually necessary for the network to converge.
+The simplified ByteNet experiments indicate that the compression and decompression layers are necessary and the normalization layers are very expensive. From these observations, it makes sense to analyze whether or not the normalization layers are necessary for the network to converge.
 
 The experiment in figure \ref{fig:result:selu-bytenet:bytenet-nonorm-wmt} is the ``Memorizing WMT NewsTest'' experiment on the ByteNet model without normalization layers. The experiment ran for 300 epochs.
 
@@ -11,13 +11,13 @@ The experiment in figure \ref{fig:result:selu-bytenet:bytenet-nonorm-wmt} is the
     \label{fig:result:selu-bytenet:bytenet-nonorm-wmt}
 \end{figure}
 
-Figure \ref{fig:result:selu-bytenet:bytenet-nonorm-wmt} shows that the non-normalized ByteNet model never completely memorizes the training dataset as it should. It is possible that it could still learn actual translation when trained on the Europarl v7 dataset, however, it is not very likely.
+Figure \ref{fig:result:selu-bytenet:bytenet-nonorm-wmt} shows that the non-normalized ByteNet model never completely memorizes the training dataset as it should. This is likely due to a vanishing gradient issue, that causes it to converge very slowly. It is possible that it could still learn actual translation when trained on the Europarl v7 dataset, however, it is not very likely.
 
-Recently a new paper showed that it is possible to create a ``self-normalizing neural network''. This means that normalization isn't done explicitly by a normalization layer, but instead the network is created such that the parameters will convergence to weights that ensures normalized internal values.
+Recently a new paper showed that it is possible to create a ``self-normalizing neural network''. This means that normalization isn't done explicitly by a normalization layer, but instead, the network is created such that the parameters will converge to weights that ensure normalized internal values.
 
-The ``self-normalizing neural network'' was achieved by using a different activation function and weight initialization. Primarily it is the activation function that is responsible for making the network \textit{self-normalizing}, the initialization is primarily just to ensure a reasonable starting point \cite[https://arxiv.org/pdf/1706.02515.pdf]{selu}.
+The ``self-normalizing neural network'' was achieved by using a different activation function and weight initialization. Primarily it is the activation function that is responsible for making the network \textit{self-normalizing}, the initialization is primarily just to ensure a reasonable starting point \cite{selu}.
 
-The activation function is a variation on the exponential-linear-unit (ELU), which is similar to the ReLU activation function. The difference is that two constants ($\lambda, alpha$) are added:
+The activation function is a variation on the exponential-linear-unit (ELU), which is similar to the ReLU activation function. The difference from ELU is that two constants ($\lambda, \alpha$) are added:
 \begin{equation}
 \mathrm{SELU}(x) = \lambda \begin{cases}
   x & x > 0 \\
@@ -35,13 +35,13 @@ The activation function is a variation on the exponential-linear-unit (ELU), whi
     \label{fig:result:selu-bytenet:bytenet-selu-activation}
 \end{figure}
 
-The initialization should then be done such that $\mathbb{E}[z_{h_\ell}] = 0$ and $\mathrm{var}[z_{h_\ell}] = 1$. This is achieved by initializing the weights such that:
+The initialization should then be done such that $\mathbb{E}[z_{h_\ell}] = 0$ and $\mathrm{Car}[z_{h_\ell}] = 1$. This is achieved by initializing the weights such that:
 \begin{equation}
 \mathrm{Var}[w_{h_{\ell-1}, h_{\ell}}] = \frac{1}{H_{\ell-1}} \quad \Rightarrow \quad r = \sqrt{\frac{3}{H_{\ell-1}}}
 \end{equation}
-where $r$ is the symmetric uniform distribution parameter, similarly to that used in He-Initialization.
+where $r$ is the symmetric uniform distribution parameter, similar to that used in He-Initialization.
 
-Using the SELU activation function and its derived initialiser, the convergence for the ``Memorizing WMT NewsTest'' experiment is somewhat similar to the normal ByteNet case (figure \ref{fig:result:selu-bytenet:bytenet-selu-wmt}). However, there are some significant differences. The initial cross entropy loss is much higher in the SELU ByteNet case, this indicates that the derived initialiser isn't the optimal choice. Secondly the training BELU score shows almost no improvement initially and then a very fast improvement after a few 75 epochs. These two observations are likely connected, if the initialization is bad it will take a long time for the network to reach a similar state as the normal ByteNet model does initially. If this is true, and if it's possible to initialize the SELU ByteNet model better, the SELU ByteNet model should actually converge in much fewer iterations that the normal ByteNet model.
+Using the SELU activation function and its derived initializer, the convergence for the ``Memorizing WMT NewsTest'' experiment is somewhat similar to the normal ByteNet case (figure \ref{fig:result:selu-bytenet:bytenet-selu-wmt}). However, there are some significant differences. The initial cross entropy loss is much higher in the SELU ByteNet case, this indicates that the derived initializer isn't the optimal choice. Secondly, the training BLEU score shows almost no improvement initially, then after 75 epochs it improves very fast. These two observations are likely connected, if the initialization is bad it will take a long time for the network to reach a similar state as the normal ByteNet model does initially. If this is true, and if it's possible to initialize the SELU ByteNet model better, the SELU ByteNet model may converge in much fewer iterations that the normal ByteNet model.
 
 \begin{figure}[h]
     \centering
@@ -50,12 +50,12 @@ Using the SELU activation function and its derived initialiser, the convergence 
     \label{fig:result:selu-bytenet:bytenet-selu-wmt}
 \end{figure}
 
-Finally, the synthetic digits experiment shows similar results as the normal ByteNet model (Appendix \ref{appendix:result:bytenet-selu}).
+Finally, the synthetic digits experiment using the SELU ByteNet model, shows similar results as the normal ByteNet model (Appendix \ref{appendix:result:bytenet-selu}).
 
 \clearpage
 \subsection{Performance Profiling}
 
-Repeating the performance experiment from both the normal ByteNet model and the simplified ByteNet model, shows that the SELU ByteNet model is extremely fast in comparison. Comparing the time spend running 300 epochs is actually a problem in this case, as the heating phase that transfers data and optimizes allocation takes up most of the time. However, comparing obs./sec shows that the SELU model is at least twice as fast as the normal ByteNet model.
+Repeating the performance experiment, from both the normal ByteNet model and the simplified ByteNet model, shows that the SELU ByteNet model is extremely fast in comparison. Comparing the time spend running 300 epochs is actually a problem in this case, as the heating phase that transfers data and optimizes allocation takes up most of the time. However, comparing \textit{obs./sec} shows that the SELU model is at least twice as fast as the normal ByteNet model.
 
 \begin{figure}[h]
     \centering
@@ -64,9 +64,9 @@ Repeating the performance experiment from both the normal ByteNet model and the 
     \label{fig:result:selu-bytenet:timing-gpus}
 \end{figure}
 
-The processed profiling in figure \ref{fig:result:selu-bytenet:profile-grouped} (the unprocessed plot is in appendix \ref{appendix:result:bytenet-selu}), shows that the convoluted dilation is the most expensive part. This is completely reasonable, as this is the operation that involves the largest amount of raw computation. However, TensorFlow actually has an inefficient implementation of the dilated convolution, because dilated convolution isn't supported directly by CuDNN v5.1. CuDNN stands for CUDA Deep Neural Network and is a library developed by Nvidia that contains efficient implementation of common operations used in neural networks. The next version of CuDNN supports dilated convolution, but TensorFlow does not yet use this version \cite{nvidia-cudnn}.
+The processed profiling in figure \ref{fig:result:selu-bytenet:profile-grouped} (the unprocessed plot is in appendix \ref{appendix:result:bytenet-selu}), shows that the convoluted dilation is the most expensive part. This is completely reasonable, as this is the operation that involves the largest amount of raw computation. However, TensorFlow actually has an inefficient implementation of the dilated convolution, because dilated convolution isn't supported directly by CuDNN v5.1. CuDNN stands for CUDA Deep Neural Network and is a library developed by Nvidia that contains efficient implementations of common operations used in neural networks. The next version of CuDNN supports dilated convolution, but TensorFlow does not yet use this implementation \cite{nvidia-cudnn}.
 
-Another interesting observation when looking at the processed profiling in figure \ref{fig:result:selu-bytenet:profile-grouped}, is the time spend in the ``\textit{pre-normalization}'' layer, which now just contains the SELU activation, compared to the time spend in \textit{recover-dim}, which just contains a \textit{sequential-dense} layer. This shows that the SELU activation uses an unreasonable amount of time. The SELU activation uses less raw computations than the \textit{sequential-dense} layer, and the SELU activation is purely an element-wise operation and should thus be easy to parallelize. The reason for this performance is the before-mentioned naive execution of the computational graph.
+Another interesting observation when looking at the processed profiling in figure \ref{fig:result:selu-bytenet:profile-grouped}, is the time spent in the ``\textit{pre-normalization}'' layer, which now just contains the SELU activation. Comparing \textit{pre-normalization} to the time spend in \textit{recover-dim}, which just contains a \textit{sequential-dense} layer, shows that the SELU activation uses an unreasonable amount of time. The SELU activation uses less raw computations than the \textit{sequential-dense} layer, and the SELU activation is purely an element-wise operation, thus it should be easy to parallelize. The reason for the poor performance is the before-mentioned naive execution of the computational graph by TensorFlow.
 
 \begin{figure}[h]
     \centering
@@ -89,10 +89,10 @@ The Europarl v7 dataset is used to train the SELU ByteNet model. The setup is id
 
 From figure \ref{fig:result:bytenet-selu:europarl} it is very apparent that the SELU model is extremely fast in comparison to the normal ByteNet model, it completes all 13 epochs in less than a day. However, it also learns extremely poorly.
 
-The cross entropy on the training dataset spikes on occasion, this could explain some of the poor learning behavior. Such an issue is typically solved with gradient clipping, where a hard upper bound is set on the gradient, preventing an exploding gradient. However, the idea behind the SELU activation function is precisely to prevent vanishing and exploding gradients, thus it doesn't seam reasonable to employ additional techniques to prevent exploding gradients.
+The cross entropy on the training dataset spikes on occasion, this could explain some of the poor learning behavior. Such an issue is typically solved with gradient clipping, where a hard upper bound is set on the gradient, preventing an exploding gradient. However, the idea behind the SELU activation function is specifically to prevent vanishing and exploding gradients, thus it doesn't seam reasonable to employ additional techniques to prevent exploding gradients.
 
 Another possibility is that the Adam optimization parameters need to be much different when the SELU activation function is used. However, the Adam optimizer acts under most conditions as a trust-region, thus the parameters shouldn't affect the output too much \cite{adam-optimization}.
 
-It is possible that with enough tuning SELU could be made functional, in which case SELU ByteNet would be a very powerful model. However, the behaviour of SELU and why it theoretically and sometime in practice works, is not obvious. The proof for the convergence properties of SELU alone, is 90+ pages \cite{selu}. This makes the SELU activation function hard to reason about, and thus it is hard to make educated guesses about how to tune the model.
+It is possible that with enough tuning SELU could be made functional, in which case SELU ByteNet would be a very powerful model. However, understanding the behavior of SELU is not easy. The proof for the convergence properties of SELU alone is 90+ pages \cite{selu}. This makes the SELU activation function hard to reason about, thus it is hard to make educated guesses about how to tune the model.
 
-Finally, it is possible that the sparse nature of ReLU is essential for creating a natural language model, where sparse pattern often occur. It is thus possible that the SELU activation function will never work.
+Finally, it is possible that the sparse nature of ReLU is essential for creating a natural language model, where sparse patterns often occur. It is thus possible that the SELU activation function will never work for natural language translation.
