@@ -10,8 +10,6 @@
     \caption{Shows time spend on each operation, when the operation was executed, and on what GPU/CPU it was executed. The color coding indicates the operation type, there are more than a 100 different operation types, most are specific to TensorFlow, thus the legend is not included.}
 \end{figure}
 
-\todo[inline]{Explain that there is some waiting time, because the lines are very thin.}
-
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{bytenet/profile-grouped-gpu1.pdf}
@@ -47,18 +45,18 @@
 \clearpage
 
 
-\subsection{WMT NewsTest profiling using one GPU}
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=\textwidth]{bytenet-small/profile-raw-gpu1.png}
-    \caption{Shows time spend on each operation, when the operation was executed, and on what GPU/CPU it was executed. The color coding indicates the operation type, there are more than a 100 different operation types, most are specific to TensorFlow, thus the legend is not included.}
-\end{figure}
+%\subsection{WMT NewsTest profiling using one GPU}
+%\begin{figure}[h]
+%    \centering
+%    \includegraphics[width=\textwidth]{bytenet-small/profile-raw-gpu1.png}
+%    \caption{Shows time spend on each operation, when the operation was executed, and on what GPU/CPU it was executed. The color coding indicates the operation type, there are more than a 100 different operation types, most are specific to TensorFlow, thus the legend is not included.}
+%\end{figure}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[scale=1]{bytenet-small/profile-grouped-gpu1.pdf}
-    \caption{Shows time spend executing each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. Bottom level is the backward and forward pass. Second level is the encoder and decoder. Last level primarily splits the SELU ByteNet Residual Blocks.}
-\end{figure}
+%\begin{figure}[h]
+%    \centering
+%    \includegraphics[scale=1]{bytenet-small/profile-grouped-gpu1.pdf}
+%    \caption{Shows time spend executing each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. Bottom level is the backward and forward pass. Second level is the encoder and decoder. Last level primarily splits the SELU ByteNet Residual Blocks.}
+%\end{figure}
 
 \clearpage
 

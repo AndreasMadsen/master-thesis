@@ -3,7 +3,7 @@
 \section{Softmax}
 \label{appendix:backward-pass:softmax}
 
-The forward pass for the softmax and the cross entropy loss is given by:
+The forward pass for the softmax and the cross entropy loss function, is given by:
 
 \begin{equationbox}[H]
 \begin{equation*}
@@ -21,13 +21,13 @@ The last delta ($\delta_{h_{L+1}}$) is what should be derived:
 \label{appendix:backprop:softmax:bprop-delta-last}
 \end{equation}
 
-The first derivative $\frac{\partial \mathcal{L}}{\partial y_{k'}}$ is derived from the cross entropy equation:
+The first derivative $\frac{\partial \mathcal{L}}{\partial y_{k'}}$, is derived from the cross entropy equation:
 \begin{equation}
 \frac{\partial \mathcal{L}}{\partial y_{k'}} = \frac{\partial}{\partial y_{k'}} \left(- \sum_{k''=1}^K t_{k''} \ln(y_{k''})\right) = -\frac{t_{k'}}{y_{k'}}
 \label{appendix:backprop:softmax:bprop-Ldy}
 \end{equation}
 
-The other derivative $\frac{\partial y_{k'}}{\partial z_k}$ can be derived from the softmax function:
+The other derivative $\frac{\partial y_{k'}}{\partial z_k}$, can be derived from the softmax function:
 \begin{equation}
 \begin{aligned}
 \frac{\partial y_{k'}}{\partial z_k}
@@ -39,7 +39,7 @@ The other derivative $\frac{\partial y_{k'}}{\partial z_k}$ can be derived from 
 \end{aligned}
 \end{equation}
 
-Because of the difference in index, the first term is only not zero when $k = k'$, in which case $y_k$ is the derivative. It thus becomes useful to define:
+Because of the difference in index, the first term is only non-zero when $k = k'$, in which case $y_k$ is the derivative. It thus becomes useful to define:
 \begin{equation}
 \delta_{i,j} = \begin{cases}1& \text{when } i = j \\ 0 & \text{otherwise}\end{cases}
 \end{equation}
@@ -61,6 +61,7 @@ The result from \eqref{appendix:backprop:softmax:bprop-Ldy} and \eqref{appendix:
 
 To get $\sum_{k'=1}^K t_{k'} = 1$ it's used that $\{ t_{k'} \}_{k'=1}^K$ is the target distribution and thus must sum to 1.
 
+\clearpage
 \section{Dilated Convolution}
 \label{appendix:backward-pass:dilated-convolution}
 
@@ -71,6 +72,8 @@ z_{h_\ell}(t) &= (a_{\ell-1} *_r w_{:, h_\ell})(t) = \sum_{h_{\ell-1}}^{H_{\ell-
 a_{h_\ell}(t) &= \theta(z_{h_\ell}(t))
 \end{aligned}
 \end{equation*}
+
+\clearpage
 \caption{Forward equations for Dilated Convolution.}
 \end{equationbox}
 
@@ -127,7 +130,7 @@ This is the derivative for the dilated convolution. Because the derivative is a 
 \section{Batch Normalization}
 \label{appendix:backward-pass:batch-norm}
 
-To derive the backward pass for batch normalization it helps to setup equations for $\mathbb{E}[z_{h_\ell}]$ and $\textsc{Var}[z_{h_\ell}]$. To do this we need to reintroduce the observation index this time it will be denoted with the superscript $(i)$. Similarly, the mini-batch will be denoted with $\mathcal{B}$. With these changes the full forward pass can be written as:
+To derive the backward pass for batch normalization, it helps to setup equations for $\mathbb{E}[z_{h_\ell}]$ and $\textsc{Var}[z_{h_\ell}]$. To do this we need to reintroduce the observation index, this time it will be denoted with the superscript $(i)$. Similarly, the mini-batch will be denoted with $\mathcal{B}$. With these changes the full forward pass can be written as:
 \begin{equationbox}[H]
 Activation:
 \begin{equation*}
@@ -194,13 +197,14 @@ Finally, the gradient with respect to $\gamma_{h_\ell}$ and $\beta_{h_\ell}$ can
 \frac{\partial \mathcal{L}}{\partial \beta_{h_\ell}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}} \frac{\partial \hat{z}_{h_\ell}^{(i)}}{\partial \beta_{h_\ell}} = \sum_{i=1}^n \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}}
 \end{equation}
 
-These only depend on $\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}}$ which has already been derived.
+These only depend on $\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}^{(i)}}$, which have already been derived.
 
 \clearpage
 \section{Layer Normalization}
 
 Let's repeat the forward pass:
 \begin{equationbox}[H]
+Activation:
 \begin{equation*}
 \begin{aligned}
 z_{h_\ell} &= \sum_{h_{\ell-1}}^{H_{\ell-1}} w_{h_{\ell-1},h_\ell} a_{h_\ell-1} \\
@@ -218,7 +222,7 @@ Statistics:
 \caption{Forward equations for Layer Normalization.}
 \end{equationbox}
 
-For the backward pass we which to derive:
+For the backward pass the following should be derived:
 \begin{equation}
 \frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}},\quad \frac{\partial \mathcal{L}}{\partial \gamma_{h_\ell}},\quad \frac{\partial \mathcal{L}}{\partial \beta_{h_\ell}}
 \end{equation}
@@ -229,7 +233,7 @@ The gradient with respect to the weight $w_{h_{\ell-1},h_\ell}$ is the same:
 \frac{\partial \mathcal{L}}{\partial w_{h_{\ell-1},h_\ell}} = \frac{\partial \mathcal{L}}{\partial z_{h_\ell}} \frac{\partial z_{h_\ell}}{\partial w_{h_{\ell-1},h_\ell}} = \delta_{h_\ell} a_{h_{\ell-1}}
 \end{equation}
 
-Like in Batch Normalization $\delta_{h_\ell}$ has changed quite significantly:
+Like in batch normalization, $\delta_{h_\ell}$ has changed quite significantly:
 
 \begin{equation}
 \begin{aligned}
@@ -270,12 +274,16 @@ Finally, the gradient with respect to $\gamma_{h_\ell}$ and $\beta_{h_\ell}$ can
 \frac{\partial \mathcal{L}}{\partial \beta_{h_\ell}} = \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}} \frac{\partial \hat{z}_{h_\ell}}{\partial \beta_{h_\ell}} = \frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}}
 \end{equation}
 
-These only depend on $\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}}$ which has already been derived.
+These only depend on $\frac{\partial \mathcal{L}}{\partial \hat{z}_{h_\ell}}$ which have already been derived.
 
+\clearpage
 \section{Semi-Supervised Marginalization}
 \label{appendix:backward-pass:semi-sum}
 
+Recall the partial loss function:
+
 \begin{equationbox}[H]
+Loss function:
 \begin{equation*}
 \mathcal{L} = -\log(P(\mathbf{y}'|\mathbf{y}, \overrightarrow{\boldsymbol\theta}, \overleftarrow{\boldsymbol\theta}))
 \end{equation*}
@@ -286,7 +294,7 @@ P(\mathbf{y}'|\mathbf{y}, \overrightarrow{\boldsymbol\theta}, \overleftarrow{\bo
 \caption{Loss function for the semi-supervised model.}
 \end{equationbox}
 
-To optimize the loss the gradient with respect to $\overrightarrow{\boldsymbol\theta}$ is calculated. The gradient with respect to $\overleftarrow{\boldsymbol\theta}$ is also needed, but that is symmetrically similar to the $\overrightarrow{\boldsymbol\theta}$ gradient.
+To optimize the loss, the gradient with respect to $\overrightarrow{\boldsymbol\theta}$ is calculated. The gradient with respect to $\overleftarrow{\boldsymbol\theta}$ is also needed, but that is symmetrically similar to the $\overrightarrow{\boldsymbol\theta}$ gradient.
 \begin{equation}
 \frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} \mathcal{L} = \frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} -\log(P(\mathbf{y}'|\mathbf{y}, \overrightarrow{\boldsymbol\theta}, \overleftarrow{\boldsymbol\theta}))
 \end{equation}
@@ -300,9 +308,9 @@ Start out by differentiating the $\log(\cdot)$ function and insert the expressio
 \end{aligned}
 \end{equation}
 
-The identity $\frac{\partial f({\boldsymbol\theta})}{\partial {\boldsymbol\theta}} = f({\boldsymbol\theta}) \frac{\partial \log(f({\boldsymbol\theta}))}{\partial {\boldsymbol\theta}}$ is then applied.
+The identity $\frac{\partial f({\boldsymbol\theta})}{\partial {\boldsymbol\theta}} = f({\boldsymbol\theta}) \frac{\partial \log(f({\boldsymbol\theta}))}{\partial {\boldsymbol\theta}}$ \cite{deeplearning} is then applied.
 \begin{equation}
 \frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} -\log(P(\mathbf{y}'|\mathbf{y}, \overrightarrow{\boldsymbol\theta}, \overleftarrow{\boldsymbol\theta})) = - \frac{\sum_{\mathbf{x}} P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta}) P(\mathbf{x}|\mathbf{y}, \overleftarrow{\boldsymbol\theta}) \frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} \log(P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta})) }{\sum_{\mathbf{x}} P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta}) P(\mathbf{x}|\mathbf{y}, \overleftarrow{\boldsymbol\theta})}
 \end{equation}
 
-Calculating $\frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} \log(P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta}))$ is more numerically stable than calculating $\frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta})$ directly. Furthermore, since $P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta})$ already has to be calculated there is also no loss in performance.
+Calculating $\frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} \log(P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta}))$ is more numerically stable than calculating $\frac{\partial}{\partial \overrightarrow{\boldsymbol\theta}} P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta})$ directly. Furthermore, since $P(\mathbf{y}'|\mathbf{x}, \overrightarrow{\boldsymbol\theta})$ already has to be calculated there is no loss in performance.
