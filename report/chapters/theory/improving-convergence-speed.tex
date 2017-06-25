@@ -26,7 +26,7 @@ The \textit{internal covariate shift} issue can be illustrated by considering a 
 	\label{fig:convergence:batch-norm:activation-distribution}
 \end{figure}
 
-While this issue isn't as theoretically significant for other activation functions, such as the ReLU activation function, it does often still have pratical effects, particularly for deep neural networks.
+While this issue isn't as theoretically significant for other activation functions, such as the ReLU activation function, it does often still have practical effects, particularly for deep neural networks.
 
 \subsubsection{A solution}
 The \textit{internal covariate shift} issue can in practice be solved by using a small learning rate. However, this is not an optimal solution as it prolongs the optimization. Batch normalization is an alternative solution, that solves the issue by standardizing the input to the activation function. To truly standardize the input, the covariance matrix as well as its inverse square root, should be calculated. These calculations are very expensive, thus batch normalization makes a practical compromise by only standardizing using the variance. Figure \ref{fig:convergence:batch-norm:activation-distribution-normed} shows the sigmoid distribution after standardization.

@@ -160,7 +160,7 @@ Because $w_{h_{\ell-1}, h_{\ell}}$ has zero mean this can be rewritten as:
 \end{aligned}
 \end{equation}
 
-If additionally $w_{h_{\ell-1}, h_{\ell}}$ is chosen to be symmetric around zero, then half of the $z_{h_\ell}$ values will be truncated in the ReLU activation, thus the variance is halfed. This means that $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_\ell}]$.
+If additionally $w_{h_{\ell-1}, h_{\ell}}$ is chosen to be symmetric around zero, then half of the $z_{h_\ell}$ values will be truncated in the ReLU activation, thus the variance is halved. This means that $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_\ell}]$.
 \begin{equation}
 \begin{aligned}
 \mathrm{Var}[a_{h_\ell}] &= \mathrm{Var}[\theta(z_{h_\ell})] = \frac{1}{2}\mathrm{Var}[z_{h_\ell}] \\

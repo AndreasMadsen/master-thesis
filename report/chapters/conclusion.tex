@@ -27,7 +27,7 @@ From a computational perspective, SELU ByteNet is promising, however as is, it i
 
 With the computational demands of ByteNet in mind, the semi-supervised ByteNet model was used on a synthetic problem. This problem maps spelled-out digits to digit symbols, for example, ``one zero four'' is translated to ``104''. On this problem, the semi-supervised ByteNet model showed improvement over both the supervised ByteNet model and an attention-based baseline model.
 
-This validates the results from the original paper \cite{semi-supervised}, where the BELU score could be improved by $1.5$ up to $3.5$. While such an improvement doesn't completely solve all issues, when training on language-pairs where the bilingual dataset is small, it could be an important component when the bilingual data isn't plentiful but the monolingual data is.
+This validates the results from the original paper \cite{semi-supervised}, where the BLEU score could be improved by $1.5$ up to $3.5$. While such an improvement doesn't completely solve all issues, when training on language-pairs where the bilingual dataset is small, it could be an important component when the bilingual data isn't plentiful but the monolingual data is.
 
 % While the semi-supervised model is not mathematically interesting, it is a pragmatic approach that works well with models that have fast/linear-time inference, such as ByteNet. However the ByteNet model is too slow for it to be relevant.
 
