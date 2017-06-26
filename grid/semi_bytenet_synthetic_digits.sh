@@ -6,7 +6,10 @@ do
   do
     for FACTOR in 0.2 0.1 0.01
     do
-      TRAIN_SIZE=$TRAIN SEMI_SIZE=$SEMI SEMI_FACTOR=$FACTOR bsub < jobs/semi_bytenet_synthetic_digits.sh
+      for ITERATION in 1 2 3 4 5
+      do
+        TRAIN_SIZE=$TRAIN SEMI_SIZE=$SEMI SEMI_FACTOR=$FACTOR ITERATION=$ITERATION bsub < jobs/semi_bytenet_synthetic_digits.sh
+      done
     done
   done
 done
