@@ -37,9 +37,9 @@ The activation function is a variation on the exponential-linear-unit (ELU), whi
 
 The initialization should then be done such that $\mathbb{E}[z_{h_\ell}] = 0$ and $\mathrm{Car}[z_{h_\ell}] = 1$. This is achieved by initializing the weights such that:
 \begin{equation}
-\mathrm{Var}[w_{h_{\ell-1}, h_{\ell}}] = \frac{1}{H_{\ell-1}} \quad \Rightarrow \quad r = \sqrt{\frac{3}{H_{\ell-1}}}
+\mathrm{Var}[w_{h_{\ell-1}, h_{\ell}}] = \frac{1}{\mathrm{fan}_{\ell, in}} \quad \Rightarrow \quad r = \sqrt{\frac{3}{\mathrm{fan}_{\ell, in}}}
 \end{equation}
-where $r$ is the symmetric uniform distribution parameter, similar to that used in He-Initialization.
+where $r$ is the symmetric uniform distribution parameter, similar to that used in He-Initialization. $\mathrm{fan}_{\ell, in}$ is $H_{\ell-1} k$ because the weights are used in convolutional layers.
 
 Using the SELU activation function and its derived initializer, the convergence for the ``Memorizing WMT NewsTest'' experiment is somewhat similar to the normal ByteNet case (figure \ref{fig:result:selu-bytenet:bytenet-selu-wmt}). However, there are some significant differences. The initial cross entropy loss is much higher in the SELU ByteNet case, this indicates that the derived initializer isn't the optimal choice. Secondly, the training BLEU score shows almost no improvement initially, then after 75 epochs it improves very fast. These two observations are likely connected, if the initialization is bad it will take a long time for the network to reach a similar state as the normal ByteNet model does initially. If this is true, and if it's possible to initialize the SELU ByteNet model better, the SELU ByteNet model may converge in much fewer iterations that the normal ByteNet model.
 
