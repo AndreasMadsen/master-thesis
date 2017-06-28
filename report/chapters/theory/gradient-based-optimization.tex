@@ -142,9 +142,9 @@ Since the values of input are unknown and the weights are to be initialized rand
 \end{aligned}
 \end{equation}
 
-It turns out that to get a good initialization it is also necessary to keep a constant variance for all layers \cite{glorot-initialization, he-initialization}. To do this correctly it is necessary to know the activation function. An often used approach is the Glorot initialization \cite{glorot-initialization}, however this assumes the activation function is linear around $z_{h_\ell} = 0$ which is not the case for ReLU ($max(0, z_{h_{\ell}})$. He initialization has later been derived specifically for the ReLU activation function \cite{he-initialization}.
+It turns out that to get a good initialization it is also necessary to keep a constant variance for all layers \cite{glorot-initialization, he-initialization}. To do this correctly it is necessary to know the activation function. An often used approach is the Glorot initialization \cite{glorot-initialization}, however this assumes the activation function is linear around $z_{h_\ell} = 0$ which is not the case for ReLU ($max(0, z_{h_{\ell}})$). He initialization has later been derived specifically for the ReLU activation function \cite{he-initialization}.
 
-The variance for the forward pass is calculated:
+The variance for the forward pass is:
 \begin{equation}
 \mathrm{Var}[z_{h_\ell}] = H_{\ell-1} \mathrm{Var}[w_{h_{\ell-1}, h_{\ell}} a_{h_{\ell-1}}]
 \end{equation}
@@ -160,15 +160,19 @@ Because $w_{h_{\ell-1}, h_{\ell}}$ has zero mean this can be rewritten as:
 \end{aligned}
 \end{equation}
 
-If additionally $w_{h_{\ell-1}, h_{\ell}}$ is chosen to be symmetric around zero, then half of the $z_{h_\ell}$ values will be truncated in the ReLU activation, thus the variance is halved. This means that $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_\ell}]$.
-\begin{equation}
+If additionally the $w_{h_{\ell-1}, h_{\ell}}$ distribution is chosen to be symmetric around zero, then $z_{h_\ell}$ will also be symmetric around zero, call this distribution $p(z_{h_\ell}) = p(-z_{h_\ell})$, then it can be derived that $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_\ell}]$.
+\begin{equation*}
 \begin{aligned}
-\mathrm{Var}[a_{h_\ell}] &= \mathrm{Var}[\theta(z_{h_\ell})] = \frac{1}{2}\mathrm{Var}[z_{h_\ell}] \\
-\mathrm{Var}[a_{h_\ell}] &= \mathbb{E}[a_{h_\ell}^2] -\mathbb{E}[a_{h_\ell}]^2 = \mathbb{E}[a_{h_\ell}^2]
+\mathbb{E}[a_{h_\ell}^2] &= \int_{-\infty}^\infty \max(0,z_{h_\ell})^2 p(z_{h_\ell}) \mathrm{d}z_{h_\ell}
+&&= \int_{-\infty}^0 0^2 p(z_{h_\ell}) \mathrm{d}z_{h_\ell}
+ + \int_{0}^\infty z_{h_\ell}^2 p(z_{h_\ell}) \mathrm{d}z_{h_\ell} \\
+&= \int_{0}^\infty z_{h_\ell}^2 p(z_{h_\ell}) \mathrm{d}z_{h_\ell}
+&&= \frac{1}{2} \int_{-\infty}^\infty z_{h_\ell}^2 p(z_{h_\ell}) \mathrm{d}z_{h_\ell} \\
+&= \frac{1}{2} \mathbb{E}[z_{h_\ell}^2] = \frac{1}{2} \left(\mathbb{E}[z_{h_\ell}^2] - \mathbb{E}[z_{h_\ell}]^2\right) &&= \frac{1}{2} \mathrm{Var}[z_{h_\ell}]
 \end{aligned}
-\end{equation}
+\end{equation*}
 
-Applying $\mathbb{E}[a_{h_\ell}^2] = \frac{1}{2} \mathrm{Var}[z_{h_\ell}]$ to $\mathrm{Var}[z_{h_\ell}]$ \todo{How can this be true?} yields:
+Applying $\mathbb{E}[a_{h_{\ell-1}}^2] = \frac{1}{2} \mathrm{Var}[z_{h_{\ell-1}}]$ to $\mathrm{Var}[z_{h_\ell}]$ yields:
 \begin{equation}
 \begin{aligned}
 \mathrm{Var}[z_{h_\ell}] &= H_{\ell-1} \mathrm{Var}[w_{h_{\ell-1}, h_{\ell}}] \frac{1}{2} \mathrm{Var}[z_{h_{\ell-1}}] \\
