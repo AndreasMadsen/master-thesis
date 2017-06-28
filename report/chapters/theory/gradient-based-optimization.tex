@@ -142,7 +142,7 @@ Since the values of input are unknown and the weights are to be initialized rand
 \end{aligned}
 \end{equation}
 
-It turns out that to get a good initialization it is also necessary to keep a constant variance for all layers \cite{glorot-initialization, he-initialization}. To do this correctly it is necessary to know the activation function. An often used approach is the Glorot initialization \cite{glorot-initialization}, however this assumes the activation function is linear around $z_{h_\ell} = 0$ which is not the case for ReLU ($max(0, z_{h_{\ell}})$). He initialization has later been derived specifically for the ReLU activation function \cite{he-initialization}.
+It turns out that to get a good initialization it is also necessary to keep a constant variance for all layers \cite{glorot-initialization, he-initialization}. To do this correctly it is necessary to know the activation function. An often used approach is the Glorot initialization \cite{glorot-initialization}. However, this assumes the activation function is linear around $z_{h_\ell} = 0$ which is not the case for ReLU ($max(0, z_{h_{\ell}})$). He initialization has later been derived specifically for the ReLU activation function \cite{he-initialization}.
 
 The variance for the forward pass is:
 \begin{equation}
@@ -199,4 +199,4 @@ Thus the uniform distribution parameter should be:
 r = \sqrt{\frac{6}{H_{\ell-1}}}
 \end{equation}
 
-Note, $H_{\ell-1}$ is only valid in some cases. In other cases such the number of weights used in the activation sum may be greater or less than $H_{\ell-1}$. In general, $\mathrm{fan}_{\ell, in}$ is used instead of $H_{\ell-1}$.
+Note, $H_{\ell-1}$ is only valid in some cases. In other cases, the number of weights used in the activation sum may be greater or less than $H_{\ell-1}$. In general, $\mathrm{fan}_{\ell, in}$ is used instead of $H_{\ell-1}$.
