@@ -40,7 +40,7 @@ To compare the computational performance of the simplified ByteNet model with th
 
 Measuring the total time spend, and the processed observations per second (figure \ref{fig:result:simple-bytenet:timing-gpus}) reveals that the simplified ByteNet model is faster. On 1 GPU the simplified ByteNet model is about $20\%$ faster.
 
-On 1 GPU there is no data transfer of weights, thus it is only the TensorFlow service and the computation that takes time. Reducing the number of operations to $\sfrac{1}{3}$ should thus result in a $\sfrac{2}{3}$ computational performance gain. This is of cause an approximation as there is still the embedding layer, the concatenation of encoding and decoding, and the final output layer, thus $\sfrac{2}{3}$ the operations is an upper bound. However, $20\%$ is still far from what one would expect.
+On 1 GPU there is no data transfer of weights, thus it is only the TensorFlow service and the computation that takes time. Reducing the number of operations to $\sfrac{1}{3}$ should thus result in a $\sfrac{2}{3}$ computational performance gain. This is of course an approximation as there is still the embedding layer, the concatenation of encoding and decoding, and the final output layer, thus $\sfrac{2}{3}$ the operations is an upper bound. However, $20\%$ is still far from what one would expect.
 
 Comparing the time spent in the 1 GPU experiment and the 4 GPU experiment, and because very little data transfer happens when using 1 GPU. The data shows that approximately $40\%$ time is spend transferring data. This is approximately the same as the $37\%$ in the normal ByteNet model. The number of weights is reduced by $\sfrac{5}{9}$, thus one would expect the transfer time to be reduced by this order, but this is not the case.
 
