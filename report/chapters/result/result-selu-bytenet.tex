@@ -61,7 +61,7 @@ Finally, the synthetic digits experiment using the SELU ByteNet model, shows sim
 \clearpage
 \subsection{Performance Profiling}
 
-Repeating the performance experiment, from both the normal ByteNet model and the simplified ByteNet model, shows that the SELU ByteNet model is extremely fast in comparison. Comparing the time spend running 300 epochs is actually a problem in this case, as the heating phase that transfers data and optimizes allocation takes up most of the time. However, comparing \textit{obs./sec} shows that the SELU model is at least twice as fast as the normal ByteNet model.
+Repeating the performance experiment, from both the normal ByteNet model and the simplified ByteNet model, shows that the SELU ByteNet model is extremely fast in comparison. Comparing the time spent running 300 epochs is actually a problem in this case, as the heating phase that transfers data and optimizes allocation takes up most of the time. However, comparing \textit{obs./sec} shows that the SELU model is at least twice as fast as the normal ByteNet model.
 
 \begin{figure}[h]
     \centering
@@ -72,12 +72,12 @@ Repeating the performance experiment, from both the normal ByteNet model and the
 
 The processed profiling in figure \ref{fig:result:selu-bytenet:profile-grouped} (the unprocessed plot is in appendix \ref{appendix:result:bytenet-selu}), shows that the convoluted dilation is the most expensive part. This is completely reasonable, as this is the operation that involves the largest amount of raw computation. However, TensorFlow actually has an inefficient implementation of the dilated convolution, because dilated convolution isn't supported directly by CuDNN v5.1. CuDNN stands for CUDA Deep Neural Network and is a library developed by Nvidia that contains efficient implementations of common operations used in neural networks. The next version of CuDNN supports dilated convolution, but TensorFlow does not yet use this implementation \cite{nvidia-cudnn}.
 
-Another interesting observation when looking at the processed profiling in figure \ref{fig:result:selu-bytenet:profile-grouped}, is the time spent in the ``\textit{pre-normalization}'' layer, which now just contains the SELU activation. Comparing \textit{pre-normalization} to the time spend in \textit{recover-dim}, which just contains a \textit{sequential-dense} layer, shows that the SELU activation uses an unreasonable amount of time. The SELU activation uses less raw computations than the \textit{sequential-dense} layer, and the SELU activation is purely an element-wise operation, thus it should be easy to parallelize. The reason for the poor performance is the before-mentioned naive execution of the computational graph by TensorFlow.
+Another interesting observation when looking at the processed profiling in figure \ref{fig:result:selu-bytenet:profile-grouped}, is the time spent in the ``\textit{pre-normalization}'' layer, which now just contains the SELU activation. Comparing \textit{pre-normalization} to the time spent in \textit{recover-dim}, which just contains a \textit{sequential-dense} layer, shows that the SELU activation uses an unreasonable amount of time. The SELU activation uses less raw computations than the \textit{sequential-dense} layer, and the SELU activation is purely an element-wise operation, thus it should be easy to parallelize. The reason for the poor performance is the before-mentioned naive execution of the computational graph by TensorFlow.
 
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{bytenet-selu/profile-grouped-gpu4.pdf}
-    \caption{Shows time spend executing each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. Bottom level is the backward and forward pass. Second level is the encoder and decoder. Last level primarily splits the SELU ByteNet Residual Blocks.}
+    \caption{Shows time spent executing each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. Bottom level is the backward and forward pass. Second level is the encoder and decoder. Last level primarily splits the SELU ByteNet Residual Blocks.}
     \label{fig:result:selu-bytenet:profile-grouped}
 \end{figure}
 

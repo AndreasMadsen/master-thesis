@@ -38,16 +38,16 @@ To compare the computational performance of the simplified ByteNet model with th
     \label{fig:result:simple-bytenet:timing-gpus}
 \end{figure}
 
-Measuring the total time spend, and the processed observations per second (figure \ref{fig:result:simple-bytenet:timing-gpus}) reveals that the simplified ByteNet model is faster. On 1 GPU the simplified ByteNet model is about $20\%$ faster.
+Measuring the total time spent, and the processed observations per second (figure \ref{fig:result:simple-bytenet:timing-gpus}) reveals that the simplified ByteNet model is faster. On 1 GPU the simplified ByteNet model is about $20\%$ faster.
 
 On 1 GPU there is no data transfer of weights, thus it is only the TensorFlow service and the computation that takes time. Reducing the number of operations to $\sfrac{1}{3}$ should thus result in a $\sfrac{2}{3}$ computational performance gain. This is of course an approximation as there is still the embedding layer, the concatenation of encoding and decoding, and the final output layer, thus $\sfrac{2}{3}$ the operations is an upper bound. However, $20\%$ is still far from what one would expect.
 
-Comparing the time spent in the 1 GPU experiment and the 4 GPU experiment, and because very little data transfer happens when using 1 GPU. The data shows that approximately $40\%$ time is spend transferring data. This is approximately the same as the $37\%$ in the normal ByteNet model. The number of weights is reduced by $\sfrac{5}{9}$, thus one would expect the transfer time to be reduced by this order, but this is not the case.
+Comparing the time spent in the 1 GPU experiment and the 4 GPU experiment, and because very little data transfer happens when using 1 GPU. The data shows that approximately $40\%$ time is spent transferring data. This is approximately the same as the $37\%$ in the normal ByteNet model. The number of weights is reduced by $\sfrac{5}{9}$, thus one would expect the transfer time to be reduced by this order, but this is not the case.
 
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{bytenet-small/profile-grouped-gpu4.pdf}
-    \caption{Shows time spend executing each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. Bottom level is the backward and forward pass. Second level is the encoder and decoder. Last level primarily splits the simplified ByteNet Residual Blocks.}
+    \caption{Shows time spent executing each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. Bottom level is the backward and forward pass. Second level is the encoder and decoder. Last level primarily splits the simplified ByteNet Residual Blocks.}
     \label{fig:result:simple-bytenet:profile-grouped}
 \end{figure}
 
@@ -67,7 +67,7 @@ The Europarl v7 dataset is used to train the simplified ByteNet model. The setup
     \label{fig:result:bytenet-small:europarl}
 \end{figure}
 
-The simplified ByteNet model uses almost 24 hours less training time. However, it also learns at a slower rate, thus in terms of BLUE score given the time spend learning, the normal ByteNet model is actually much faster.
+The simplified ByteNet model uses almost 24 hours less training time. However, it also learns at a slower rate, thus in terms of BLUE score given the time spent learning, the normal ByteNet model is actually much faster.
 
 An interesting observation is that the simplified ByteNet model overfits a lot more than the normal ByteNet model. This contradicts most intuition about overfitting, which usually is that more weights, layers, and non-linearities there is, the easier it is to make the model overfit. The simplified ByteNet model has less of all three factors, thus there is no reason to expect the simplified ByteNet model to overfit more.
 

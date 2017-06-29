@@ -16,7 +16,7 @@ The ByteNet model is optimized using the Adam optimizer with a learning rate of 
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{bytenet/validation-synthetic-digits.pdf}
-    \caption{Shows misclassification rate and the cross entropy loss. For comparison a the attention model has a misclassification rate of 0.51. The exponential moving average uses a forget factor of $0.1$.}
+    \caption{Shows misclassification rate and the cross entropy loss. For comparison an attention model has a misclassification rate of 0.51. The exponential moving average uses a forget factor of $0.1$.}
     \label{fig:result:bytenet:digits}
 \end{figure}
 
@@ -93,13 +93,13 @@ The model ran 120 epochs over the training dataset, with a mini batch size of ${
 
 Ensuring that the optimization converges was the primary purpose of this experiment. Figure \ref{fig:result:bytenet:wmt} shows that the parameter optimization does like in the synthetic digits problem, appear to converge just fine. Initially, there is some jitter in the cross entropy training loss, but this subsides after awhile.
 
-The jitter frequency is higher, in the beginning, this is just because TensorFlow samples values at fixed time intervals. Initially, there are some allocations and data transfers that causes the model to run slower, thus as a side effect TensorFlow samples more frequently in this period. 
+In the beginning, the jitter frequency is higher this is just because TensorFlow samples values at fixed time intervals. Initially, there are some allocations and data transfers that causes the model to run slower, thus as a side effect TensorFlow samples more frequently in this period. 
 
-As said the test loss is not very interesting, as there is isn't enough training data to expect the model to produce meaningful results. The cross entropy on the test dataset does also show an increase after the initial decrease, which indicates some overfitting. Again, this is to be expected given the small training dataset.
+As said the test loss is not very interesting, as there isn't enough training data to expect the model to produce meaningful results. The cross entropy on the test dataset does also show an increase after the initial decrease, which indicates some overfitting. Again, this is to be expected given the small training dataset.
 
 More interesting is the correlation between the training cross entropy and the training BLEU score. Initially, the cross entropy decreases a lot, but the BLEU score stays at 0. It is first when the cross entropy nears 0, that the BLEU score begins to improve. This observation is quite important as it indicates that cross entropy isn't a perfect loss measure for the translation problem. This is because the cross entropy can be quite low if it just gets the majority of the characters almost correct, but the position must be correct. The BLEU score, on the other hand, demands that the words matches exactly, but is looser regarding the position. For example, in table \ref{table:result:bytenet:wmt-train} the target is ``large'' but the prediction is ``lerge''. This is very close in terms of cross entropy but is completely wrong in terms of the BLEU score, since the words don't match. Nevertheless, the cross entropy loss is useful because its gradient in combination with softmax is easily computable, and the BLEU score does become very high in the end, even though the correlation between cross entropy and the BLEU score is weak.
 
-The training BLEU score is actually extremely good, it shows almost a perfect translation. Typically translation models only show a BLEU score between 15 and 25 on a test set. This is not necessarily because the translation is wrong, but because there many different ways of translating a text correctly. The BLEU score does actually support multiple target sequences, but this is rarely provided in the test dataset because of the labor demands for creating multiple translations.
+The training BLEU score is actually extremely good, it shows almost a perfect translation. Typically translation models only show a BLEU score between 15 and 25 on a test set. This is not necessarily because the translation is wrong but because there are many different ways of translating a sentence correctly. The BLEU score does actually support multiple target sequences, but this is rarely provided in the test dataset because of the labor demands for creating multiple translations.
 
 The only way the model can be this good is by primarily memorizing the output given the input. It is unlikely there is much understanding of the latent semantic meaning in the text. That being said, the predictions in table \ref{table:result:bytenet:wmt-test} shows that the model understands some grammar, such as which words comes before nouns. That being said, the second prediction example in table \ref{table:result:bytenet:wmt-test} contains a single quotation mark, which is not grammatically meaningful. 
 
@@ -203,13 +203,13 @@ The ByteNet model is rather slow. For ByteNet to reach a BLEU score of 23 as Goo
 \begin{figure}[h]
     \centering
     \includegraphics[width=\textwidth]{bytenet/profile-raw-gpu4.pdf}
-    \caption{Shows time spend on each operation, when the operation was executed, and on what GPU/CPU it was executed. The color coding indicates the operation type, there are more than a 100 different operation types, most are specific to TensorFlow, thus the legend is not included.}
+    \caption{Shows time spent on each operation, when the operation was executed, and on what GPU/CPU it was executed. The color coding indicates the operation type, there are more than a 100 different operation types, most are specific to TensorFlow, thus the legend is not included.}
     \label{fig:result:bytenet:profile-raw}
 \end{figure}
 
 To understand why the ByteNet model is so slow, TensorFlow was profiled while executing the computational graph. The setup is identical to the ``Memorizing WMT NewsTest'' setup running on 4 GPUs, and the profiling was done when evaluating the 4500th mini-batch. The 4500th mini-batch was chosen because the performance has reached its peak and stabilized.
 
-From figure \ref{fig:result:bytenet:profile-raw} it's seen that most of the time is not spend computing, but rather waiting for data to be transferred or just waiting for the TensorFlow service to queue a new task.
+From figure \ref{fig:result:bytenet:profile-raw} it's seen that most of the time is not spent computing, but rather waiting for data to be transferred or just waiting for the TensorFlow service to queue a new task.
 
 \begin{figure}[h]
     \centering
@@ -227,7 +227,7 @@ By processing the profiling dump file, such that the waiting time is removed fro
 \begin{figure}[h]
     \centering
     \includegraphics[scale=1]{bytenet/profile-grouped-gpu4.pdf}
-    \caption{Shows time spend executing each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. Bottom level is the backward and forward pass. Second level is the encoder and decoder. Last level primarily splits the ByteNet Residual Blocks.}
+    \caption{Shows time spent executing each part of the ByteNet model, this excludes the waiting time. Each part exists in a hierarchy, which is visualized as levels. Bottom level is the backward and forward pass. Second level is the encoder and decoder. Last level primarily splits the ByteNet Residual Blocks.}
     \label{fig:result:bytenet:profile-grouped}
 \end{figure}
 
