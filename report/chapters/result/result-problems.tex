@@ -22,7 +22,7 @@ Each year WMT holds a conference on machine translation, this works as a series 
 
 The WMT NewsTest is about 3000 sentences each year, this is not enough data to build a good translation model. To that end WMT provides additional datasets for training, most importantly is the Europarl v7 dataset. The Europarl dataset contains high-quality translations of various of documents from the European Parliament \cite{europarl}. While this dataset is a huge high-quality dataset it is also heavily biased. For example, some word-grams like ``The European Parliament'' appears much more often that in the NewsTest dataset.
 
-A few of the sequences in Europarl v7 are very long (3000+ characters), including these sequences causes out-of-memory issues on the GPU, thus only sequence pairs where both the source and target sentences are less than 500 characters long are included. This sequence length was chosen because no sentence in the WMT NewsTest dataset is longer than 500 characters.
+A few of the sentences in the Europarl v7 dataset are very long (3000+ characters), including these long sentences causes out-of-memory issues on the GPU, thus only sentence pairs where both the source and target sentences are less than 500 characters long are included. This sequence length was chosen because no sentence in the WMT NewsTest dataset is longer than 500 characters.
 
 After removing sentences that are too long, the Europarl v7 dataset contains 1,901,056 English-German sequence pairs.
 

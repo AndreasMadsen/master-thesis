@@ -15,7 +15,7 @@ Consider a neural network with just one hidden layer:
 \begin{equation}
 Z_{h_L} = Z_{h_2} = \sum_{h_1 = 1}^{H_1} w_{h_1, h_2} \theta\left(\sum_{h_0 = 1}^{H_0} w_{h_0, h_1} x_{h_0} + b_{h_1}\right) + b_{h_2}
 \end{equation}
-When optimizing the loss function, the parameters $w_{h_1, h_2}, w_{h_0, h_1}, b_{h_2}$, and $b_{h_1}$ are all optimized simultaneously. Furthermore, the optimization of $w_{h_1, h_2}, w_{h_0, h_1}$ does directly depend on $\theta(z_{h_1})$ though the error term. This becomes an issue when the distribution of $\theta(z_{h_1})$ changes, because the updated $w_{h_1, h_2}$, and $w_{h_0, h_1}$ assumes the original distribution. This change of the distribution of the internal activations is called an \textit{internal covariate shift}. \cite{batch-normalization}.
+When optimizing the loss function, the parameters $w_{h_1, h_2}, w_{h_0, h_1}, b_{h_2}$, and $b_{h_1}$ are all optimized simultaneously. Furthermore, the optimization of $w_{h_1, h_2}$, and $w_{h_0, h_1}$ does directly depend on $\theta(z_{h_1})$ through the error term. This becomes an issue when the distribution of $\theta(z_{h_1})$ changes, because the updated $w_{h_1, h_2}$, and $w_{h_0, h_1}$ assumes the original distribution. This change of the distribution of the internal activations is called an \textit{internal covariate shift}. \cite{batch-normalization}.
 
 The \textit{internal covariate shift} issue can be illustrated by considering a scalar $a = w x + b \sim \mathcal{N}(b, w)$, as it would appear in a very simple neural network, the sigmoid activation function is then applied on $\mathcal{N}(b, w)$ by using the \textit{change of variable theorem}. Using this one can change $w$ and $b$ and observe how the sigmoid activation distribution changes (Figure \ref{fig:convergence:batch-norm:activation-distribution}).
 
@@ -123,7 +123,7 @@ Similar to batch normalization, the $\hat{z}_{h_\ell}$ calculation can be simpli
 
 \subsubsection{Properties}
 
-Batch normalization and layer normalization have somewhat similar properties, as shown in Table \ref{table:convergence:layer-norm:properties}. \textit{Weight matrix re-centering invariance} is likely the most important property, as bad weight matrix initialization is often the cause of slow convergence. 
+Batch normalization and layer normalization have somewhat similar properties, as shown in Table \ref{table:convergence:layer-norm:properties}. \textit{Weight matrix re-scaling invariance} is likely the most important property, as bad weight matrix initialization is often the cause of slow convergence. 
 
 \begin{table}[H]
 \centering
@@ -162,7 +162,7 @@ In theory, if there are too many layers the network should optimize such that so
         \includegraphics[scale=1]{theory/convergence-residual-layer.pdf}
         \caption{Residual Dense-ReLU layer}
     \end{subfigure}
-    \caption{Comparison of traditional and residual Dense-ReLU layer}
+    \caption{Comparison of a traditional and a residual Dense-ReLU layer.}
 \end{figure}
 
 The idea is that getting $\mathcal{F}(\mathbf{x}) = 0$ is a lot easier to solve for, when compared to $\mathcal{H}(\mathbf{x}) = \mathbf{x}$. For both the ReLU and sigmoid transformation, $\mathcal{F}(\mathbf{x}) = 0$ can be obtained by moving the weights to some extreme, while $\mathcal{H}(\mathbf{x}) = \mathbf{x}$ is drastically more difficult, particularly for the sigmoid case. If the layer really needs a non-trivial $\mathcal{H}(\mathbf{x})$ function, the optimizer simply needs to find $\mathcal{H}(\mathbf{x}) - \mathbf{x}$, which should not be much more difficult.

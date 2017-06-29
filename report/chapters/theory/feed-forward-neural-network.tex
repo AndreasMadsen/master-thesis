@@ -65,7 +65,7 @@ y_k = \frac{\exp(z_k)}{\sum_{k'=1}^K \exp(z_{k'})}, && \forall k \in [1, K] \tex
 \label{eq:theory:ffnn:y}
 \end{equation}
 
-The $z_k$ values are feed to the softmax function are often called \textit{logits}, because they are unnormalized log probabilities ($\exp(z_k) \propto y_k$), this has some advantages. For example, if one wants the most likely label given $\mathbf{x}$ one can just find the largest $z_k$ and thus skip the softmax, which can otherwise be quite expensive to calculate.
+The $z_k$ values that are fed to the softmax function are often called \textit{logits}, because they are unnormalized log probabilities ($\exp(z_k) \propto y_k$), this has some advantages. For example, if one wants the most likely label given $\mathbf{x}$ one can just find the largest $z_k$ and thus skip the softmax, which can otherwise be quite expensive to calculate.
 
 \subsection{Loss function}
 
@@ -134,4 +134,4 @@ The last delta ($\delta_{h_{L+1}}$) is different but can still be calculated by 
 \label{eq:theory:ffnn:bprop-delta-last}
 \end{equation}
 
-Using \eqref{eq:theory:ffnn:bprop-delta-last} and \eqref{eq:theory:ffnn:bprop} all $\delta_{h_\ell}$ for $\ell \in [1, L+1]$ can be calculated for a feed forward neural network with $L$ hidden layers. Note in particular how \eqref{eq:theory:ffnn:bprop-delta-last} is an error measure and how this value is propagated back through the network by the $\delta_{h_\ell}$ equations in \eqref{eq:theory:ffnn:bprop}. This is why the method is called \textit{error backpropagation}.
+Using \eqref{eq:theory:ffnn:bprop-delta-last} and \eqref{eq:theory:ffnn:bprop}, all $\delta_{h_\ell}$ for $\ell \in [1, L+1]$ can be calculated for a feed forward neural network with $L$ hidden layers. Note in particular how \eqref{eq:theory:ffnn:bprop-delta-last} is an error measure and how this value is propagated back through the network by the $\delta_{h_\ell}$ equations in \eqref{eq:theory:ffnn:bprop}. This is why the method is called \textit{error backpropagation}.

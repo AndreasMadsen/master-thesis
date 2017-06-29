@@ -45,7 +45,7 @@ where $r$ is the symmetric uniform distribution parameter, similar to that used 
 
 Using the SELU activation function, as a replacement for the ReLU and normalization layers, and the derived initializer from the SELU activation function, the SELU ByteNet model is created. The ``Memorizing WMT NewsTest'' experiment is then repeated using the SELU ByteNet model. The experiment ran for 300 epochs.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[scale=1]{bytenet-selu/validation-memorize-wmt.pdf}
     \caption{Shows BLEU score and cross entropy loss for the German to English WMT NewsTest dataset using the SELU ByteNet. The exponential moving average used a forget factor of $0.1$.}

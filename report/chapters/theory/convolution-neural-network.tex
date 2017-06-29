@@ -75,7 +75,7 @@ Obviously converting the sparse kernel to a dense kernel with the Kronecker prod
 z(x, y) = (a *_r w)(x, y) = \sum_{i,\ j} a(x + r\, i, y + r\, j) w(i, j)
 \end{equation}
 
-While dilated convolution doesn't seem particularly useful as is, it becomes extremely powerful when multiple dilated convolution layers are stacked. For example, if the first layer has no dilation ($r = 1$) and a kernel size of $3 \times 3$, and the second layer has a dilation rate of 3 ($r = 3$) with same kernel size ($3 \times 3$), the visible area of the second layer becomes much larger. This idea is called ``hierarchical dilated convolution'' and is the driving concept in the ByteNet model, it will be discussed later in section \ref{sec:theory:bytenet:hierarchical-dilated-convolution}.
+While dilated convolution doesn't seem particularly useful, it becomes extremely powerful when multiple dilated convolution layers are stacked. For example, if the first layer has no dilation ($r = 1$) and a kernel size of $3 \times 3$, and the second layer has a dilation rate of 3 ($r = 3$) with same kernel size ($3 \times 3$), the visible area of the second layer becomes much larger. This idea is called ``hierarchical dilated convolution'' and is the driving concept in the ByteNet model, it will be discussed later in section \ref{sec:theory:bytenet:hierarchical-dilated-convolution}.
 
 1D dilated convolution with channels can be expressed as:
 \begin{equation}

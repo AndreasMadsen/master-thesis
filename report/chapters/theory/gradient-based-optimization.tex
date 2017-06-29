@@ -35,12 +35,12 @@ Beyond making the computation feasible this also has some advantages:
 \begin{itemize}
 \item Consider two datasets one with 256 observations and another with 16 observations. It will take 16 times more time to calculate the gradient using 256 observations than 16 observations. However, because of the square-root law, it only decreases the standard error by a factor of 4. It is thus likely to be more economical to perform 16 as many iterations, than being 4 times more accurate.
 
-\item It is typically easy to parallelize over observations. For a multi-parallel hardware like a GPU it is typically possible to parallelize over many observations without extra cost. For large networks, it is common to estimate the gradient approximately 16 observations.
+\item It is typically easy to parallelize over observations. For a multi-parallel hardware like a GPU it is typically possible to parallelize over many observations without extra cost. For large networks, it is common to estimate the gradient with approximately 16 observations.
 
 \item Sampling observations from a dataset adds noise to the gradients. This noise can have a regularizing effect on the training, causing less overfitting \cite{deep-learning}.
 \end{itemize}
 
-The stochastic part of \textit{minibatch stochastic gradient descent} comes from the fact that $\frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}$ is no longer the same in each iteration. Because the gradient is estimated from a new random sample of observations from the dataset, $\frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}$ is essentially samples from a random distribution. The changes the minimization problem from minimizing $\mathcal{L}$ to minimizing the expectation $\mathbb{E}[\mathcal{L}]$. Minibatch learning does not directly tackle this change of problem type, it just causes it. To correctly optimize a stochastic loss function more advanced optimization methods are needed.
+The stochastic part of \textit{minibatch stochastic gradient descent} comes from the fact that $\frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}$ is no longer the same in each iteration. Because the gradient is estimated from a new random sample of observations from the dataset, $\frac{\partial \mathcal{L}(\mathbf{w}_{t-1})}{\partial \mathbf{w}_{t-1}}$ is essentially samples from a random distribution. This changes the minimization problem from minimizing $\mathcal{L}$ to minimizing the expectation $\mathbb{E}[\mathcal{L}]$. Minibatch learning does not directly tackle this change of problem type, it just causes it. To correctly optimize a stochastic loss function more advanced optimization methods are needed.
 
 \subsection{Adam Optimization}
 
@@ -199,4 +199,4 @@ Thus the uniform distribution parameter should be:
 r = \sqrt{\frac{6}{H_{\ell-1}}}
 \end{equation}
 
-Note, $H_{\ell-1}$ is only valid in some cases. In other cases, the number of weights used in the activation sum may be greater or less than $H_{\ell-1}$. In general, $\mathrm{fan}_{\ell, in}$ is used instead of $H_{\ell-1}$.
+Note, $H_{\ell-1}$ is only valid in some cases. In other cases, the number of weights used in the activation sum may be greater or less than $H_{\ell-1}$. For generality, $\mathrm{fan}_{\ell, in}$ is used instead of $H_{\ell-1}$.

@@ -16,7 +16,7 @@ A mini-batch size of 16 observations per GPU is used. In some experiments, multi
 
 If a long sequence and a short sequence are used in the same mini-batch, the short sequence will be padded with a lot of zeros. Such padding is wasteful as the loss is masked. To prevent obsessive padding, each sequence pair is partitioned into a set of buckets, each bucket contains sequences of approximately the same length.
 
-The length of a sequence pair is defined as the max length of the two sequences. Each bucket is defined as a sequence-length interval. Only after the buckets are created are the observations assigned to a bucket.
+Each bucket is defined as a sequence-length interval, where the length of a sequence pair is defined as the max length of the two sequences. Only after the buckets are created are the observations assigned to a bucket.
 
 The partition algorithm first constructs a histogram using the length of each sequence pair. It then greedily partitions the histogram, ensuring that the number of observations in each bucket is more than $2 \cdot \text{batch-size}$, this is to ensure some randomness. It also ensures that the length interval for each bucket is at least 10 characters, this to prevent an unnecessary amount of buckets.
 
