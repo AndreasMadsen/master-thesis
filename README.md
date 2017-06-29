@@ -1,4 +1,5 @@
 # Master Thesis
+**Semi-Supervised Neural Machine Translation - _for small bilingual datasets_**
 
 _By: Andreas Madsen (June 2017)_
 
