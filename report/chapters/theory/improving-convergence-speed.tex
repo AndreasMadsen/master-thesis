@@ -98,7 +98,7 @@ Activation:
 \begin{aligned}
 z_{h_\ell} &= \sum_{h_{\ell-1}}^{H_{\ell-1}} w_{h_{\ell-1},h_\ell} a_{h_\ell-1} \\
 \hat{z}_{h_\ell} &= \gamma_{h_\ell} \frac{z_{h_\ell} - \mu_{\ell}}{\sqrt{\sigma_{\ell}^2 + \epsilon}} + \beta_{h_\ell} \\
-a_{h_\ell} &= \theta\left(z_{h_\ell}\right)
+a_{h_\ell} &= \theta\left(\hat{z}_{h_\ell}\right)
 \end{aligned}
 \end{equation*}
 Statistics:

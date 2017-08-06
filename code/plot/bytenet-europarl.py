@@ -76,4 +76,5 @@ p = p + theme(legend.position="bottom",
 ggsave(filepath, p, width=page.width, height=12, units="cm");
 """)
 
-gg.run(data, 'bytenet/europarl')
+gg.run(data, 'bytenet/europarl', file_format='pdf')
+gg.run(data, 'bytenet/europarl', file_format='png')

@@ -37,13 +37,13 @@ The activation function is a variation on the exponential-linear-unit (ELU), whi
 
 The parameters $\alpha$ and $\beta$, are derived from the assumption that the sum $z_{h_\ell}$ approximates a normal distribution. The SELU paper argues that these assumptions are true because of the Lyapunov central limit theorem (CLT). For the Lyapunov variant of CLT to be true, the stochastic variables $z_{h_\ell}, \forall h_\ell \in [1, H_\ell]$ must be independent and the $z_{h_\ell}$ sum must be over many $z_{h_{\ell-1}}$ stochastic variables. The latter is satisfied because the sum is over $H_{\ell-1} k = 2000$ values. However, the former assumption about independence is obviously not true. The SELU paper argues that this is only a weak assumption, as stochastic variables with weak dependencies will still converge to a normal distribution \cite{selu, weak-clt}. Even so, whether or not the weak dependency assumption is satisfied is of course problem and model dependent. The SELU paper shows a big improvement on the MNIST and CIFAR10 dataset using a CNN classifier, which should be considered to be a dataset and model with reasonably high dependencies \cite{selu}.
 
-The initialization should then be done such that $\mathbb{E}[z_{h_\ell}] = 0$ and $\mathrm{Car}[z_{h_\ell}] = 1$. This is achieved by initializing the weights such that:
+The initialization should then be done such that $\mathbb{E}[z_{h_\ell}] = 0$ and $\mathrm{Var}[z_{h_\ell}] = 1$. This is achieved by initializing the weights such that:
 \begin{equation}
 \mathrm{Var}[w_{h_{\ell-1}, h_{\ell}}] = \frac{1}{\mathrm{fan}_{\ell, in}} \quad \Rightarrow \quad r = \sqrt{\frac{3}{\mathrm{fan}_{\ell, in}}}
 \end{equation}
 where $r$ is the symmetric uniform distribution parameter, similar to that used in He-Initialization. $\mathrm{fan}_{\ell, in}$ is $H_{\ell-1} k$ because the weights are used in convolutional layers.
 
-Using the SELU activation function, as a replacement for the ReLU and normalization layers, and the derived initializer from the SELU activation function, the SELU ByteNet model is created. The ``Memorizing WMT NewsTest'' experiment is then repeated using the SELU ByteNet model. The experiment ran for 300 epochs.
+Using the SELU activation function, as a replacement for the ReLU and normalization layers, and the derived initializer from the SELU activation function, the SELU ByteNet model is created. The ``Memorizing WMT NewsTest'' experiment is then repeated using the SELU ByteNet model. The experiment ran for 150 epochs.
 
 \begin{figure}[H]
     \centering
@@ -52,7 +52,7 @@ Using the SELU activation function, as a replacement for the ReLU and normalizat
     \label{fig:result:selu-bytenet:bytenet-selu-wmt}
 \end{figure}
 
-The convergence for the ``Memorizing WMT NewsTest'' experiment using SELU ByteNet is somewhat similar to the normal ByteNet case (figure \ref{fig:result:selu-bytenet:bytenet-selu-wmt}). However, there are some significant differences. The initial cross entropy loss is much higher in the SELU ByteNet case, this indicates that the derived initializer isn't the optimal choice. Secondly, the training BLEU score shows almost no improvement initially, then after 75 epochs it improves very fast. These two observations are likely connected, if the initialization is bad it will take a long time for the network to reach a similar state as the normal ByteNet model does initially. If this is true, and if it's possible to initialize the SELU ByteNet model better, the SELU ByteNet model may converge in much fewer iterations that the normal ByteNet model.
+The convergence for the ``Memorizing WMT NewsTest'' experiment using SELU ByteNet is somewhat similar to the normal ByteNet case (figure \ref{fig:result:selu-bytenet:bytenet-selu-wmt}). However, there are some significant differences. The initial cross entropy loss is much higher in the SELU ByteNet case, this indicates that the derived initializer isn't the optimal choice. Secondly, the training BLEU score shows almost no improvement initially, then after 75 epochs it improves very fast. These two observations are likely connected, if the initialization is bad it will take a long time for the network to reach a similar state as the normal ByteNet model does initially. If this is true, and if it's possible to initialize the SELU ByteNet model better, the SELU ByteNet model may converge in much fewer iterations than the normal ByteNet model.
 
 Most importantly, the fact that the SELU ByteNet converges much faster than the non-normalized ByteNet model, indicates that the weak-dependency assumptions are sufficiently satisfied. If this was not the case, convergence similarly to that in the non-normalized ByteNet experiment should be expected.
 
